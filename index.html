@@ -437,13 +437,13 @@
   <div id="ammoRow">
     <div class="ammoBox">
       <div class="ammoIcon">🫧</div>
-      <div class="cooldownBar"><div class="cooldownFill" id="basicosCooldownFill"></div></div>
-      <div class="ammoNum" id="ammoBasicosNum">∞</div>
+      <div class="cooldownBar"><div class="cooldownFill" id="stdHeatFill"></div></div>
+      <div class="ammoNum" id="stdHeatLabel">STD</div>
     </div>
     <div class="ammoBox">
       <div class="ammoIcon">🧼</div>
-      <div class="cooldownBar"><div class="cooldownFill" id="misilesCooldownFill"></div></div>
-      <div class="ammoNum" id="ammoMisilesNum">∞</div>
+      <div class="cooldownBar"><div class="cooldownFill" id="advHeatFill"></div></div>
+      <div class="ammoNum" id="advHeatLabel">ADV</div>
     </div>
   </div>
 
@@ -735,8 +735,8 @@ const GEAR_CONFIGS = {
   rayo: {
     name: 'Rayo', role: 'Caza Veloz', icon: '⚡',
     desc: 'El más rápido del campo de batalla.',
-    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 8, reattackTime: 0.6, overheatTime: 15, accuracy: 65 },
-               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, reattackTime: 0.55, overheatTime: 24, accuracy: 85 } },
+    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 8, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
+               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
     skills: [
       { name: 'Frenzy', level: 5, spCost: 15, cooldown: 20, duration: 15, desc: '+50% daño de Vulcan por 15s' },
@@ -749,8 +749,8 @@ const GEAR_CONFIGS = {
   muro: {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal.',
-    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, reattackTime: 0.45, overheatTime: 28, accuracy: 75 },
-               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, reattackTime: 0.43, overheatTime: 28, accuracy: 95 } },
+    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 75, pierce: true },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 65, boostMaxSpeed: 160, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
     skills: [
       { name: 'Siege Mode', level: 5, spCost: 20, cooldown: 30, duration: 10, desc: 'Torreta fija, +200% daño, inmóvil' },
@@ -763,8 +763,8 @@ const GEAR_CONFIGS = {
   trueno: {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo.',
-    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, reattackTime: 0.5, overheatTime: 11, accuracy: 80 },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, reattackTime: 1.2, overheatTime: 18, accuracy: 70 } },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
     stats: { maxSpeed: 85, boostMaxSpeed: 220, accel: 38, boostAccel: 70, defense: 5, evasion: 4, shield: 5, hp: 6 },
     skills: [
       { name: 'Ground Bombing', level: 5, spCost: 20, cooldown: 25, duration: 0, desc: 'Bombardeo circular en el suelo, daña a todos en un radio' },
@@ -777,8 +777,8 @@ const GEAR_CONFIGS = {
   viento: {
     name: 'Viento', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo.',
-    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, reattackTime: 0.55, overheatTime: 24, accuracy: 85 },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, reattackTime: 1.9, overheatTime: 16, accuracy: 80 } },
+    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
     stats: { maxSpeed: 80, boostMaxSpeed: 200, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
     skills: [
       { name: 'Healing Field', level: 5, spCost: 15, cooldown: 30, duration: 15, desc: 'Aura que regenera 1 vida cada 3s' },
@@ -3082,10 +3082,9 @@ function buildBoatBoss() {
 const enemies = [];
 const ENEMIES_PER_WAVE = 6;
 
-// Daño real de cada arma (antes básico=1, misil=2 → mataban en un par de tiros, muy poco interesante)
-const BUBBLE_DAMAGE = 10;
-const MISSILE_DAMAGE = 30;
-const SPECIAL_DAMAGE = 999999; // el arma especial siempre mata de un golpe, sea cual sea el HP
+// Daño base por arma (ahora viene de GEAR_CONFIGS[selectedGear].weapons)
+const SPECIAL_DAMAGE = 999999; // el arma especial siempre mata de un golpe
+let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube con nivel)
 
 // Vida de los ositos según dificultad: calibrada para que el básico mate en pocos golpes
 // (normal = 3 golpes de básico, o 1 misil), no en decenas como antes.
@@ -3206,14 +3205,38 @@ function makeBubbleTexture() {
 const bubbleTexture = makeBubbleTexture();
 const projMat = new THREE.SpriteMaterial({ map: bubbleTexture, transparent: true, depthWrite: false });
 function fireProjectile() {
-  if (ammoBasicos <= 0) return;
-  if (ammoBasicos !== Infinity) ammoBasicos--;
-  const mesh = new THREE.Sprite(projMat);
-  mesh.scale.set(1.3, 1.3, 1);
-  const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-  mesh.position.copy(ship.position).addScaledVector(forward, 3);
-  scene.add(mesh);
-  projectiles.push({ mesh, velocity: forward.clone().multiplyScalar(200), life: BUBBLE_MAX_RANGE / 200 });
+  if (stdOverheated || stdFireCooldown > 0) return;
+  const weapon = getStdWeapon();
+  if (!weapon) return;
+  stdHeat += HEAT_PER_SHOT_STD;
+  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime || 0.14);
+  if (stdHeat >= 100) {
+    stdHeat = 100;
+    stdOverheated = true;
+    stdOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
+  }
+  // Fire pattern
+  const pattern = weapon.pattern || [1, 1];
+  const bullets = firePatternBullets(pattern);
+  const baseDamage = weapon.baseDamage;
+  for (let i = 0; i < bullets.length; i++) {
+    setTimeout(() => {
+      if (!gameRunning) return;
+      const mesh = new THREE.Sprite(projMat);
+      mesh.scale.set(1.3, 1.3, 1);
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+      const spread = (Math.random() - 0.5) * 0.06 * bullets.length; // dispersión por ráfaga
+      mesh.position.copy(ship.position).addScaledVector(forward, 3);
+      scene.add(mesh);
+      projectiles.push({
+        mesh,
+        velocity: forward.clone().multiplyScalar(weapon.speed || 200),
+        life: BUBBLE_MAX_RANGE / (weapon.speed || 200),
+        damage: baseDamage,
+        pierce: weapon.pierce || false
+      });
+    }, bullets[i].delay * 1000);
+  }
 }
 
 // ---- Jabones azules (misiles, del jugador y del boss) ----
@@ -3240,29 +3263,45 @@ function buildSoapBar() {
   group.add(bevel);
   return group;
 }
-let missileCooldown = 0;
 let nextMissileSide = -1; // alterna: -1 ala izquierda, 1 ala derecha
 let missileTubeIndex = 0; // alterna entre los 3 tubos de cada pod
 function fireMissile() {
-  if (missileCooldown > 0) return;
-  if (ammoMisiles <= 0) return;
-  missileCooldown = 0.9;
+  if (advOverheated || advFireCooldown > 0) return;
+  const weapon = getAdvWeapon();
+  if (!weapon) return;
+  advHeat += HEAT_PER_SHOT_ADV;
+  advFireCooldown = weapon.reattackTime || 0.9;
+  if (advHeat >= 100) {
+    advHeat = 100;
+    advOverheated = true;
+    advOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
+  }
   const wingPoints = ship.userData.wingMissilePoints;
   const tubeIdx = missileTubeIndex % 3;
   missileTubeIndex++;
-
-  // Si solo queda 1 de munición, dispara nomás uno (alternando de lado) en vez de los dos
-  const sidesToFire = (ammoMisiles === Infinity || ammoMisiles >= 2) ? ['left', 'right'] : [nextMissileSide === -1 ? 'left' : 'right'];
-  for (const sideKey of sidesToFire) {
-    const localPt = wingPoints[sideKey][tubeIdx];
-    const mesh = buildSoapBar();
-    const spawnPos = ship.localToWorld(localPt.clone());
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    mesh.position.copy(spawnPos);
-    mesh.quaternion.copy(ship.quaternion);
-    scene.add(mesh);
-    missiles.push({ mesh, velocity: forward.clone().multiplyScalar(120), target: targetIsAimable(currentLockTarget) ? currentLockTarget : null, life: 6, speed: 120, trailTimer: 0 });
-    if (ammoMisiles !== Infinity) ammoMisiles--;
+  const pattern = weapon.pattern || [1, 1];
+  const missilesPerVolley = pattern[0];
+  for (let i = 0; i < missilesPerVolley; i++) {
+    setTimeout(() => {
+      if (!gameRunning) return;
+      const localPt = wingPoints[nextMissileSide === -1 ? 'left' : 'right'][tubeIdx];
+      const mesh = buildSoapBar();
+      const spawnPos = ship.localToWorld(localPt.clone());
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+      mesh.position.copy(spawnPos);
+      mesh.quaternion.copy(ship.quaternion);
+      scene.add(mesh);
+      missiles.push({
+        mesh,
+        velocity: forward.clone().multiplyScalar(weapon.speed || 120),
+        target: targetIsAimable(currentLockTarget) ? currentLockTarget : null,
+        life: 6,
+        speed: weapon.speed || 120,
+        trailTimer: 0,
+        damage: weapon.baseDamage,
+        pierce: weapon.pierce || false
+      });
+    }, i * 0.12 * 1000);
   }
   nextMissileSide *= -1;
 }
@@ -3280,6 +3319,7 @@ function fireBossCannons(boss) {
 }
 
 // ---- Estela de burbujas detrás de los misiles (referencia de trayectoria / perspectiva) ----
+const missTexts = [];
 const trailBubbles = [];
 const trailGeo = new THREE.SphereGeometry(1, 10, 8);
 function spawnTrailBubble(position) {
@@ -3751,7 +3791,7 @@ let mode = 'FLIGHT';
 let speed = 0;
 let maxSpeed = 90, boostMaxSpeed = 240, accel = 40, boostAccel = 75;
 const damping = 0.985;
-let rollAngle = 0, fireCooldown = 0, score = 0;
+let rollAngle = 0, score = 0;
 // Orientación "pura" acumulada por cuaterniones (yaw+pitch, sin el balanceo del roll).
 // Con esto la nave puede dar loops completos de 360°, no queda trabada en ±90° como con Euler.
 const shipQuat = new THREE.Quaternion();
@@ -3772,6 +3812,52 @@ let lives = MAX_LIVES;
 let invulnTimer = 0;
 let playerDefense = 5;
 let playerEvasion = 3;
+
+// ================= Sistema de Overheat =================
+let stdHeat = 0;       // calor actual del arma estándar (0-100)
+let advHeat = 0;       // calor actual del arma avanzada (0-100)
+let stdOverheated = false;  // ¿está sobrecalentada?
+let advOverheated = false;
+let stdOverheatTimer = 0;   // tiempo restante de sobrecalentamiento
+let advOverheatTimer = 0;
+let stdFireCooldown = 0;    // cooldown entre ráfagas (reattackTime)
+let advFireCooldown = 0;
+const HEAT_PER_SHOT_STD = 12;  // calor que genera cada disparo del arma estándar
+const HEAT_PER_SHOT_ADV = 18;  // calor que genera cada disparo del arma avanzada
+const HEAT_DECAY_RATE = 25;    // puntos de calor que se pierden por segundo al no disparar
+const OVERHEAT_LOCKOUT = 3;    // segundos de bloqueo al sobrecalentarse
+
+function getStdWeapon() {
+  if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return null;
+  return GEAR_CONFIGS[selectedGear].weapons.standard;
+}
+function getAdvWeapon() {
+  if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return null;
+  return GEAR_CONFIGS[selectedGear].weapons.advanced;
+}
+
+function calcDamage(baseDamage, targetEvasion) {
+  // Accuracy vs Evasion: chance de acertar (fórmula simplificada de Ace Online)
+  const hitChance = Math.max(15, Math.min(95, 80 + (playerPierce - targetEvasion) * 2));
+  const hits = Math.random() * 100 < hitChance;
+  if (!hits) return 0; // esquivó
+  // Defensa del objetivo reducida por pierce
+  const effectiveDef = Math.max(0, (targetEvasion || 0) * 0.3 - playerPierce * 0.5);
+  return Math.max(1, Math.round(baseDamage * (1 - effectiveDef / 100)));
+}
+
+function firePatternBullets(pattern) {
+  // pattern = [shotsPerVolley, volleys]  ej: [4,1] = 4 tiros de una, [2,2] = 2 tiros x 2 ráfagas
+  const [shots, volleys] = pattern;
+  const totalBullets = shots * volleys;
+  const bullets = [];
+  for (let v = 0; v < volleys; v++) {
+    for (let s = 0; s < shots; s++) {
+      bullets.push({ delay: v * 0.12 + s * 0.04 });
+    }
+  }
+  return bullets;
+}
 
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
@@ -3796,12 +3882,23 @@ function updateSpeedGauge(currentSpeed) {
 }
 
 function updateAmmoHUD() {
-  document.getElementById('ammoBasicosNum').textContent = ammoBasicos === Infinity ? '∞' : ammoBasicos;
-  document.getElementById('ammoMisilesNum').textContent = ammoMisiles === Infinity ? '∞' : ammoMisiles;
-  const basicosReady = Math.max(0, Math.min(1, 1 - fireCooldown / 0.14));
-  const misilesReady = Math.max(0, Math.min(1, 1 - missileCooldown / 0.9));
-  document.getElementById('basicosCooldownFill').style.width = (basicosReady * 100) + '%';
-  document.getElementById('misilesCooldownFill').style.width = (misilesReady * 100) + '%';
+  const stdFill = document.getElementById('stdHeatFill');
+  const advFill = document.getElementById('advHeatFill');
+  const stdLabel = document.getElementById('stdHeatLabel');
+  const advLabel = document.getElementById('advHeatLabel');
+  if (!stdFill || !advFill) return;
+
+  // Barra de calor arma estándar
+  stdFill.style.width = stdHeat + '%';
+  stdFill.style.background = stdOverheated ? '#ff3333' : (stdHeat > 70 ? '#ffaa00' : '#44aaff');
+  stdLabel.textContent = stdOverheated ? 'OVERHEAT' : 'STD';
+  stdLabel.style.color = stdOverheated ? '#ff3333' : '';
+
+  // Barra de calor arma avanzada
+  advFill.style.width = advHeat + '%';
+  advFill.style.background = advOverheated ? '#ff3333' : (advHeat > 70 ? '#ffaa00' : '#44aaff');
+  advLabel.textContent = advOverheated ? 'OVERHEAT' : 'ADV';
+  advLabel.style.color = advOverheated ? '#ff3333' : '';
 }
 
 function renderLivesHUD() {
@@ -3862,8 +3959,34 @@ function flashDamage() {
   el._t4 = setTimeout(() => el.style.opacity = '0', 100);
 }
 
+function spawnMissText(pos) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 32;
+  const ctx = canvas.getContext('2d');
+  ctx.font = 'bold 22px monospace';
+  ctx.fillStyle = '#ff4444';
+  ctx.textAlign = 'center';
+  ctx.fillText('MISS', 32, 24);
+  const tex = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sprite.position.copy(pos).add(new THREE.Vector3(0, 6, 0));
+  sprite.scale.set(8, 4, 1);
+  scene.add(sprite);
+  missTexts.push({ mesh: sprite, life: 0.7, maxLife: 0.7 });
+}
+
 function registerHit(enemy, dmg, isMissile) {
-  enemy.hp -= dmg;
+  // Accuracy vs Evasion
+  const enemyEvasion = enemy.isBoss ? 5 : 3;
+  const hitChance = Math.max(15, Math.min(95, 75 + (playerPierce - enemyEvasion) * 2));
+  if (Math.random() * 100 > hitChance) {
+    spawnMissText(enemy.mesh.position); // texto "MISS"
+    return;
+  }
+  // Defensa del enemigo reducida por pierce
+  const effectiveDef = Math.max(0, (enemy.isBoss ? 8 : 3) - playerPierce);
+  const finalDmg = Math.max(1, Math.round(dmg * (1 - effectiveDef / 100)));
+  enemy.hp -= finalDmg;
   showHitmarker();
   if (enemy.hp <= 0) {
     enemy.alive = false;
@@ -3971,23 +4094,14 @@ function triggerGameOver() {
   if (pointerLocked) document.exitPointerLock();
 }
 
-// ---- Munición: infinita en Fácil, limitada según dificultad en las demás ----
-let ammoBasicos = Infinity;
-let ammoMisiles = Infinity;
-function computeWaveAmmo() {
-  const isBossWave = clearedCount > 0 && (clearedCount % 5 === 0);
-  const totalHp = isBossWave ? getBossHp() : (ENEMIES_PER_WAVE * getTeddyHp());
-  if (difficulty === 'facil') { ammoBasicos = Infinity; ammoMisiles = Infinity; return; }
-  if (difficulty === 'sniper') { ammoBasicos = Math.ceil(totalHp / BUBBLE_DAMAGE); ammoMisiles = 0; return; }
-  if (difficulty === 'dificil') { ammoBasicos = Math.ceil((totalHp / BUBBLE_DAMAGE) * 1.5); ammoMisiles = Math.ceil((totalHp / MISSILE_DAMAGE) * 0.5); return; }
-  ammoBasicos = Math.ceil((totalHp / BUBBLE_DAMAGE) * 2.5); ammoMisiles = Math.ceil((totalHp / MISSILE_DAMAGE) * 0.9); // normal
-}
+// ---- Sistema de munición reemplazado por overheat (ver sección de Overheat arriba) ----
 
 function startWave() {
   waveTimer = 0;
   const isBossWave = clearedCount > 0 && (clearedCount % 5 === 0);
   waveIsBoss = isBossWave;
-  computeWaveAmmo();
+  stdHeat = 0; advHeat = 0; // reset overheat por oleada
+  stdOverheated = false; advOverheated = false;
   updateAmmoHUD();
   if (isBossWave) {
     spawnBossWave();
@@ -4072,6 +4186,8 @@ function resetGame() {
   explosions.length = 0;
   for (const b of trailBubbles) scene.remove(b.mesh);
   trailBubbles.length = 0;
+  for (const t of missTexts) scene.remove(t.mesh);
+  missTexts.length = 0;
 
   // Enemigos
   for (const e of enemies) scene.remove(e.mesh);
@@ -4448,9 +4564,26 @@ function animate() {
   checkTubWallCollision();
   updateWaterInteraction(dt);
 
-  fireCooldown -= dt;
-  if (firing && fireCooldown <= 0) { fireProjectile(); fireCooldown = rapidFireTimer > 0 ? 0.05 : 0.14; }
-  missileCooldown -= dt;
+  // Overheat: cooldowns
+  stdFireCooldown -= dt;
+  advFireCooldown -= dt;
+
+  // Overheat: decay when not firing
+  if (!firing) stdHeat = Math.max(0, stdHeat - HEAT_DECAY_RATE * dt);
+  if (!keys[bindings.missile]) advHeat = Math.max(0, advHeat - HEAT_DECAY_RATE * dt);
+
+  // Overheat: lockout timers
+  if (stdOverheated) {
+    stdOverheatTimer -= dt;
+    if (stdOverheatTimer <= 0) { stdOverheated = false; stdHeat = 0; }
+  }
+  if (advOverheated) {
+    advOverheatTimer -= dt;
+    if (advOverheatTimer <= 0) { advOverheated = false; advHeat = 0; }
+  }
+
+  if (firing && stdFireCooldown <= 0) fireProjectile();
+  if (keys[bindings.missile] && advFireCooldown <= 0) fireMissile();
 
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
@@ -4460,7 +4593,7 @@ function animate() {
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
       const hitRadius = enemy.isBoss ? 13 : 5.5;
-      if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, BUBBLE_DAMAGE, false); hit = true; break; }
+      if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, p.damage || 10, false); hit = true; break; }
     }
     if (!hit) {
       for (const d of destructibles) {
@@ -4486,7 +4619,7 @@ function animate() {
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
       const hitRadius = enemy.isBoss ? 13 : 5.5;
-      if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, MISSILE_DAMAGE, true); hit = true; break; }
+      if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
     }
     if (!hit) {
       for (const d of destructibles) {
@@ -4529,6 +4662,14 @@ function animate() {
     const s = b.mesh.scale.x * (1 + dt * 0.6);
     b.mesh.scale.setScalar(s);
     if (b.life <= 0) { scene.remove(b.mesh); trailBubbles.splice(i, 1); }
+  }
+
+  for (let i = missTexts.length - 1; i >= 0; i--) {
+    const t = missTexts[i];
+    t.life -= dt;
+    t.mesh.position.y += 8 * dt;
+    t.mesh.material.opacity = Math.max(0, t.life / t.maxLife);
+    if (t.life <= 0) { scene.remove(t.mesh); missTexts.splice(i, 1); }
   }
 
   for (const enemy of enemies) {
