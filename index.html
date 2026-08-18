@@ -812,6 +812,18 @@ gearSelectStartBtn.addEventListener('click', () => {
   applyGearSelection(selectedGear);
   closeMenu();
   if (!isMobile) renderer.domElement.requestPointerLock();
+  if (!gameRunning) {
+    renderLivesHUD();
+    renderShieldHUD();
+    updateSpecialHUD();
+    resetDestructibles();
+    gameRunning = true;
+    startWave();
+    animate();
+  } else {
+    resetDestructibles();
+    startWave();
+  }
 });
 
 function openGearSelect() {
@@ -3652,6 +3664,7 @@ window.addEventListener('keyup', e => { if (!editorActive) keys[e.code] = false;
 
 let pointerLocked = false;
 let firing = false;
+let gameRunning = false;
 const mouseButtons = { left: false, right: false, middle: false };
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 renderer.domElement.addEventListener('mousedown', e => {
@@ -4857,13 +4870,16 @@ preloadModels(() => {
   if (savedGear && GEAR_CONFIGS[savedGear]) {
     selectedGear = savedGear;
     applyGearSelection(savedGear);
+    renderLivesHUD();
+    renderShieldHUD();
+    updateSpecialHUD();
+    resetDestructibles();
+    gameRunning = true;
+    startWave();
+    animate();
+  } else {
+    openGearSelect();
   }
-  renderLivesHUD();
-  renderShieldHUD();
-  updateSpecialHUD();
-  resetDestructibles();
-  startWave();
-  animate();
 });
 </script>
 </body>
