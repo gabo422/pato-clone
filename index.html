@@ -351,36 +351,67 @@
   /* ---- Controles táctiles (solo mobile) ---- */
   /* ---- Gear Selection ---- */
   #gearSelectOverlay {
-    position: absolute; inset: 0; background: rgba(10,20,40,0.92);
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 40%, #0a1628 0%, #020a14 70%, #000 100%);
     display: flex; align-items: center; justify-content: center; z-index: 30;
   }
   #gearSelectOverlay.hidden { display: none; }
   #gearSelectPanel {
-    width: 820px; max-width: 96vw; background: #0d1b2a; border: 2px solid #2aa6cf;
-    border-radius: 16px; padding: 20px 24px; color: #e0f0f8; text-align: center;
+    width: 900px; max-width: 96vw; text-align: center; color: #e0f0f8;
   }
-  #gearSelectPanel h2 { margin: 0 0 4px; font-size: 22px; color: #fff; letter-spacing: 1px; }
-  #gearSelectPanel .subtitle { font-size: 12px; color: #6a9ab8; margin: 0 0 18px; }
-  #gearCards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  #gearSelectPanel h2 {
+    margin: 0 0 2px; font-size: 30px; color: #fff; letter-spacing: 3px; text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(42,166,207,0.5);
+  }
+  #gearSelectPanel .subtitle { font-size: 13px; color: #5a8aa8; margin: 0 0 28px; letter-spacing: 1px; }
+  #gearCards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
   .gearCard {
-    background: #112240; border: 2px solid #1a3a5c; border-radius: 12px;
-    padding: 16px 10px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
-    display: flex; flex-direction: column; align-items: center; gap: 6px; user-select: none;
+    background: linear-gradient(180deg, #0e1f35 0%, #0a1525 100%);
+    border: 1px solid #1a3050; border-radius: 14px;
+    padding: 20px 10px 16px; cursor: pointer;
+    transition: all 0.2s ease; display: flex; flex-direction: column;
+    align-items: center; gap: 5px; user-select: none; position: relative; overflow: hidden;
   }
-  .gearCard:hover { border-color: #2aa6cf; background: #153050; transform: translateY(-2px); }
-  .gearCard.selected { border-color: #ffd84d; background: #1a3a5c; box-shadow: 0 0 18px rgba(255,216,77,0.25); }
-  .gearCard .gearIcon { font-size: 38px; margin-bottom: 2px; }
-  .gearCard .gearName { font-size: 15px; font-weight: bold; color: #fff; }
-  .gearCard .gearRole { font-size: 10px; color: #6a9ab8; text-transform: uppercase; letter-spacing: 0.8px; }
-  .gearCard .gearDesc { font-size: 11px; color: #8ab4cc; line-height: 1.4; margin-top: 4px; flex: 1; }
-  .gearCard .gearWeapons { font-size: 10px; color: #4fc3f7; margin-top: 4px; border-top: 1px solid #1a3a5c; padding-top: 6px; width: 100%; }
+  .gearCard::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(42,166,207,0.08) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .gearCard:hover { border-color: #2aa6cf; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(42,166,207,0.15); }
+  .gearCard:hover::before { opacity: 1; }
+  .gearCard.selected {
+    border-color: #ffd84d; background: linear-gradient(180deg, #1a2e48 0%, #0f1f33 100%);
+    box-shadow: 0 0 30px rgba(255,216,77,0.2), inset 0 0 40px rgba(255,216,77,0.05);
+  }
+  .gearCard.selected::after {
+    content: '\2713'; position: absolute; top: 8px; right: 10px;
+    font-size: 14px; color: #ffd84d; font-weight: bold;
+  }
+  .gearCard .gearIcon { font-size: 44px; margin-bottom: 4px; filter: drop-shadow(0 2px 8px rgba(42,166,207,0.3)); }
+  .gearCard .gearName { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; }
+  .gearCard .gearRole { font-size: 10px; color: #4a90b8; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+  .gearCard .gearDesc { font-size: 11px; color: #7aa8c4; line-height: 1.45; margin-top: 6px; flex: 1; }
+  .gearCard .gearWeapons {
+    font-size: 10px; color: #4fc3f7; margin-top: 6px; padding-top: 6px; width: 100%;
+    border-top: 1px solid rgba(42,166,207,0.15); letter-spacing: 0.5px;
+  }
+  .gearCard .gearStats { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .gearStat { display: flex; align-items: center; gap: 4px; }
+  .gearStatLabel { font-size: 9px; color: #5a8aa8; min-width: 28px; text-align: right; text-transform: uppercase; letter-spacing: 0.5px; }
+  .gearStatBar { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .gearStatFill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+  .gearStatFill.speed { background: linear-gradient(90deg, #2aa6cf, #4fc3f7); }
+  .gearStatFill.damage { background: linear-gradient(90deg, #e04a3a, #ff7043); }
+  .gearStatFill.defense { background: linear-gradient(90deg, #66bb6a, #43a047); }
+  .gearStatFill.evasion { background: linear-gradient(90deg, #ffd84d, #ffb300); }
   #gearSelectStartBtn {
-    margin-top: 18px; padding: 12px 40px; border-radius: 10px; border: 2px solid #2aa6cf;
-    background: #1a5276; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer;
-    letter-spacing: 0.5px; transition: background 0.15s;
+    margin-top: 10px; padding: 14px 50px; border-radius: 12px; border: 1px solid rgba(42,166,207,0.4);
+    background: linear-gradient(180deg, #1a5276 0%, #0e3350 100%); color: #fff;
+    font-size: 16px; font-weight: bold; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+    transition: all 0.2s; box-shadow: 0 4px 20px rgba(42,166,207,0.15);
   }
-  #gearSelectStartBtn:hover { background: #2471a3; }
-  #gearSelectStartBtn:disabled { opacity: 0.4; cursor: default; }
+  #gearSelectStartBtn:hover { background: linear-gradient(180deg, #2471a3 0%, #1a5276 100%); box-shadow: 0 4px 30px rgba(42,166,207,0.3); transform: translateY(-1px); }
+  #gearSelectStartBtn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
 
   #touchLookZone, #touchJoystickBase, #touchButtons { display: none; }
   body.mobile-active #touchLookZone {
@@ -548,39 +579,63 @@
 
 <div id="gearSelectOverlay" class="hidden">
   <div id="gearSelectPanel">
-    <h2>ELEGÍ TU GEAR</h2>
-    <p class="subtitle">Cada Gear tiene armas y habilidades únicas. Elegí sabiamente.</p>
+    <h2>Elegí tu Gear</h2>
+    <p class="subtitle">Cada Gear tiene armas, habilidades y stats únicos</p>
     <div id="gearCards">
       <div class="gearCard" data-gear="rayo">
         <div class="gearIcon">⚡</div>
         <div class="gearName">RAYO</div>
         <div class="gearRole">Caza Veloz</div>
-        <div class="gearDesc">El más rápido del campo de batalla. Esquiva misiles con facilidad y acerca para destruir enemigos con ráfagas precisas.</div>
+        <div class="gearDesc">El más rápido del campo de batalla. Esquiva con facilidad y destruye con ráfagas precisas.</div>
         <div class="gearWeapons">Vulcan + Rifle</div>
+        <div class="gearStats">
+          <div class="gearStat"><span class="gearStatLabel">Vel</span><div class="gearStatBar"><div class="gearStatFill speed" style="width:90%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Dmg</span><div class="gearStatBar"><div class="gearStatFill damage" style="width:45%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Def</span><div class="gearStatBar"><div class="gearStatFill defense" style="width:25%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:85%"></div></div></div>
+        </div>
       </div>
       <div class="gearCard" data-gear="muro">
         <div class="gearIcon">🛡️</div>
         <div class="gearName">MURO</div>
         <div class="gearRole">Tanque / Asedio</div>
-        <div class="gearDesc">Pesado y letal. En modo asedio se convierte en una torreta imparable. Alta defensa, daño devastador.</div>
+        <div class="gearDesc">Pesado y letal. En modo asedio se convierte en una torreta imparable.</div>
         <div class="gearWeapons">Cañón + Mass Drive</div>
+        <div class="gearStats">
+          <div class="gearStat"><span class="gearStatLabel">Vel</span><div class="gearStatBar"><div class="gearStatFill speed" style="width:25%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Dmg</span><div class="gearStatBar"><div class="gearStatFill damage" style="width:90%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Def</span><div class="gearStatBar"><div class="gearStatFill defense" style="width:85%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:15%"></div></div></div>
+        </div>
       </div>
       <div class="gearCard" data-gear="trueno">
         <div class="gearIcon">💣</div>
         <div class="gearName">TRUENO</div>
         <div class="gearRole">Bombardero</div>
-        <div class="gearDesc">Versátil y destructivo. Bombardea desde arriba con patrones de área que liquidan grupos de enemigos.</div>
+        <div class="gearDesc">Versátil y destructivo. Bombardea con patrones de área que liquidan grupos.</div>
         <div class="gearWeapons">Gatling + Misiles</div>
+        <div class="gearStats">
+          <div class="gearStat"><span class="gearStatLabel">Vel</span><div class="gearStatBar"><div class="gearStatFill speed" style="width:55%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Dmg</span><div class="gearStatBar"><div class="gearStatFill damage" style="width:65%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Def</span><div class="gearStatBar"><div class="gearStatFill defense" style="width:55%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:40%"></div></div></div>
+        </div>
       </div>
       <div class="gearCard" data-gear="viento">
         <div class="gearIcon">💚</div>
         <div class="gearName">VIENTO</div>
         <div class="gearRole">Soporte</div>
-        <div class="gearDesc">La columna vertebral del equipo. Cura, protege y buffea. Sin su apoyo, nadie sobrevive.</div>
+        <div class="gearDesc">La columna vertebral del equipo. Cura, protege y buffea a todos.</div>
         <div class="gearWeapons">Rifle + Misiles</div>
+        <div class="gearStats">
+          <div class="gearStat"><span class="gearStatLabel">Vel</span><div class="gearStatBar"><div class="gearStatFill speed" style="width:50%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Dmg</span><div class="gearStatBar"><div class="gearStatFill damage" style="width:40%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Def</span><div class="gearStatBar"><div class="gearStatFill defense" style="width:50%"></div></div></div>
+          <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:50%"></div></div></div>
+        </div>
       </div>
     </div>
-    <button id="gearSelectStartBtn" disabled>SELECCIONÁ UN GEAR</button>
+    <button id="gearSelectStartBtn" disabled>Seleccioná un Gear</button>
   </div>
 </div>
 
@@ -990,7 +1045,7 @@ document.getElementById('resumeBtn').addEventListener('click', () => {
 const controlsOverlay = document.getElementById('controlsOverlay');
 function openMenu() { menuOverlay.classList.remove('hidden'); controlsOverlay.classList.add('hidden'); }
 function closeMenu() { menuOverlay.classList.add('hidden'); }
-openMenu();
+if (localStorage.getItem('patoClone_gear')) openMenu();
 
 document.getElementById('openControlsBtn').addEventListener('click', () => {
   menuOverlay.classList.add('hidden');
