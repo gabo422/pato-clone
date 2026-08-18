@@ -349,6 +349,39 @@
   .shieldBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #4fc3f7; }
   .shieldBar.empty { background: rgba(79,195,247,0.25); }
   /* ---- Controles táctiles (solo mobile) ---- */
+  /* ---- Gear Selection ---- */
+  #gearSelectOverlay {
+    position: absolute; inset: 0; background: rgba(10,20,40,0.92);
+    display: flex; align-items: center; justify-content: center; z-index: 30;
+  }
+  #gearSelectOverlay.hidden { display: none; }
+  #gearSelectPanel {
+    width: 820px; max-width: 96vw; background: #0d1b2a; border: 2px solid #2aa6cf;
+    border-radius: 16px; padding: 20px 24px; color: #e0f0f8; text-align: center;
+  }
+  #gearSelectPanel h2 { margin: 0 0 4px; font-size: 22px; color: #fff; letter-spacing: 1px; }
+  #gearSelectPanel .subtitle { font-size: 12px; color: #6a9ab8; margin: 0 0 18px; }
+  #gearCards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gearCard {
+    background: #112240; border: 2px solid #1a3a5c; border-radius: 12px;
+    padding: 16px 10px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; user-select: none;
+  }
+  .gearCard:hover { border-color: #2aa6cf; background: #153050; transform: translateY(-2px); }
+  .gearCard.selected { border-color: #ffd84d; background: #1a3a5c; box-shadow: 0 0 18px rgba(255,216,77,0.25); }
+  .gearCard .gearIcon { font-size: 38px; margin-bottom: 2px; }
+  .gearCard .gearName { font-size: 15px; font-weight: bold; color: #fff; }
+  .gearCard .gearRole { font-size: 10px; color: #6a9ab8; text-transform: uppercase; letter-spacing: 0.8px; }
+  .gearCard .gearDesc { font-size: 11px; color: #8ab4cc; line-height: 1.4; margin-top: 4px; flex: 1; }
+  .gearCard .gearWeapons { font-size: 10px; color: #4fc3f7; margin-top: 4px; border-top: 1px solid #1a3a5c; padding-top: 6px; width: 100%; }
+  #gearSelectStartBtn {
+    margin-top: 18px; padding: 12px 40px; border-radius: 10px; border: 2px solid #2aa6cf;
+    background: #1a5276; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer;
+    letter-spacing: 0.5px; transition: background 0.15s;
+  }
+  #gearSelectStartBtn:hover { background: #2471a3; }
+  #gearSelectStartBtn:disabled { opacity: 0.4; cursor: default; }
+
   #touchLookZone, #touchJoystickBase, #touchButtons { display: none; }
   body.mobile-active #touchLookZone {
     display: block; position: absolute; right: 0; top: 0; width: 55%; height: 100%;
@@ -496,6 +529,7 @@
   <div id="menuPanel">
     <h2>Menú</h2>
     <button id="openControlsBtn" class="menuSelectBtn">⌨ Controles y sensibilidad</button>
+    <button id="changeGearBtn" class="menuSelectBtn" style="background:#f3e8ff; border-color:#9a6ad6; color:#4a1c80;">🎮 Cambiar Gear</button>
     <div id="difficultyRow">
       <span class="difficultyLabel">Dificultad</span>
       <select id="difficultySelect">
@@ -509,6 +543,44 @@
     <button id="resumeBtn">Reanudar (clic en pantalla también funciona)</button>
     <button id="restartGameBtn">↻ Reiniciar partida completa</button>
     <!-- EDITOR_BTN_START --><button id="openEditorBtn">🛠 Modo editor (mover objetos)</button><!-- EDITOR_BTN_END -->
+  </div>
+</div>
+
+<div id="gearSelectOverlay" class="hidden">
+  <div id="gearSelectPanel">
+    <h2>ELEGÍ TU GEAR</h2>
+    <p class="subtitle">Cada Gear tiene armas y habilidades únicas. Elegí sabiamente.</p>
+    <div id="gearCards">
+      <div class="gearCard" data-gear="rayo">
+        <div class="gearIcon">⚡</div>
+        <div class="gearName">RAYO</div>
+        <div class="gearRole">Caza Veloz</div>
+        <div class="gearDesc">El más rápido del campo de batalla. Esquiva misiles con facilidad y acerca para destruir enemigos con ráfagas precisas.</div>
+        <div class="gearWeapons">Vulcan + Rifle</div>
+      </div>
+      <div class="gearCard" data-gear="muro">
+        <div class="gearIcon">🛡️</div>
+        <div class="gearName">MURO</div>
+        <div class="gearRole">Tanque / Asedio</div>
+        <div class="gearDesc">Pesado y letal. En modo asedio se convierte en una torreta imparable. Alta defensa, daño devastador.</div>
+        <div class="gearWeapons">Cañón + Mass Drive</div>
+      </div>
+      <div class="gearCard" data-gear="trueno">
+        <div class="gearIcon">💣</div>
+        <div class="gearName">TRUENO</div>
+        <div class="gearRole">Bombardero</div>
+        <div class="gearDesc">Versátil y destructivo. Bombardea desde arriba con patrones de área que liquidan grupos de enemigos.</div>
+        <div class="gearWeapons">Gatling + Misiles</div>
+      </div>
+      <div class="gearCard" data-gear="viento">
+        <div class="gearIcon">💚</div>
+        <div class="gearName">VIENTO</div>
+        <div class="gearRole">Soporte</div>
+        <div class="gearDesc">La columna vertebral del equipo. Cura, protege y buffea. Sin su apoyo, nadie sobrevive.</div>
+        <div class="gearWeapons">Rifle + Misiles</div>
+      </div>
+    </div>
+    <button id="gearSelectStartBtn" disabled>SELECCIONÁ UN GEAR</button>
   </div>
 </div>
 
@@ -658,6 +730,131 @@ const DIFFICULTY_HINTS = {
   sniper: 'Solo cañón, la munición justa para limpiar la oleada. Sin misiles.'
 };
 
+// ================= Selección de Gear =================
+const GEAR_CONFIGS = {
+  rayo: {
+    name: 'Rayo', role: 'Caza Veloz', icon: '⚡',
+    desc: 'El más rápido del campo de batalla.',
+    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 8, reattackTime: 0.6, overheatTime: 15, accuracy: 65 },
+               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, reattackTime: 0.55, overheatTime: 24, accuracy: 85 } },
+    stats: { maxSpeed: 110, boostMaxSpeed: 280, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
+    skills: [
+      { name: 'Frenzy', level: 5, spCost: 15, cooldown: 20, duration: 15, desc: '+50% daño de Vulcan por 15s' },
+      { name: 'Evasion Up', level: 10, spCost: 10, cooldown: 25, duration: 20, desc: '+30% evasión por 20s' },
+      { name: 'Overbooster', level: 15, spCost: 20, cooldown: 30, duration: 3, desc: 'Dash invulnerable a 600m/s por 3s' },
+      { name: 'Berserker', level: 20, spCost: 30, cooldown: 45, duration: 15, desc: '+100% daño, +2 ráfagas, -50% defensa' }
+    ],
+    modelKey: 'duck', modelBuilder: null
+  },
+  muro: {
+    name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
+    desc: 'Pesado y letal.',
+    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, reattackTime: 0.45, overheatTime: 28, accuracy: 75 },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, reattackTime: 0.43, overheatTime: 28, accuracy: 95 } },
+    stats: { maxSpeed: 65, boostMaxSpeed: 160, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
+    skills: [
+      { name: 'Siege Mode', level: 5, spCost: 20, cooldown: 30, duration: 10, desc: 'Torreta fija, +200% daño, inmóvil' },
+      { name: 'Barrier', level: 10, spCost: 15, cooldown: 35, duration: 12, desc: 'Escudo temporal que absorbe 500 daño' },
+      { name: 'Snare Shot', level: 15, spCost: 18, cooldown: 25, duration: 5, desc: 'Frena al enemigo 50% por 5s' },
+      { name: 'Hyper Shot', level: 20, spCost: 40, cooldown: 50, duration: 0, desc: 'Un disparo que ignora escudo y defensa' }
+    ],
+    modelKey: 'teddy', modelBuilder: null
+  },
+  trueno: {
+    name: 'Trueno', role: 'Bombardero', icon: '💣',
+    desc: 'Versátil y destructivo.',
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, reattackTime: 0.5, overheatTime: 11, accuracy: 80 },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, reattackTime: 1.2, overheatTime: 18, accuracy: 70 } },
+    stats: { maxSpeed: 85, boostMaxSpeed: 220, accel: 38, boostAccel: 70, defense: 5, evasion: 4, shield: 5, hp: 6 },
+    skills: [
+      { name: 'Ground Bombing', level: 5, spCost: 20, cooldown: 25, duration: 0, desc: 'Bombardeo circular en el suelo, daña a todos en un radio' },
+      { name: 'Air Bombing', level: 10, spCost: 25, cooldown: 30, duration: 0, desc: 'Bombardeo desde arriba, mayor radio' },
+      { name: 'Charge Shot', level: 15, spCost: 15, cooldown: 20, duration: 0, desc: 'Disparo cargado que hace 3x daño' },
+      { name: 'Big Boom', level: 20, spCost: 50, cooldown: 60, duration: 0, desc: 'Explosión masiva tipo kamikaze' }
+    ],
+    modelKey: 'duck', modelBuilder: null
+  },
+  viento: {
+    name: 'Viento', role: 'Soporte', icon: '💚',
+    desc: 'La columna vertebral del equipo.',
+    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, reattackTime: 0.55, overheatTime: 24, accuracy: 85 },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, reattackTime: 1.9, overheatTime: 16, accuracy: 80 } },
+    stats: { maxSpeed: 80, boostMaxSpeed: 200, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
+    skills: [
+      { name: 'Healing Field', level: 5, spCost: 15, cooldown: 30, duration: 15, desc: 'Aura que regenera 1 vida cada 3s' },
+      { name: 'Defense Up', level: 10, spCost: 10, cooldown: 25, duration: 20, desc: '+40% defensa por 20s' },
+      { name: 'Reverse Engine', level: 15, spCost: 20, cooldown: 35, duration: 0, desc: 'Freno brusco a 0 + borra misiles cercanos' },
+      { name: 'Full Recovery', level: 20, spCost: 50, cooldown: 60, duration: 0, desc: 'Cura completa de vida + escudo' }
+    ],
+    modelKey: 'duck', modelBuilder: null
+  }
+};
+
+let selectedGear = null;
+const gearSelectOverlay = document.getElementById('gearSelectOverlay');
+const gearCards = document.querySelectorAll('.gearCard');
+const gearSelectStartBtn = document.getElementById('gearSelectStartBtn');
+
+gearCards.forEach(card => {
+  card.addEventListener('click', () => {
+    gearCards.forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedGear = card.dataset.gear;
+    gearSelectStartBtn.disabled = false;
+    gearSelectStartBtn.textContent = 'JUGAR CON ' + GEAR_CONFIGS[selectedGear].name.toUpperCase();
+  });
+});
+
+gearSelectStartBtn.addEventListener('click', () => {
+  if (!selectedGear) return;
+  localStorage.setItem('patoClone_gear', selectedGear);
+  gearSelectOverlay.classList.add('hidden');
+  applyGearSelection(selectedGear);
+  closeMenu();
+  if (!isMobile) renderer.domElement.requestPointerLock();
+});
+
+function openGearSelect() {
+  gearSelectOverlay.classList.remove('hidden');
+  const saved = localStorage.getItem('patoClone_gear');
+  if (saved && GEAR_CONFIGS[saved]) {
+    gearCards.forEach(c => c.classList.toggle('selected', c.dataset.gear === saved));
+    selectedGear = saved;
+    gearSelectStartBtn.disabled = false;
+    gearSelectStartBtn.textContent = 'JUGAR CON ' + GEAR_CONFIGS[saved].name.toUpperCase();
+  }
+}
+
+function applyGearSelection(gearKey) {
+  const cfg = GEAR_CONFIGS[gearKey];
+  if (!cfg) return;
+  maxSpeed = cfg.stats.maxSpeed;
+  boostMaxSpeed = cfg.stats.boostMaxSpeed;
+  accel = cfg.stats.accel;
+  boostAccel = cfg.stats.boostAccel;
+  MAX_LIVES = cfg.stats.hp;
+  lives = MAX_LIVES;
+  shieldMax = cfg.stats.shield;
+  shield = shieldMax;
+  playerDefense = cfg.stats.defense;
+  playerEvasion = cfg.stats.evasion;
+  document.getElementById('mode').textContent = cfg.name.toUpperCase();
+
+  // Reconstruir el modelo 3D del jugador según el Gear elegido
+  while (ship.children.length) ship.remove(ship.children[0]);
+  const builders = { duck: buildDuck, teddy: buildTeddy };
+  const builder = builders[cfg.modelKey] || buildDuck;
+  const newModel = builder();
+  ship.add(newModel);
+  ship.add(flameGroup);
+  if (newModel.userData.wingMissilePoints) ship.userData.wingMissilePoints = newModel.userData.wingMissilePoints;
+  // Re-aplicar el modelo custom si existe (el .glb precargado)
+  if (cfg.modelKey === 'duck') swapDuckModelIfReady();
+
+  renderLivesHUD();
+  renderShieldHUD();
+}
+
 function keyLabel(code) {
   if (!code) return '—';
   const map = { Space: 'Espacio', ShiftLeft: 'Shift', ShiftRight: 'Shift', ControlLeft: 'Ctrl',
@@ -787,6 +984,10 @@ document.getElementById('openControlsBtn').addEventListener('click', () => {
   menuOverlay.classList.add('hidden');
   controlsOverlay.classList.remove('hidden');
 });
+document.getElementById('changeGearBtn').addEventListener('click', () => {
+  menuOverlay.classList.add('hidden');
+  openGearSelect();
+});
 document.getElementById('backToMenuBtn').addEventListener('click', () => {
   controlsOverlay.classList.add('hidden');
   menuOverlay.classList.remove('hidden');
@@ -818,8 +1019,8 @@ document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscr
 document.addEventListener('fullscreenchange', updateFullscreenBtn);
 document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
 document.addEventListener('msfullscreenchange', updateFullscreenBtn);
-document.getElementById('restartGameBtn').addEventListener('click', () => { resetGame(); });
-document.getElementById('gameOverRestartBtn').addEventListener('click', () => { resetGame(); });
+document.getElementById('restartGameBtn').addEventListener('click', () => { openGearSelect(); });
+document.getElementById('gameOverRestartBtn').addEventListener('click', () => { openGearSelect(); });
 document.getElementById('waveClearAcceptBtn').addEventListener('click', () => {
   waveClearOverlay.classList.add('hidden');
   startWave();
@@ -3548,7 +3749,8 @@ if (isMobile) {
 // ================= Estado de vuelo / juego =================
 let mode = 'FLIGHT';
 let speed = 0;
-const maxSpeed = 90, boostMaxSpeed = 240, accel = 40, boostAccel = 75, damping = 0.985;
+let maxSpeed = 90, boostMaxSpeed = 240, accel = 40, boostAccel = 75;
+const damping = 0.985;
 let rollAngle = 0, fireCooldown = 0, score = 0;
 // Orientación "pura" acumulada por cuaterniones (yaw+pitch, sin el balanceo del roll).
 // Con esto la nave puede dar loops completos de 360°, no queda trabada en ±90° como con Euler.
@@ -3565,9 +3767,11 @@ const barrelRoll = { active: false, dir: 1, timer: 0, duration: 0.5 };
 const lastTapTime = { rollLeft: -999, rollRight: -999 };
 const DOUBLE_TAP_WINDOW = 0.32;
 
-const MAX_LIVES = 5;
+let MAX_LIVES = 5;
 let lives = MAX_LIVES;
 let invulnTimer = 0;
+let playerDefense = 5;
+let playerEvasion = 3;
 
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
@@ -3875,8 +4079,16 @@ function resetGame() {
   document.getElementById('bossBar').style.display = 'none';
 
   // Estado
-  score = 0; lives = MAX_LIVES; invulnTimer = 0;
-  shieldMax = SHIELD_START; shield = shieldMax;
+  score = 0; invulnTimer = 0;
+  if (selectedGear && GEAR_CONFIGS[selectedGear]) {
+    const cfg = GEAR_CONFIGS[selectedGear];
+    MAX_LIVES = cfg.stats.hp;
+    shieldMax = cfg.stats.shield;
+  } else {
+    MAX_LIVES = 5; shieldMax = SHIELD_START;
+  }
+  lives = MAX_LIVES;
+  shield = shieldMax;
   renderShieldHUD();
   waveNumber = 1; clearedCount = 0; bossEncounters = 0; waveTimer = 0; bestWaveTime = null;
   currentLockTarget = null;
@@ -4500,6 +4712,11 @@ portalGroup.scale.setScalar(2.5900);
 /* SAVE_INJECT_ANCHOR */
 preloadModels(() => {
   swapDuckModelIfReady();
+  const savedGear = localStorage.getItem('patoClone_gear');
+  if (savedGear && GEAR_CONFIGS[savedGear]) {
+    selectedGear = savedGear;
+    applyGearSelection(savedGear);
+  }
   renderLivesHUD();
   renderShieldHUD();
   updateSpecialHUD();
