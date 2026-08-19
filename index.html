@@ -461,6 +461,38 @@
   .mobileBarFill { height: 100%; width: 100%; border-radius: 5px; transition: width 0.15s linear; }
   .mobileBarLife { background: linear-gradient(90deg, #ff8a7a, #e04a3a); }
   .mobileBarShield { background: linear-gradient(90deg, #7fd8f7, #2aa6cf); }
+  #spBar { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  #spBarWrap { flex: 1; height: 6px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.15); }
+  #spBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #aa44ff, #dd66ff); border-radius: 4px; transition: width 0.15s linear; }
+  #spLabel { font-size: 10px; color: #c090ff; min-width: 55px; text-align: right; }
+  #skillBar { display: flex; gap: 5px; margin-bottom: 4px; }
+  .skillSlot {
+    flex: 1; position: relative; height: 38px; border-radius: 6px;
+    background: rgba(10,15,30,0.7); border: 1px solid rgba(100,80,180,0.3);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden; cursor: pointer; transition: border-color 0.15s;
+  }
+  .skillSlot:hover { border-color: rgba(180,140,255,0.6); }
+  .skillSlot.onCooldown { opacity: 0.5; }
+  .skillSlot.onCooldown::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5); border-radius: 6px;
+  }
+  .skillSlot.active { border-color: #ffd84d; box-shadow: 0 0 12px rgba(255,216,77,0.3); }
+  .skillSlot.active::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,216,77,0.08); border-radius: 6px; animation: skillPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes skillPulse { 0%,100%{opacity:0.08} 50%{opacity:0.2} }
+  .skillSlot.locked { opacity: 0.25; }
+  .skillKey {
+    font-size: 11px; font-weight: bold; color: #c090ff; z-index: 1;
+    background: rgba(80,50,150,0.4); border-radius: 3px; padding: 0 4px; margin-bottom: 1px;
+  }
+  .skillName { font-size: 8px; color: #a080cc; text-transform: uppercase; letter-spacing: 0.5px; z-index: 1; }
+  .skillCooldown {
+    position: absolute; bottom: 2px; font-size: 9px; color: #ff6644; font-weight: bold; z-index: 2;
+  }
 </style>
 </head>
 <body>
@@ -514,6 +546,18 @@
   <div id="specialRow">
     <span class="boostLabel">Especial (R)</span>
     <div id="specialBarWrap"><div id="specialBarFill"></div></div>
+  </div>
+
+  <div id="spBar">
+    <div id="spBarWrap"><div id="spBarFill"></div></div>
+    <span id="spLabel">SP: <b id="spNum">0</b>/100</span>
+  </div>
+
+  <div id="skillBar">
+    <div class="skillSlot" data-slot="0"><div class="skillKey">Q</div><div class="skillName" id="skillName0">—</div><div class="skillCooldown" id="skillCD0"></div></div>
+    <div class="skillSlot" data-slot="1"><div class="skillKey">E</div><div class="skillName" id="skillName1">—</div><div class="skillCooldown" id="skillCD1"></div></div>
+    <div class="skillSlot" data-slot="2"><div class="skillKey">X</div><div class="skillName" id="skillName2">—</div><div class="skillCooldown" id="skillCD2"></div></div>
+    <div class="skillSlot" data-slot="3"><div class="skillKey">C</div><div class="skillName" id="skillName3">—</div><div class="skillCooldown" id="skillCD3"></div></div>
   </div>
 
   <div id="hudText">
@@ -3226,10 +3270,13 @@ function fireProjectile() {
     stdOverheated = true;
     stdOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
-  // Fire pattern
-  const pattern = weapon.pattern || [1, 1];
+  // Fire pattern (+2 volleys if Berserker active)
+  const berserkerVolleyBonus = (isSkillActive('rayo', 3)) ? 2 : 0;
+  const pattern = [weapon.pattern[0], (weapon.pattern[1] || 1) + berserkerVolleyBonus];
   const bullets = firePatternBullets(pattern);
-  const baseDamage = weapon.baseDamage;
+  const chargeMult = chargeShotActive ? 3 : 1;
+  if (chargeShotActive) chargeShotActive = false;
+  const baseDamage = Math.round(weapon.baseDamage * getSkillDamageMultiplier() * chargeMult);
   for (let i = 0; i < bullets.length; i++) {
     setTimeout(() => {
       if (!gameRunning) return;
@@ -3575,6 +3622,10 @@ window.addEventListener('keydown', e => {
     if (e.code === bindings.toggleMode) toggleMode();
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
     if (e.code === bindings.special) fireSpecial();
+    if (e.code === 'KeyQ') onSkillKey(0);
+    if (e.code === 'KeyE') onSkillKey(1);
+    if (e.code === 'KeyX') onSkillKey(2);
+    if (e.code === 'KeyC') onSkillKey(3);
     if (mode === 'FLIGHT' && !barrelRoll.active && (e.code === bindings.rollLeft || e.code === bindings.rollRight)) {
       const key = e.code === bindings.rollLeft ? 'rollLeft' : 'rollRight';
       const now = clock.elapsedTime;
@@ -3801,6 +3852,201 @@ function firePatternBullets(pattern) {
   return bullets;
 }
 
+// ================= Sistema de Skills y SP =================
+const MAX_SP = 100;
+let playerSP = 0;
+const SP_PER_KILL = 8;
+const SP_PER_BOSS = 30;
+let skillCooldowns = [0, 0, 0, 0];
+let skillActive = [false, false, false, false];
+let skillTimers = [0, 0, 0, 0];
+let activeSkillEffects = {};
+
+function getSkills() {
+  if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return [];
+  return GEAR_CONFIGS[selectedGear].skills;
+}
+
+function canUseSkill(slot) {
+  const skills = getSkills();
+  if (slot >= skills.length) return false;
+  const sk = skills[slot];
+  return playerSP >= sk.spCost && skillCooldowns[slot] <= 0;
+}
+
+function activateSkill(slot) {
+  const skills = getSkills();
+  if (slot >= skills.length) return false;
+  const sk = skills[slot];
+  if (!canUseSkill(slot)) return false;
+  playerSP -= sk.spCost;
+  skillCooldowns[slot] = sk.cooldown;
+  if (sk.duration > 0) {
+    skillActive[slot] = true;
+    skillTimers[slot] = sk.duration;
+  }
+  applySkillEffect(selectedGear, slot, true);
+  return true;
+}
+
+function addSP(amount) {
+  playerSP = Math.min(MAX_SP, playerSP + amount);
+}
+
+function updateSkills(dt) {
+  for (let i = 0; i < 4; i++) {
+    if (skillCooldowns[i] > 0) skillCooldowns[i] = Math.max(0, skillCooldowns[i] - dt);
+    if (skillActive[i]) {
+      skillTimers[i] -= dt;
+      if (skillTimers[i] <= 0) {
+        skillActive[i] = false;
+        applySkillEffect(selectedGear, i, false);
+      }
+    }
+  }
+}
+
+function applySkillEffect(gear, slot, on) {
+  if (!gear) return;
+  const key = gear + '_' + slot;
+  if (!on) {
+    delete activeSkillEffects[key];
+    if (gear === 'muro' && slot === 0) { isSiegeMode = false; }
+    if (gear === 'muro' && slot === 1) { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); }
+    return;
+  }
+  activeSkillEffects[key] = true;
+
+  // === RAYO ===
+  if (gear === 'rayo' && slot === 2) { // Overbooster
+    invulnTimer = Math.max(invulnTimer, 3);
+  }
+
+  // === MURO ===
+  if (gear === 'muro' && slot === 0) { // Siege Mode
+    isSiegeMode = true;
+  }
+  if (gear === 'muro' && slot === 1) { // Barrier
+    shield += 5;
+    shieldMax += 5;
+    renderShieldHUD();
+  }
+  if (gear === 'muro' && slot === 3) { // Hyper Shot - fire a special piercing shot now
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const mesh = new THREE.Sprite(projMat);
+    mesh.scale.set(2.5, 2.5, 1);
+    mesh.position.copy(ship.position).addScaledVector(forward, 3);
+    scene.add(mesh);
+    projectiles.push({ mesh, velocity: forward.clone().multiplyScalar(300), life: BUBBLE_MAX_RANGE / 300, damage: 999999, pierce: true });
+  }
+
+  // === TRUENO ===
+  if (gear === 'trueno' && slot === 0) { // Ground Bombing - AoE around player
+    spawnExplosion(ship.position.clone(), true);
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (e.mesh.position.distanceTo(ship.position) < 60) {
+        registerHit(e, 40, false);
+      }
+    }
+  }
+  if (gear === 'trueno' && slot === 1) { // Air Bombing - bigger AoE
+    spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -20, 0)), true);
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (e.mesh.position.distanceTo(ship.position) < 100) {
+        registerHit(e, 55, false);
+      }
+    }
+  }
+  if (gear === 'trueno' && slot === 2) { // Charge Shot - 3x damage next shot
+    chargeShotActive = true;
+  }
+  if (gear === 'trueno' && slot === 3) { // Big Boom - massive AoE
+    spawnExplosion(ship.position.clone(), true);
+    spawnExplosion(ship.position.clone().add(new THREE.Vector3(10, 5, 0)), true);
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (e.mesh.position.distanceTo(ship.position) < 140) {
+        registerHit(e, 80, true);
+      }
+    }
+  }
+
+  // === VIENTO ===
+  if (gear === 'viento' && slot === 3) { // Full Recovery
+    lives = MAX_LIVES;
+    shield = shieldMax;
+    renderLivesHUD();
+    renderShieldHUD();
+  }
+}
+
+// State for skills
+let isSiegeMode = false;
+let chargeShotActive = false;
+
+function isSkillActive(gear, slot) {
+  return !!activeSkillEffects[gear + '_' + slot];
+}
+
+function renderSkillBar() {
+  const skills = getSkills();
+  for (let i = 0; i < 4; i++) {
+    const nameEl = document.getElementById('skillName' + i);
+    const cdEl = document.getElementById('skillCD' + i);
+    const slotEl = document.querySelectorAll('.skillSlot')[i];
+    if (!nameEl || !cdEl || !slotEl) continue;
+    if (i < skills.length) {
+      const sk = skills[i];
+      nameEl.textContent = sk.name;
+      cdEl.textContent = skillCooldowns[i] > 0 ? Math.ceil(skillCooldowns[i]) + 's' : '';
+      slotEl.classList.toggle('onCooldown', skillCooldowns[i] > 0);
+      slotEl.classList.toggle('active', skillActive[i]);
+      slotEl.classList.toggle('locked', playerSP < sk.spCost && skillCooldowns[i] <= 0);
+      slotEl.title = sk.name + ': ' + sk.desc + ' (SP: ' + sk.spCost + ')';
+    } else {
+      nameEl.textContent = '—';
+      cdEl.textContent = '';
+      slotEl.classList.add('locked');
+    }
+  }
+  const spFill = document.getElementById('spBarFill');
+  const spNum = document.getElementById('spNum');
+  if (spFill) spFill.style.width = (playerSP / MAX_SP * 100) + '%';
+  if (spNum) spNum.textContent = Math.floor(playerSP);
+}
+
+// Skill activation handlers (Q/W/E/R)
+function onSkillKey(slot) {
+  if (!gameRunning || gameOver) return;
+  if (!selectedGear) return;
+  activateSkill(slot);
+}
+
+// ================= Apply skill stat modifiers =================
+function getSkillDamageMultiplier() {
+  let mult = 1;
+  if (isSkillActive('rayo', 0)) mult *= 1.5;
+  if (isSkillActive('rayo', 3)) mult *= 2;
+  if (isSkillActive('muro', 0)) mult *= 3;
+  return mult;
+}
+function getSkillDefenseMultiplier() {
+  let mult = 1;
+  if (isSkillActive('viento', 1)) mult *= 1.4;
+  if (isSkillActive('rayo', 3)) mult *= 0.5;
+  return mult;
+}
+function getSkillEvasionBonus() {
+  if (isSkillActive('rayo', 1)) return 30;
+  return 0;
+}
+function getSkillSpeedMultiplier() {
+  if (isSkillActive('rayo', 2)) return 4;
+  return 1;
+}
+
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
 const SHIELD_CAP = 8;
@@ -3920,7 +4166,7 @@ function spawnMissText(pos) {
 function registerHit(enemy, dmg, isMissile) {
   // Accuracy vs Evasion
   const enemyEvasion = enemy.isBoss ? 5 : 3;
-  const hitChance = Math.max(15, Math.min(95, 75 + (playerPierce - enemyEvasion) * 2));
+  const hitChance = Math.max(5, Math.min(95, 75 + (playerPierce + getSkillEvasionBonus() - enemyEvasion) * 2));
   if (Math.random() * 100 > hitChance) {
     spawnMissText(enemy.mesh.position); // texto "MISS"
     return;
@@ -3938,6 +4184,7 @@ function registerHit(enemy, dmg, isMissile) {
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
     addSpecialCharge(enemy.isBoss ? 100 : 22);
+    addSP(enemy.isBoss ? SP_PER_BOSS : SP_PER_KILL);
     if (Math.random() < 0.35) spawnPowerup(enemy.mesh.position.clone());
     // Al morir, se desactiva cualquier disparo/misil suyo que siga en el aire (ya no hace daño)
     for (let i = teddyProjectiles.length - 1; i >= 0; i--) {
@@ -4042,8 +4289,14 @@ function startWave() {
   waveTimer = 0;
   const isBossWave = clearedCount > 0 && (clearedCount % 5 === 0);
   waveIsBoss = isBossWave;
-  stdHeat = 0; advHeat = 0; // reset overheat por oleada
+  stdHeat = 0; advHeat = 0;
   stdOverheated = false; advOverheated = false;
+  skillCooldowns = [0, 0, 0, 0];
+  skillActive = [false, false, false, false];
+  skillTimers = [0, 0, 0, 0];
+  activeSkillEffects = {};
+  isSiegeMode = false;
+  chargeShotActive = false;
   updateAmmoHUD();
   if (isBossWave) {
     spawnBossWave();
@@ -4460,10 +4713,12 @@ function animate() {
     const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollAngle);
     ship.quaternion.setFromEuler(euler).multiply(rollQuat);
 
-    const targetMax = boosting ? boostMaxSpeed : maxSpeed;
+    const targetMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0 : getSkillSpeedMultiplier());
     const currentAccel = boosting ? boostAccel : accel;
-    if (boosting) {
-      speed += currentAccel * dt; // el boost fuerza hacia adelante siempre, aunque tengas S apretada
+    if (isSiegeMode) {
+      speed *= 0.85;
+    } else if (boosting) {
+      speed += currentAccel * dt;
     } else {
       if (keys[bindings.forward]) speed += currentAccel * dt;
       if (keys[bindings.back]) speed -= currentAccel * dt * 1.5;
@@ -4757,6 +5012,17 @@ function animate() {
   document.getElementById('alive').textContent = enemies.filter(e => e.alive && !e.isBoss).length;
   document.getElementById('score').textContent = score;
   updateAmmoHUD();
+  updateSkills(dt);
+  // Healing Field: regen 1 HP every 3s
+  if (isSkillActive('viento', 0)) {
+    if (!window._healTimer) window._healTimer = 0;
+    window._healTimer += dt;
+    if (window._healTimer >= 3) {
+      window._healTimer -= 3;
+      if (lives < MAX_LIVES) { lives++; renderLivesHUD(); }
+    }
+  } else { window._healTimer = 0; }
+  renderSkillBar();
 
   renderer.render(scene, camera);
 }
