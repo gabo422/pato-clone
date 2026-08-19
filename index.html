@@ -465,33 +465,38 @@
   #spBarWrap { flex: 1; height: 6px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.15); }
   #spBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #aa44ff, #dd66ff); border-radius: 4px; transition: width 0.15s linear; }
   #spLabel { font-size: 10px; color: #c090ff; min-width: 55px; text-align: right; }
-  #skillBar { display: flex; gap: 5px; margin-bottom: 4px; }
+  #skillBar { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
   .skillSlot {
-    flex: 1; position: relative; height: 38px; border-radius: 6px;
+    width: 42px; height: 36px; border-radius: 5px; flex: none;
     background: rgba(10,15,30,0.7); border: 1px solid rgba(100,80,180,0.3);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    overflow: hidden; cursor: pointer; transition: border-color 0.15s;
+    overflow: hidden; cursor: pointer; transition: border-color 0.15s; position: relative;
   }
+  .skillSlot.movement { border-color: rgba(100,180,255,0.3); width: 52px; }
   .skillSlot:hover { border-color: rgba(180,140,255,0.6); }
   .skillSlot.onCooldown { opacity: 0.5; }
   .skillSlot.onCooldown::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(0,0,0,0.5); border-radius: 6px;
+    background: rgba(0,0,0,0.5); border-radius: 5px;
   }
-  .skillSlot.active { border-color: #ffd84d; box-shadow: 0 0 12px rgba(255,216,77,0.3); }
+  .skillSlot.active { border-color: #ffd84d; box-shadow: 0 0 8px rgba(255,216,77,0.3); }
   .skillSlot.active::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(255,216,77,0.08); border-radius: 6px; animation: skillPulse 0.8s ease-in-out infinite;
+    background: rgba(255,216,77,0.08); border-radius: 5px; animation: skillPulse 0.8s ease-in-out infinite;
   }
   @keyframes skillPulse { 0%,100%{opacity:0.08} 50%{opacity:0.2} }
   .skillSlot.locked { opacity: 0.25; }
   .skillKey {
-    font-size: 11px; font-weight: bold; color: #c090ff; z-index: 1;
-    background: rgba(80,50,150,0.4); border-radius: 3px; padding: 0 4px; margin-bottom: 1px;
+    font-size: 10px; font-weight: bold; color: #c090ff; z-index: 1;
+    background: rgba(80,50,150,0.4); border-radius: 3px; padding: 0 3px; margin-bottom: 1px; line-height: 1.2;
   }
-  .skillName { font-size: 8px; color: #a080cc; text-transform: uppercase; letter-spacing: 0.5px; z-index: 1; }
+  .skillSlot.movement .skillKey { color: #88ccff; background: rgba(50,100,180,0.4); }
+  .skillName { font-size: 7px; color: #a080cc; text-transform: uppercase; letter-spacing: 0.3px; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38px; }
   .skillCooldown {
-    position: absolute; bottom: 2px; font-size: 9px; color: #ff6644; font-weight: bold; z-index: 2;
+    position: absolute; bottom: 1px; font-size: 8px; color: #ff6644; font-weight: bold; z-index: 2;
+  }
+  .skillSPCost {
+    position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 2;
   }
 </style>
 </head>
@@ -550,14 +555,22 @@
 
   <div id="spBar">
     <div id="spBarWrap"><div id="spBarFill"></div></div>
-    <span id="spLabel">SP: <b id="spNum">0</b>/100</span>
+    <span id="spLabel">SP: <b id="spNum">50</b>/100</span>
   </div>
 
   <div id="skillBar">
-    <div class="skillSlot" data-slot="0"><div class="skillKey">Q</div><div class="skillName" id="skillName0">—</div><div class="skillCooldown" id="skillCD0"></div></div>
-    <div class="skillSlot" data-slot="1"><div class="skillKey">E</div><div class="skillName" id="skillName1">—</div><div class="skillCooldown" id="skillCD1"></div></div>
-    <div class="skillSlot" data-slot="2"><div class="skillKey">X</div><div class="skillName" id="skillName2">—</div><div class="skillCooldown" id="skillCD2"></div></div>
-    <div class="skillSlot" data-slot="3"><div class="skillKey">C</div><div class="skillName" id="skillName3">—</div><div class="skillCooldown" id="skillCD3"></div></div>
+    <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><div class="skillName" id="skillNameQ">—</div><div class="skillCooldown" id="skillCDQ"></div></div>
+    <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><div class="skillName" id="skillNameE">—</div><div class="skillCooldown" id="skillCDE"></div></div>
+    <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><div class="skillName" id="skillName0">—</div><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
+    <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><div class="skillName" id="skillName1">—</div><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
+    <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><div class="skillName" id="skillName2">—</div><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
+    <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><div class="skillName" id="skillName3">—</div><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
+    <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><div class="skillName" id="skillName4">—</div><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
+    <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><div class="skillName" id="skillName5">—</div><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
+    <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><div class="skillName" id="skillName6">—</div><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
+    <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><div class="skillName" id="skillName7">—</div><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
+    <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><div class="skillName" id="skillName8">—</div><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
+    <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><div class="skillName" id="skillName9">—</div><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
   </div>
 
   <div id="hudText">
@@ -834,15 +847,22 @@ const GEAR_CONFIGS = {
   rayo: {
     name: 'Rayo', role: 'Caza Veloz', icon: '⚡',
     desc: 'El más rápido del campo de batalla.',
-    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 8, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
+    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 88, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
                advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
-    skills: [
-      { name: 'Frenzy', level: 5, spCost: 15, cooldown: 20, duration: 15, desc: '+50% daño de Vulcan por 15s' },
-      { name: 'Evasion Up', level: 10, spCost: 10, cooldown: 25, duration: 20, desc: '+30% evasión por 20s' },
-      { name: 'Overbooster', level: 15, spCost: 20, cooldown: 30, duration: 3, desc: 'Dash invulnerable a 600m/s por 3s' },
-      { name: 'Berserker', level: 20, spCost: 30, cooldown: 45, duration: 15, desc: '+100% daño, +2 ráfagas, -50% defensa' }
+    passives: [
+      { id: 'fireShot', name: 'Fire Shot', desc: '+40% daño arma estándar', stat: 'stdDmgBonus', value: 0.4 },
+      { id: 'frenzy', name: 'Frenzy', desc: '+30% daño arma avanzada, +5° ángulo lock', stat: 'advDmgBonus', value: 0.3 },
+      { id: 'concentration', name: 'Concentration', desc: '+25% accuracy arma estándar', stat: 'stdAccuracyBonus', value: 0.25 },
+      { id: 'evasionUp', name: 'Evasion Up', desc: '+30% evasión', stat: 'evasionBonus', value: 0.3 },
+      { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 },
+      { id: 'hyperMoving', name: 'Hyper Moving', desc: '+10% turning y strafe', stat: 'turnBonus', value: 0.1 }
     ],
+    activeSkills: [
+      { id: 'berserker', name: 'Berserker', cat: 'Ataque', spCost: 40, cooldown: 30, duration: 15, desc: '+2x2 misiles, -30% reattack time' },
+      { id: 'overbooster', name: 'Overbooster', cat: 'Aire', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash veloz + invulnerable' }
+    ],
+    movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Dash rápido hacia atrás', cooldown: 15 } },
     modelKey: 'duck', modelBuilder: null
   },
   muro: {
@@ -851,12 +871,21 @@ const GEAR_CONFIGS = {
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 75, pierce: true },
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 65, boostMaxSpeed: 160, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
-    skills: [
-      { name: 'Siege Mode', level: 5, spCost: 20, cooldown: 30, duration: 10, desc: 'Torreta fija, +200% daño, inmóvil' },
-      { name: 'Barrier', level: 10, spCost: 15, cooldown: 35, duration: 12, desc: 'Escudo temporal que absorbe 500 daño' },
-      { name: 'Snare Shot', level: 15, spCost: 18, cooldown: 25, duration: 5, desc: 'Frena al enemigo 50% por 5s' },
-      { name: 'Hyper Shot', level: 20, spCost: 40, cooldown: 50, duration: 0, desc: 'Un disparo que ignora escudo y defensa' }
+    passives: [
+      { id: 'defenseUp', name: 'Defense Up', desc: '+40% defensa', stat: 'defenseBonus', value: 0.4 },
+      { id: 'siegeDefense', name: 'Siege Defense', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
+      { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
+      { id: 'snareShotPassive', name: 'Snare Shot', desc: 'Disparos ralentizan enemigos 50%', stat: 'snareEffect', value: 0.5 },
+      { id: 'groundAccelerator', name: 'Ground Accelerator', desc: '+60% velocidad', stat: 'speedBonus', value: 0.6 }
     ],
+    activeSkills: [
+      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 15, desc: 'Inmóvil, +100% daño arma, +rango' },
+      { id: 'airSiegeMode', name: 'Air Siege Mode', cat: 'Ataque', spCost: 30, cooldown: 22, duration: 12, desc: 'Siege mode en el aire' },
+      { id: 'hyperShot', name: 'Hyper Shot', cat: 'Ataque', spCost: 35, cooldown: 30, duration: 0, desc: 'Disparo AoE que ignora defensa' },
+      { id: 'barrier', name: 'Barrier', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: '+5 HP de escudo temporal' },
+      { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' }
+    ],
+    movement: null,
     modelKey: 'teddy', modelBuilder: null
   },
   trueno: {
@@ -865,12 +894,19 @@ const GEAR_CONFIGS = {
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
     stats: { maxSpeed: 85, boostMaxSpeed: 220, accel: 38, boostAccel: 70, defense: 5, evasion: 4, shield: 5, hp: 6 },
-    skills: [
-      { name: 'Ground Bombing', level: 5, spCost: 20, cooldown: 25, duration: 0, desc: 'Bombardeo circular en el suelo, daña a todos en un radio' },
-      { name: 'Air Bombing', level: 10, spCost: 25, cooldown: 30, duration: 0, desc: 'Bombardeo desde arriba, mayor radio' },
-      { name: 'Charge Shot', level: 15, spCost: 15, cooldown: 20, duration: 0, desc: 'Disparo cargado que hace 3x daño' },
-      { name: 'Big Boom', level: 20, spCost: 50, cooldown: 60, duration: 0, desc: 'Explosión masiva tipo kamikaze' }
+    passives: [
+      { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
     ],
+    activeSkills: [
+      { id: 'groundBombing', name: 'Ground Bombing', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 0, desc: 'AoE circular en el suelo (60m)' },
+      { id: 'airBombing', name: 'Air Bombing', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 0, desc: 'AoE desde arriba (100m)' },
+      { id: 'chargeShot', name: 'Charge Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Disparo cargado 3x daño' },
+      { id: 'multiTarget', name: 'Multi-target', cat: 'Ataque', spCost: 25, cooldown: 18, duration: 12, desc: 'Misiles atacan múltiples objetivos' },
+      { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 15, duration: 10, desc: 'Chaffs absorben 3 hits por vos' },
+      { id: 'bigBoom', name: 'Big Boom', cat: 'Ataque', spCost: 50, cooldown: 40, duration: 0, desc: 'Explosión masiva (140m radio)' },
+      { id: 'invisible', name: 'Invisible', cat: 'Atributo', spCost: 25, cooldown: 30, duration: 15, desc: 'Invisible a enemigos' }
+    ],
+    movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Dash rápido hacia atrás', cooldown: 15 } },
     modelKey: 'duck', modelBuilder: null
   },
   viento: {
@@ -879,12 +915,21 @@ const GEAR_CONFIGS = {
     weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
     stats: { maxSpeed: 80, boostMaxSpeed: 200, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
-    skills: [
-      { name: 'Healing Field', level: 5, spCost: 15, cooldown: 30, duration: 15, desc: 'Aura que regenera 1 vida cada 3s' },
-      { name: 'Defense Up', level: 10, spCost: 10, cooldown: 25, duration: 20, desc: '+40% defensa por 20s' },
-      { name: 'Reverse Engine', level: 15, spCost: 20, cooldown: 35, duration: 0, desc: 'Freno brusco a 0 + borra misiles cercanos' },
-      { name: 'Full Recovery', level: 20, spCost: 50, cooldown: 60, duration: 0, desc: 'Cura completa de vida + escudo' }
+    passives: [
+      { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
+      { id: 'defenseUp', name: 'Defense Up', desc: '+40% defensa', stat: 'defenseBonus', value: 0.4 },
+      { id: 'evasionUp', name: 'Evasion Up', desc: '+30% evasión', stat: 'evasionBonus', value: 0.3 },
+      { id: 'smartSP', name: 'Smart SP', desc: '-30% SP cost de todas las skills', stat: 'spCostReduction', value: 0.3 }
     ],
+    activeSkills: [
+      { id: 'healingField', name: 'Healing Field', cat: 'Defensa', spCost: 20, cooldown: 18, duration: 15, desc: '+1 HP cada 3s' },
+      { id: 'energizingField', name: 'Energizing Field', cat: 'Atributo', spCost: 15, cooldown: 15, duration: 15, desc: '+200% regen SP' },
+      { id: 'healTarget', name: 'Heal Target', cat: 'Defensa', spCost: 20, cooldown: 12, duration: 0, desc: 'Cura instantánea +3 HP' },
+      { id: 'energizeTarget', name: 'Energize Target', cat: 'Atributo', spCost: 10, cooldown: 10, duration: 0, desc: '+30 SP instantáneo' },
+      { id: 'reverseEngine', name: 'Reverse Engine', cat: 'Aire', spCost: 25, cooldown: 20, duration: 0, desc: 'Frena + elimina misiles cercanos' },
+      { id: 'fullRecovery', name: 'Full Recovery', cat: 'Atributo', spCost: 50, cooldown: 60, duration: 0, desc: 'HP + escudo completos' }
+    ],
+    movement: null,
     modelKey: 'duck', modelBuilder: null
   }
 };
@@ -964,6 +1009,8 @@ function applyGearSelection(gearKey) {
 
   renderLivesHUD();
   renderShieldHUD();
+  applyPassiveBuffs();
+  initSkillSlots();
 }
 
 function keyLabel(code) {
@@ -3261,6 +3308,7 @@ const bubbleTexture = makeBubbleTexture();
 const projMat = new THREE.SpriteMaterial({ map: bubbleTexture, transparent: true, depthWrite: false });
 function fireProjectile() {
   if (stdOverheated || stdFireCooldown > 0) return;
+  onPlayerAttack();
   const weapon = getStdWeapon();
   if (!weapon) return;
   stdHeat += HEAT_PER_SHOT_STD;
@@ -3271,12 +3319,11 @@ function fireProjectile() {
     stdOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
   // Fire pattern (+2 volleys if Berserker active)
-  const berserkerVolleyBonus = (isSkillActive('rayo', 3)) ? 2 : 0;
+  const berserkerVolleyBonus = (isSkillActive('berserker')) ? 2 : 0;
   const pattern = [weapon.pattern[0], (weapon.pattern[1] || 1) + berserkerVolleyBonus];
-  const bullets = firePatternBullets(pattern);
   const chargeMult = chargeShotActive ? 3 : 1;
   if (chargeShotActive) chargeShotActive = false;
-  const baseDamage = Math.round(weapon.baseDamage * getSkillDamageMultiplier() * chargeMult);
+  const baseDamage = Math.round(weapon.baseDamage * (weapon.type === 'vulcan' || weapon.type === 'gatling' || weapon.type === 'rifle' || weapon.type === 'cannon' ? getStdDmgMultiplier() : getAdvDmgMultiplier()) * chargeMult);
   for (let i = 0; i < bullets.length; i++) {
     setTimeout(() => {
       if (!gameRunning) return;
@@ -3325,6 +3372,7 @@ let nextMissileSide = -1; // alterna: -1 ala izquierda, 1 ala derecha
 let missileTubeIndex = 0; // alterna entre los 3 tubos de cada pod
 function fireMissile() {
   if (advOverheated || advFireCooldown > 0) return;
+  onPlayerAttack();
   const weapon = getAdvWeapon();
   if (!weapon) return;
   advHeat += HEAT_PER_SHOT_ADV;
@@ -3622,10 +3670,18 @@ window.addEventListener('keydown', e => {
     if (e.code === bindings.toggleMode) toggleMode();
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
     if (e.code === bindings.special) fireSpecial();
-    if (e.code === 'KeyQ') onSkillKey(0);
-    if (e.code === 'KeyE') onSkillKey(1);
-    if (e.code === 'KeyX') onSkillKey(2);
-    if (e.code === 'KeyC') onSkillKey(3);
+    if (e.code === 'KeyQ') { activateMovementSkill('q'); }
+    if (e.code === 'KeyE') { activateMovementSkill('e'); }
+    if (e.code === 'Digit1') onSkillKey(0);
+    if (e.code === 'Digit2') onSkillKey(1);
+    if (e.code === 'Digit3') onSkillKey(2);
+    if (e.code === 'Digit4') onSkillKey(3);
+    if (e.code === 'Digit5') onSkillKey(4);
+    if (e.code === 'Digit6') onSkillKey(5);
+    if (e.code === 'Digit7') onSkillKey(6);
+    if (e.code === 'Digit8') onSkillKey(7);
+    if (e.code === 'Digit9') onSkillKey(8);
+    if (e.code === 'Digit0') onSkillKey(9);
     if (mode === 'FLIGHT' && !barrelRoll.active && (e.code === bindings.rollLeft || e.code === bindings.rollRight)) {
       const key = e.code === bindings.rollLeft ? 'rollLeft' : 'rollRight';
       const now = clock.elapsedTime;
@@ -3854,84 +3910,146 @@ function firePatternBullets(pattern) {
 
 // ================= Sistema de Skills y SP =================
 const MAX_SP = 100;
-let playerSP = 0;
-const SP_PER_KILL = 8;
-const SP_PER_BOSS = 30;
-let skillCooldowns = [0, 0, 0, 0];
-let skillActive = [false, false, false, false];
-let skillTimers = [0, 0, 0, 0];
-let activeSkillEffects = {};
+let playerSP = 50; // empieza con 50 SP
+const SP_REGEN_RATE = 2;       // SP por segundo normal
+const SP_REGEN_FAST = 8;       // SP por segundo cuando no atacás 5s
+let spRegenMode = 'slow';      // 'slow' o 'fast'
+let noAttackTimer = 0;
+const NO_ATTACK_THRESHOLD = 5; // segundos sin atacar para regen rápida
 
-function getSkills() {
-  if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return [];
-  return GEAR_CONFIGS[selectedGear].skills;
+// Skill slots: indices 0-9对应 teclas 1-0
+let skillSlots = [];           // array de { id, ... } o null, longitud 10
+let skillCooldowns = new Array(10).fill(0);
+let skillActiveTimers = {};    // { skillId: remainingTime }
+let activeSkillEffects = {};   // { gearId_skillId: true }
+
+// Movement skills cooldowns
+let movementCooldowns = { q: 0, e: 0 };
+
+function getGearConfig() {
+  if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return null;
+  return GEAR_CONFIGS[selectedGear];
 }
 
-function canUseSkill(slot) {
-  const skills = getSkills();
-  if (slot >= skills.length) return false;
-  const sk = skills[slot];
-  return playerSP >= sk.spCost && skillCooldowns[slot] <= 0;
+// ================= Passive Buffs =================
+let passiveBuffs = {}; // { statName: totalValue }
+
+function applyPassiveBuffs() {
+  passiveBuffs = {};
+  const gear = getGearConfig();
+  if (!gear || !gear.passives) return;
+  for (const p of gear.passives) {
+    if (!passiveBuffs[p.stat]) passiveBuffs[p.stat] = 0;
+    passiveBuffs[p.stat] += p.value;
+  }
 }
 
-function activateSkill(slot) {
-  const skills = getSkills();
-  if (slot >= skills.length) return false;
-  const sk = skills[slot];
-  if (!canUseSkill(slot)) return false;
-  playerSP -= sk.spCost;
+function getPassive(stat) {
+  return passiveBuffs[stat] || 0;
+}
+
+// ================= Skill Slot Management =================
+function initSkillSlots() {
+  const gear = getGearConfig();
+  skillSlots = new Array(10).fill(null);
+  skillCooldowns = new Array(10).fill(0);
+  skillActiveTimers = {};
+  movementCooldowns = { q: 0, e: 0 };
+  if (!gear) return;
+  // Auto-assign active skills to slots 0-9 in order
+  const skills = gear.activeSkills || [];
+  for (let i = 0; i < Math.min(skills.length, 10); i++) {
+    skillSlots[i] = skills[i];
+  }
+}
+
+function canUseSkillSlot(slot) {
+  if (slot < 0 || slot >= 10) return false;
+  const sk = skillSlots[slot];
+  if (!sk) return false;
+  const costReduction = getPassive('spCostReduction');
+  const actualCost = Math.round(sk.spCost * (1 - costReduction));
+  return playerSP >= actualCost && skillCooldowns[slot] <= 0;
+}
+
+function activateSkillSlot(slot) {
+  if (!canUseSkillSlot(slot)) return false;
+  const sk = skillSlots[slot];
+  const costReduction = getPassive('spCostReduction');
+  const actualCost = Math.round(sk.spCost * (1 - costReduction));
+  playerSP -= actualCost;
   skillCooldowns[slot] = sk.cooldown;
   if (sk.duration > 0) {
-    skillActive[slot] = true;
-    skillTimers[slot] = sk.duration;
+    skillActiveTimers[sk.id] = sk.duration;
   }
-  applySkillEffect(selectedGear, slot, true);
+  applySkillEffect(sk.id, true);
   return true;
 }
 
-function addSP(amount) {
-  playerSP = Math.min(MAX_SP, playerSP + amount);
+function activateMovementSkill(key) {
+  const gear = getGearConfig();
+  if (!gear || !gear.movement) return false;
+  const mv = gear.movement[key];
+  if (!mv) return false;
+  if (movementCooldowns[key] > 0) return false;
+  movementCooldowns[key] = mv.cooldown;
+  applyMovementEffect(mv.id, key);
+  return true;
 }
 
+// ================= SP Regen =================
+function updateSP(dt) {
+  noAttackTimer += dt;
+  spRegenMode = noAttackTimer >= NO_ATTACK_THRESHOLD ? 'fast' : 'slow';
+  const rate = spRegenMode === 'fast' ? SP_REGEN_FAST : SP_REGEN_RATE;
+  const energizingActive = !!activeSkillEffects['energizingField'];
+  const finalRate = energizingActive ? rate * 3 : rate;
+  playerSP = Math.min(MAX_SP, playerSP + finalRate * dt);
+}
+
+function onPlayerAttack() {
+  noAttackTimer = 0;
+}
+
+// ================= Skill Updates =================
 function updateSkills(dt) {
-  for (let i = 0; i < 4; i++) {
+  updateSP(dt);
+  // Cooldowns
+  for (let i = 0; i < 10; i++) {
     if (skillCooldowns[i] > 0) skillCooldowns[i] = Math.max(0, skillCooldowns[i] - dt);
-    if (skillActive[i]) {
-      skillTimers[i] -= dt;
-      if (skillTimers[i] <= 0) {
-        skillActive[i] = false;
-        applySkillEffect(selectedGear, i, false);
-      }
+  }
+  // Movement cooldowns
+  if (movementCooldowns.q > 0) movementCooldowns.q = Math.max(0, movementCooldowns.q - dt);
+  if (movementCooldowns.e > 0) movementCooldowns.e = Math.max(0, movementCooldowns.e - dt);
+  // Active skill timers
+  for (const [id, remaining] of Object.entries(skillActiveTimers)) {
+    skillActiveTimers[id] = remaining - dt;
+    if (skillActiveTimers[id] <= 0) {
+      delete skillActiveTimers[id];
+      applySkillEffect(id, false);
     }
   }
 }
 
-function applySkillEffect(gear, slot, on) {
-  if (!gear) return;
-  const key = gear + '_' + slot;
+function isSkillActive(skillId) {
+  return !!activeSkillEffects[skillId];
+}
+
+// ================= Skill Effects =================
+function applySkillEffect(skillId, on) {
   if (!on) {
-    delete activeSkillEffects[key];
-    if (gear === 'muro' && slot === 0) { isSiegeMode = false; }
-    if (gear === 'muro' && slot === 1) { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); }
+    delete activeSkillEffects[skillId];
+    if (skillId === 'siegeMode') isSiegeMode = false;
+    if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); }
     return;
   }
-  activeSkillEffects[key] = true;
+  activeSkillEffects[skillId] = true;
 
-  // === RAYO ===
-  if (gear === 'rayo' && slot === 2) { // Overbooster
-    invulnTimer = Math.max(invulnTimer, 3);
-  }
-
-  // === MURO ===
-  if (gear === 'muro' && slot === 0) { // Siege Mode
-    isSiegeMode = true;
-  }
-  if (gear === 'muro' && slot === 1) { // Barrier
-    shield += 5;
-    shieldMax += 5;
-    renderShieldHUD();
-  }
-  if (gear === 'muro' && slot === 3) { // Hyper Shot - fire a special piercing shot now
+  if (skillId === 'overbooster') { invulnTimer = Math.max(invulnTimer, 3); }
+  if (skillId === 'siegeMode') { isSiegeMode = true; }
+  if (skillId === 'barrier') { shield += 5; shieldMax += 5; renderShieldHUD(); }
+  if (skillId === 'deployChaffs') { window._chaffHits = 3; }
+  if (skillId === 'hyperShot') {
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     const mesh = new THREE.Sprite(projMat);
     mesh.scale.set(2.5, 2.5, 1);
@@ -3939,113 +4057,131 @@ function applySkillEffect(gear, slot, on) {
     scene.add(mesh);
     projectiles.push({ mesh, velocity: forward.clone().multiplyScalar(300), life: BUBBLE_MAX_RANGE / 300, damage: 999999, pierce: true });
   }
-
-  // === TRUENO ===
-  if (gear === 'trueno' && slot === 0) { // Ground Bombing - AoE around player
+  if (skillId === 'groundBombing') {
     spawnExplosion(ship.position.clone(), true);
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (e.mesh.position.distanceTo(ship.position) < 60) {
-        registerHit(e, 40, false);
-      }
-    }
+    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 60) registerHit(e, 40, false); }
   }
-  if (gear === 'trueno' && slot === 1) { // Air Bombing - bigger AoE
+  if (skillId === 'airBombing') {
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -20, 0)), true);
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (e.mesh.position.distanceTo(ship.position) < 100) {
-        registerHit(e, 55, false);
-      }
-    }
+    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 100) registerHit(e, 55, false); }
   }
-  if (gear === 'trueno' && slot === 2) { // Charge Shot - 3x damage next shot
-    chargeShotActive = true;
-  }
-  if (gear === 'trueno' && slot === 3) { // Big Boom - massive AoE
+  if (skillId === 'chargeShot') { chargeShotActive = true; }
+  if (skillId === 'bigBoom') {
     spawnExplosion(ship.position.clone(), true);
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(10, 5, 0)), true);
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (e.mesh.position.distanceTo(ship.position) < 140) {
-        registerHit(e, 80, true);
+    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 140) registerHit(e, 80, true); }
+  }
+  if (skillId === 'fullRecovery') { lives = MAX_LIVES; shield = shieldMax; renderLivesHUD(); renderShieldHUD(); }
+  if (skillId === 'healTarget') { lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD(); }
+  if (skillId === 'energizeTarget') { playerSP = Math.min(MAX_SP, playerSP + 30); }
+}
+
+function applyMovementEffect(skillId, key) {
+  if (skillId === 'turnaround') {
+    euler.y += Math.PI;
+    ship.quaternion.setFromEuler(euler);
+  }
+  if (skillId === 'backMoveMach') {
+    const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
+    ship.position.addScaledVector(backward, 40);
+    speed = Math.max(-20, speed * 0.3);
+  }
+  if (skillId === 'reverseEngine') {
+    speed = 0;
+    for (let i = enemyMissiles.length - 1; i >= 0; i--) {
+      if (enemyMissiles[i].mesh.position.distanceTo(ship.position) < 80) {
+        scene.remove(enemyMissiles[i].mesh);
+        enemyMissiles.splice(i, 1);
       }
     }
   }
-
-  // === VIENTO ===
-  if (gear === 'viento' && slot === 3) { // Full Recovery
-    lives = MAX_LIVES;
-    shield = shieldMax;
-    renderLivesHUD();
-    renderShieldHUD();
-  }
 }
 
-// State for skills
-let isSiegeMode = false;
-let chargeShotActive = false;
-
-function isSkillActive(gear, slot) {
-  return !!activeSkillEffects[gear + '_' + slot];
+// ================= Damage/Defense Multipliers from Passives =================
+function getStdDmgMultiplier() {
+  return 1 + getPassive('stdDmgBonus') + (isSkillActive('berserker') ? 0.5 : 0);
+}
+function getAdvDmgMultiplier() {
+  return 1 + getPassive('advDmgBonus');
+}
+function getDefenseMultiplier() {
+  let m = 1 + getPassive('defenseBonus');
+  if (isSkillActive('siegeMode') && selectedGear === 'muro') m += getPassive('siegeDefenseBonus');
+  if (isSkillActive('berserker')) m *= 0.7;
+  return m;
+}
+function getEvasionBonus() {
+  return getPassive('evasionBonus') * 100;
+}
+function getSpeedMultiplier() {
+  return 1 + getPassive('speedBonus');
+}
+function getStdAccuracyBonus() {
+  return getPassive('stdAccuracyBonus') * 100;
 }
 
+// ================= Render Skill Bar =================
 function renderSkillBar() {
-  const skills = getSkills();
-  for (let i = 0; i < 4; i++) {
-    const nameEl = document.getElementById('skillName' + i);
-    const cdEl = document.getElementById('skillCD' + i);
-    const slotEl = document.querySelectorAll('.skillSlot')[i];
-    if (!nameEl || !cdEl || !slotEl) continue;
-    if (i < skills.length) {
-      const sk = skills[i];
-      nameEl.textContent = sk.name;
-      cdEl.textContent = skillCooldowns[i] > 0 ? Math.ceil(skillCooldowns[i]) + 's' : '';
-      slotEl.classList.toggle('onCooldown', skillCooldowns[i] > 0);
-      slotEl.classList.toggle('active', skillActive[i]);
-      slotEl.classList.toggle('locked', playerSP < sk.spCost && skillCooldowns[i] <= 0);
-      slotEl.title = sk.name + ': ' + sk.desc + ' (SP: ' + sk.spCost + ')';
-    } else {
+  const gear = getGearConfig();
+  for (let i = 0; i < 10; i++) {
+    const slotEl = document.getElementById('skillSlot' + i);
+    if (!slotEl) continue;
+    const sk = skillSlots[i];
+    const nameEl = slotEl.querySelector('.skillName');
+    const cdEl = slotEl.querySelector('.skillCooldown');
+    const spCostEl = slotEl.querySelector('.skillSPCost');
+    if (!sk) {
       nameEl.textContent = '—';
       cdEl.textContent = '';
+      if (spCostEl) spCostEl.textContent = '';
       slotEl.classList.add('locked');
+      slotEl.classList.remove('onCooldown', 'active');
+      continue;
+    }
+    slotEl.classList.remove('locked');
+    nameEl.textContent = sk.name;
+    const cd = skillCooldowns[i];
+    cdEl.textContent = cd > 0 ? Math.ceil(cd) + 's' : '';
+    slotEl.classList.toggle('onCooldown', cd > 0);
+    slotEl.classList.toggle('active', !!skillActiveTimers[sk.id]);
+    const costReduction = getPassive('spCostReduction');
+    const actualCost = Math.round(sk.spCost * (1 - costReduction));
+    if (spCostEl) spCostEl.textContent = actualCost + ' SP';
+    slotEl.title = sk.name + ': ' + sk.desc + ' (SP: ' + actualCost + ', CD: ' + sk.cooldown + 's)';
+  }
+  // Movement skill display
+  if (gear && gear.movement) {
+    const qEl = document.getElementById('skillSlotQ');
+    const eEl = document.getElementById('skillSlotE');
+    if (qEl && gear.movement.q) {
+      qEl.querySelector('.skillName').textContent = gear.movement.q.name;
+      qEl.querySelector('.skillCooldown').textContent = movementCooldowns.q > 0 ? Math.ceil(movementCooldowns.q) + 's' : '';
+      qEl.classList.toggle('onCooldown', movementCooldowns.q > 0);
+      qEl.classList.remove('locked');
+    }
+    if (eEl && gear.movement.e) {
+      eEl.querySelector('.skillName').textContent = gear.movement.e.name;
+      eEl.querySelector('.skillCooldown').textContent = movementCooldowns.e > 0 ? Math.ceil(movementCooldowns.e) + 's' : '';
+      eEl.classList.toggle('onCooldown', movementCooldowns.e > 0);
+      eEl.classList.remove('locked');
     }
   }
+  // SP bar
   const spFill = document.getElementById('spBarFill');
   const spNum = document.getElementById('spNum');
   if (spFill) spFill.style.width = (playerSP / MAX_SP * 100) + '%';
   if (spNum) spNum.textContent = Math.floor(playerSP);
 }
 
-// Skill activation handlers (Q/W/E/R)
+// ================= Skill Key Handlers =================
 function onSkillKey(slot) {
   if (!gameRunning || gameOver) return;
-  if (!selectedGear) return;
-  activateSkill(slot);
+  activateSkillSlot(slot);
 }
 
-// ================= Apply skill stat modifiers =================
-function getSkillDamageMultiplier() {
-  let mult = 1;
-  if (isSkillActive('rayo', 0)) mult *= 1.5;
-  if (isSkillActive('rayo', 3)) mult *= 2;
-  if (isSkillActive('muro', 0)) mult *= 3;
-  return mult;
-}
-function getSkillDefenseMultiplier() {
-  let mult = 1;
-  if (isSkillActive('viento', 1)) mult *= 1.4;
-  if (isSkillActive('rayo', 3)) mult *= 0.5;
-  return mult;
-}
-function getSkillEvasionBonus() {
-  if (isSkillActive('rayo', 1)) return 30;
-  return 0;
-}
-function getSkillSpeedMultiplier() {
-  if (isSkillActive('rayo', 2)) return 4;
-  return 1;
-}
+// State
+let isSiegeMode = false;
+let chargeShotActive = false;
 
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
@@ -4165,8 +4301,10 @@ function spawnMissText(pos) {
 
 function registerHit(enemy, dmg, isMissile) {
   // Accuracy vs Evasion
+  const weaponAccuracy = isMissile ? (getAdvWeapon()?.accuracy || 80) : (getStdWeapon()?.accuracy || 80);
+  const accBonus = isMissile ? 0 : getStdAccuracyBonus();
   const enemyEvasion = enemy.isBoss ? 5 : 3;
-  const hitChance = Math.max(5, Math.min(95, 75 + (playerPierce + getSkillEvasionBonus() - enemyEvasion) * 2));
+  const hitChance = Math.max(5, Math.min(95, weaponAccuracy + accBonus + playerPierce + playerEvasion + getEvasionBonus() - enemyEvasion * 2));
   if (Math.random() * 100 > hitChance) {
     spawnMissText(enemy.mesh.position); // texto "MISS"
     return;
@@ -4176,6 +4314,12 @@ function registerHit(enemy, dmg, isMissile) {
   const finalDmg = Math.max(1, Math.round(dmg * (1 - effectiveDef / 100)));
   enemy.hp -= finalDmg;
   showHitmarker();
+  // Snare Shot passive: slow enemy on hit
+  const snareVal = getPassive('snareEffect');
+  if (snareVal > 0 && enemy.chaseSpeed) {
+    enemy.snareTimer = 2; // 2 seconds of slow
+    enemy.snareFactor = 1 - snareVal;
+  }
   if (enemy.hp <= 0) {
     enemy.alive = false;
     scene.remove(enemy.mesh);
@@ -4184,7 +4328,6 @@ function registerHit(enemy, dmg, isMissile) {
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
     addSpecialCharge(enemy.isBoss ? 100 : 22);
-    addSP(enemy.isBoss ? SP_PER_BOSS : SP_PER_KILL);
     if (Math.random() < 0.35) spawnPowerup(enemy.mesh.position.clone());
     // Al morir, se desactiva cualquier disparo/misil suyo que siga en el aire (ya no hace daño)
     for (let i = teddyProjectiles.length - 1; i >= 0; i--) {
@@ -4202,6 +4345,21 @@ function registerHit(enemy, dmg, isMissile) {
 function registerPlayerHit() {
   if (invulnTimer > 0) return;
   invulnTimer = 1.2;
+  // Deploy Chaffs: absorb hit
+  if (isSkillActive('deployChaffs')) {
+    if (!window._chaffHits) window._chaffHits = 3;
+    window._chaffHits--;
+    if (window._chaffHits > 0) return; // chaff absorbed it
+    delete window._chaffHits;
+    activeSkillEffects['deployChaffs'] = false;
+    delete skillActiveTimers['deployChaffs'];
+    return;
+  }
+  // Defense reduction: chance to avoid damage
+  const defMult = getDefenseMultiplier();
+  if (Math.random() < (defMult - 1) * 0.5) return;
+  const dmgReduction = getPassive('dmgReduction');
+  if (dmgReduction > 0 && Math.random() < dmgReduction) return;
   flashDamage();
   spawnExplosion(ship.position, false);
   if (shield > 0) {
@@ -4291,12 +4449,14 @@ function startWave() {
   waveIsBoss = isBossWave;
   stdHeat = 0; advHeat = 0;
   stdOverheated = false; advOverheated = false;
-  skillCooldowns = [0, 0, 0, 0];
-  skillActive = [false, false, false, false];
-  skillTimers = [0, 0, 0, 0];
+  skillCooldowns = new Array(10).fill(0);
+  skillActiveTimers = {};
   activeSkillEffects = {};
+  movementCooldowns = { q: 0, e: 0 };
   isSiegeMode = false;
   chargeShotActive = false;
+  window._chaffHits = 0;
+  window._healTimer = 0;
   updateAmmoHUD();
   if (isBossWave) {
     spawnBossWave();
@@ -4713,7 +4873,7 @@ function animate() {
     const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollAngle);
     ship.quaternion.setFromEuler(euler).multiply(rollQuat);
 
-    const targetMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0 : getSkillSpeedMultiplier());
+    const targetMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0 : getSpeedMultiplier());
     const currentAccel = boosting ? boostAccel : accel;
     if (isSiegeMode) {
       speed *= 0.85;
@@ -4898,13 +5058,15 @@ function animate() {
       toPlayer.y = 0;
       if (toPlayer.lengthSq() > 0.0001) toPlayer.normalize();
       if (distToPlayer > enemy.fireRange) {
-        enemy.mesh.position.addScaledVector(toPlayer, enemy.chaseSpeed * dt);
+        let chaseMult = 1;
+        if (enemy.snareTimer > 0) { chaseMult = enemy.snareFactor || 0.5; enemy.snareTimer -= dt; }
+        enemy.mesh.position.addScaledVector(toPlayer, enemy.chaseSpeed * chaseMult * dt);
       }
       enemy.mesh.lookAt(ship.position.x, enemy.mesh.position.y, ship.position.z);
       enemy.center.copy(enemy.mesh.position); // si vuelve a orbitar, que retome cerca de donde quedó
 
       enemy.attackCooldown -= dt;
-      if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0) {
+      if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !isSkillActive('invisible')) {
         fireTeddyProjectile(enemy);
         enemy.attackCooldown = enemy.attackInterval;
         enemy.lunge = 0.22;
@@ -5014,7 +5176,7 @@ function animate() {
   updateAmmoHUD();
   updateSkills(dt);
   // Healing Field: regen 1 HP every 3s
-  if (isSkillActive('viento', 0)) {
+  if (isSkillActive('healingField')) {
     if (!window._healTimer) window._healTimer = 0;
     window._healTimer += dt;
     if (window._healTimer >= 3) {
