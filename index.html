@@ -3312,7 +3312,8 @@ function fireProjectile() {
   const weapon = getStdWeapon();
   if (!weapon) return;
   stdHeat += HEAT_PER_SHOT_STD;
-  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime || 0.14);
+  const berserkerAtkReduction = isSkillActive('berserker') ? 0.7 : 1;
+  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime * berserkerAtkReduction || 0.14);
   if (stdHeat >= 100) {
     stdHeat = 100;
     stdOverheated = true;
@@ -3323,7 +3324,7 @@ function fireProjectile() {
   const pattern = [weapon.pattern[0], (weapon.pattern[1] || 1) + berserkerVolleyBonus];
   const chargeMult = chargeShotActive ? 3 : 1;
   if (chargeShotActive) chargeShotActive = false;
-  const baseDamage = Math.round(weapon.baseDamage * (weapon.type === 'vulcan' || weapon.type === 'gatling' || weapon.type === 'rifle' || weapon.type === 'cannon' ? getStdDmgMultiplier() : getAdvDmgMultiplier()) * chargeMult);
+  const baseDamage = Math.round(weapon.baseDamage * getStdDmgMultiplier() * chargeMult);
   const bullets = firePatternBullets(pattern);
   for (let i = 0; i < bullets.length; i++) {
     setTimeout(() => {
@@ -3405,7 +3406,7 @@ function fireMissile() {
         life: 6,
         speed: weapon.speed || 120,
         trailTimer: 0,
-        damage: weapon.baseDamage,
+        damage: Math.round(weapon.baseDamage * getAdvDmgMultiplier()),
         pierce: weapon.pierce || false
       });
     }, i * 0.12 * 1000);
@@ -3413,6 +3414,7 @@ function fireMissile() {
   nextMissileSide *= -1;
 }
 function fireBossCannons(boss) {
+  if (isSkillActive('invisible')) return;
   const points = boss.mesh.userData.cannonPoints;
   for (const localPt of points) {
     const worldPt = boss.mesh.localToWorld(localPt.clone());
@@ -4042,14 +4044,17 @@ function applySkillEffect(skillId, on) {
     delete activeSkillEffects[skillId];
     if (skillId === 'siegeMode') isSiegeMode = false;
     if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); }
+    if (skillId === 'deployChaffs') { delete window._chaffHits; }
     return;
   }
   activeSkillEffects[skillId] = true;
 
   if (skillId === 'overbooster') { invulnTimer = Math.max(invulnTimer, 3); }
   if (skillId === 'siegeMode') { isSiegeMode = true; }
+  if (skillId === 'airSiegeMode') { isSiegeMode = true; }
   if (skillId === 'barrier') { shield += 5; shieldMax += 5; renderShieldHUD(); }
   if (skillId === 'deployChaffs') { window._chaffHits = 3; }
+  if (skillId === 'remedy') { /* clear any active debuffs — for now just a visual cue */ }
   if (skillId === 'hyperShot') {
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     const mesh = new THREE.Sprite(projMat);
@@ -4079,8 +4084,7 @@ function applySkillEffect(skillId, on) {
 
 function applyMovementEffect(skillId, key) {
   if (skillId === 'turnaround') {
-    euler.y += Math.PI;
-    ship.quaternion.setFromEuler(euler);
+    lookYaw += Math.PI;
   }
   if (skillId === 'backMoveMach') {
     const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
@@ -4166,6 +4170,11 @@ function renderSkillBar() {
       eEl.classList.toggle('onCooldown', movementCooldowns.e > 0);
       eEl.classList.remove('locked');
     }
+  } else {
+    const qEl = document.getElementById('skillSlotQ');
+    const eEl = document.getElementById('skillSlotE');
+    if (qEl) { qEl.querySelector('.skillName').textContent = '—'; qEl.classList.add('locked'); qEl.classList.remove('onCooldown'); }
+    if (eEl) { eEl.querySelector('.skillName').textContent = '—'; eEl.classList.add('locked'); eEl.classList.remove('onCooldown'); }
   }
   // SP bar
   const spFill = document.getElementById('spBarFill');
@@ -4456,7 +4465,7 @@ function startWave() {
   movementCooldowns = { q: 0, e: 0 };
   isSiegeMode = false;
   chargeShotActive = false;
-  window._chaffHits = 0;
+  delete window._chaffHits;
   window._healTimer = 0;
   updateAmmoHUD();
   if (isBossWave) {
@@ -5219,6 +5228,22 @@ portalGroup.scale.setScalar(2.5900);
 /* SAVE_INJECT_ANCHOR */
 preloadModels(() => {
   swapDuckModelIfReady();
+  const gearOverlay = document.getElementById('gearSelectOverlay');
+  const gearOverlayVisible = gearOverlay && !gearOverlay.classList.contains('hidden');
+  // Si el usuario ya eligió un gear o el overlay está visible, no sobreescribir
+  if (gearOverlayVisible || selectedGear) {
+    if (!gearOverlayVisible && selectedGear) {
+      applyGearSelection(selectedGear);
+      renderLivesHUD();
+      renderShieldHUD();
+      updateSpecialHUD();
+      resetDestructibles();
+      gameRunning = true;
+      startWave();
+      animate();
+    }
+    return;
+  }
   const savedGear = localStorage.getItem('patoClone_gear');
   if (savedGear && GEAR_CONFIGS[savedGear]) {
     selectedGear = savedGear;
