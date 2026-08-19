@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pato Clone - Cuarto de baño 90s</title>
+<title>Pato Clone - Guerra de Juguetes</title>
 <style>
   html, body { margin: 0; padding: 0; overflow: hidden; background: #cbe8f0; font-family: 'Comic Sans MS', 'Segoe UI', Arial, sans-serif; }
   canvas { display: block; }
@@ -529,7 +529,7 @@
 <button id="resetBotsBtn">🐻 Reiniciar bots</button>
 <button id="scoreboardBtn">🏆 Puntajes</button>
 <button id="fullscreenBtn">⛶ Pantalla completa</button>
-<div id="bossBar"><div class="label">BOSS: Barquito de baño</div><div class="track"><div class="fill" id="bossFill"></div></div></div>
+<div id="bossBar"><div class="label">BOSS: Barco de Guerra</div><div class="track"><div class="fill" id="bossFill"></div></div></div>
 <div id="mobBar"><div class="label" id="mobBarLabel">Osito</div><div class="track"><div class="fill" id="mobFill"></div></div></div>
 <div id="crosshair"></div>
 <div id="lockInRing"></div>
@@ -1093,10 +1093,10 @@ document.getElementById('waveClearAcceptBtn').addEventListener('click', () => {
   startWave();
 });
 
-// ================= Escena: CUARTO DE BAÑO 90s =================
+// ================= Escena: ARENA DE GUERRA DE JUGUETES =================
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xcbe8f0);
-scene.fog = new THREE.Fog(0xcbe8f0, 500, 2400);
+scene.background = new THREE.Color(0xd4c4a0);
+scene.fog = new THREE.Fog(0xd4c4a0, 500, 2400);
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 3000);
 const BASE_FOV = 70;
@@ -1148,11 +1148,11 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xbfe3ee, 0.75));
-const sun = new THREE.DirectionalLight(0xfff6da, 0.75);
+scene.add(new THREE.HemisphereLight(0xfff0d0, 0x8B6914, 0.8));
+const sun = new THREE.DirectionalLight(0xfff0d0, 0.8);
 sun.position.set(300, 500, 200);
 scene.add(sun);
-const rim = new THREE.DirectionalLight(0xbfe9ff, 0.4);
+const rim = new THREE.DirectionalLight(0xffe8b0, 0.35);
 rim.position.set(-200, 150, -300);
 scene.add(rim);
 
@@ -1163,45 +1163,43 @@ function shadeColor(hex, amt) {
   return '#' + ((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1);
 }
 
-// Piso: mosaico de azulejos chicos tipo baño, con leve variación de tono por baldosa
-function makeFloorTileTexture(colorA, colorB, grout) {
+// Piso: tablones de madera gastados con marcas de batalla
+function makeWoodPlankTexture(colorA, colorB, grout) {
   const size = 256;
   const c = document.createElement('canvas');
   c.width = c.height = size;
   const ctx = c.getContext('2d');
-  const tiles = 8;
-  const tileSize = size / tiles;
-  for (let y = 0; y < tiles; y++) {
-    for (let x = 0; x < tiles; x++) {
-      const base = (x + y) % 2 === 0 ? colorA : colorB;
-      ctx.fillStyle = shadeColor(base, (Math.random() - 0.5) * 10);
-      ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+  ctx.fillStyle = '#3a2e22';
+  ctx.fillRect(0, 0, size, size);
+  const planks = 8;
+  const plankH = size / planks;
+  for (let i = 0; i < planks; i++) {
+    const base = i % 2 === 0 ? colorA : colorB;
+    const y = i * plankH;
+    ctx.fillStyle = shadeColor(base, (Math.random() - 0.5) * 12);
+    ctx.fillRect(0, y + 1, size, plankH - 2);
+    // veta de madera
+    ctx.strokeStyle = 'rgba(30,20,10,0.12)';
+    ctx.lineWidth = 0.8;
+    for (let l = 0; l < 3; l++) {
+      const ly = y + plankH * (0.2 + Math.random() * 0.6);
+      ctx.beginPath();
+      ctx.moveTo(0, ly);
+      ctx.lineTo(size, ly + (Math.random() - 0.5) * 4);
+      ctx.stroke();
     }
+    // separación entre tablones
+    ctx.fillStyle = grout;
+    ctx.fillRect(0, y, size, 1.5);
   }
-  ctx.strokeStyle = grout;
-  ctx.lineWidth = 3;
-  for (let i = 0; i <= tiles; i++) {
-    ctx.beginPath(); ctx.moveTo(i * tileSize, 0); ctx.lineTo(i * tileSize, size); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, i * tileSize); ctx.lineTo(size, i * tileSize); ctx.stroke();
-  }
-  // Marcas de guerra: un par de baldosas rajadas, como si les hubiera pegado un misil
-  ctx.strokeStyle = 'rgba(40,30,25,0.55)';
-  ctx.lineWidth = 1.6;
-  for (let n = 0; n < 3; n++) {
-    const tx = Math.floor(Math.random() * tiles) * tileSize;
-    const ty = Math.floor(Math.random() * tiles) * tileSize;
-    let px = tx + tileSize * (0.3 + Math.random() * 0.4);
-    let py = ty + tileSize * (0.3 + Math.random() * 0.4);
+  // marcas de guerra
+  ctx.strokeStyle = 'rgba(40,30,20,0.4)';
+  ctx.lineWidth = 1.4;
+  for (let n = 0; n < 4; n++) {
+    const tx = Math.random() * size;
+    const ty = Math.random() * size;
     ctx.beginPath();
-    ctx.moveTo(px, py);
-    const branches = 3 + Math.floor(Math.random() * 2);
-    for (let b = 0; b < branches; b++) {
-      const ang = Math.random() * Math.PI * 2;
-      const len = tileSize * (0.15 + Math.random() * 0.2);
-      const nx = px + Math.cos(ang) * len, ny = py + Math.sin(ang) * len;
-      ctx.lineTo(nx, ny);
-      ctx.moveTo(px, py);
-    }
+    ctx.arc(tx, ty, 3 + Math.random() * 5, 0, Math.PI * 2);
     ctx.stroke();
   }
   const tex = new THREE.CanvasTexture(c);
@@ -1209,47 +1207,62 @@ function makeFloorTileTexture(colorA, colorB, grout) {
   return tex;
 }
 
-// Paredes: azulejo rectangular tipo "subway tile" a la americana, en hileras alternadas (clásico de baño)
-function makeSubwayWallTexture(tileColor, grout) {
+// Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
+function makeCardboardWallTexture(baseColor, corrugColor) {
   const size = 256;
   const c = document.createElement('canvas');
   c.width = c.height = size;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = grout;
+  ctx.fillStyle = baseColor;
   ctx.fillRect(0, 0, size, size);
-  const tileW = 64, tileH = 32;
-  const rows = size / tileH;
-  const cols = size / tileW;
-  for (let r = 0; r < rows; r++) {
-    const offset = (r % 2 === 0) ? 0 : -tileW / 2;
-    for (let cI = -1; cI <= cols; cI++) {
-      const x = cI * tileW + offset;
-      const y = r * tileH;
-      ctx.fillStyle = shadeColor(tileColor, (Math.random() - 0.5) * 10);
-      ctx.fillRect(x + 2, y + 1, tileW - 4, tileH - 2);
-    }
+  // Líneas verticales de corrugado
+  ctx.strokeStyle = corrugColor;
+  ctx.lineWidth = 1;
+  for (let x = 0; x < size; x += 8) {
+    ctx.globalAlpha = 0.3 + Math.random() * 0.2;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, size);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // Cinta de embalaje horizontal
+  const tapeY = size * 0.45 + (Math.random() - 0.5) * 30;
+  ctx.fillStyle = 'rgba(180,160,100,0.35)';
+  ctx.fillRect(0, tapeY, size, 18);
+  // Borde superior/inferior de la cinta
+  ctx.strokeStyle = 'rgba(120,100,60,0.3)';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(0, tapeY); ctx.lineTo(size, tapeY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, tapeY + 18); ctx.lineTo(size, tapeY + 18); ctx.stroke();
+  // Marca de guerra: crayón
+  if (Math.random() > 0.5) {
+    ctx.strokeStyle = 'rgba(200,50,50,0.3)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(size * 0.3 + Math.random() * size * 0.4, size * 0.2 + Math.random() * size * 0.3, 8 + Math.random() * 12, 0, Math.PI * 2);
+    ctx.stroke();
   }
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   return tex;
 }
 
-const floorTex = makeFloorTileTexture('#c3c8c7', '#8b9190', '#5c6261');
+const floorTex = makeWoodPlankTexture('#8B6914', '#6B5210', '#2a1e12');
 floorTex.repeat.set(20, 20);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ map: floorTex }));
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// Zócalo (parte baja) en celeste suave + parte alta en crema, con franja separadora — así las paredes
-// dejan de verse todas del mismo tono y el ambiente se distingue mejor sin ser un contraste violento.
+// Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
 const roomSize = 320, wallHeight = 280;
-const WALL_TILE_WORLD_SIZE = 32; // tamaño físico (en unidades del mundo) de cada bloque de textura de 256px
+const WALL_TILE_WORLD_SIZE = 32;
 const wallPlaneW = roomSize * 2;
 const wallLowerH = wallHeight * 0.32;
 const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
-const wallLowerTex = makeSubwayWallTexture('#bfe6ea', '#7fb3ba');
+const wallLowerTex = makeCardboardWallTexture('#8B6914', '#5a4510');
 wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
-const wallUpperTex = makeSubwayWallTexture('#fdf3d8', '#c9a866');
+const wallUpperTex = makeCardboardWallTexture('#C4A265', '#9a7a40');
 wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
 const wallLowerMat = new THREE.MeshStandardMaterial({ map: wallLowerTex, side: THREE.DoubleSide });
 const wallUpperMat = new THREE.MeshStandardMaterial({ map: wallUpperTex, side: THREE.DoubleSide });
@@ -1259,7 +1272,7 @@ function makeWall(w, h, x, y, z, rotY) {
   const lower = new THREE.Mesh(new THREE.PlaneGeometry(w, lowerH), wallLowerMat);
   lower.position.y = lowerH / 2;
   group.add(lower);
-  const trim = new THREE.Mesh(new THREE.PlaneGeometry(w, trimH), new THREE.MeshStandardMaterial({ color: 0xd7bf86, side: THREE.DoubleSide }));
+  const trim = new THREE.Mesh(new THREE.PlaneGeometry(w, trimH), new THREE.MeshStandardMaterial({ color: 0xb4a064, side: THREE.DoubleSide }));
   trim.position.y = lowerH + trimH / 2;
   group.add(trim);
   const upper = new THREE.Mesh(new THREE.PlaneGeometry(w, upperH), wallUpperMat);
@@ -1277,7 +1290,7 @@ makeWall(roomSize * 2, wallHeight, roomSize, wallHeight / 2, 0, -Math.PI / 2);
 // ---- Techo (antes no existía: se podía volar hacia arriba sin límite y salir del cuarto) ----
 const ceiling = new THREE.Mesh(
   new THREE.PlaneGeometry(roomSize * 2, roomSize * 2),
-  new THREE.MeshStandardMaterial({ color: 0xfdf6e3, side: THREE.FrontSide })
+  new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
 );
 ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = wallHeight;
@@ -1342,27 +1355,36 @@ function makeOutsideViewTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
   const ctx = c.getContext('2d');
-  // Cielo
-  ctx.fillStyle = '#8fd6f0';
+  // Pared de la habitación (vista hacia afuera de la arena)
+  ctx.fillStyle = '#e8d8b8';
   ctx.fillRect(0, 0, 256, 256);
-  // Pasto
-  ctx.fillStyle = '#8fd68a';
+  // Suelo de madera afuera
+  ctx.fillStyle = '#a07840';
   ctx.fillRect(0, 190, 256, 66);
-  ctx.fillStyle = '#7ac274';
-  ctx.fillRect(0, 190, 256, 8);
-  // Nubes
-  ctx.fillStyle = '#ffffff';
-  for (const [x, y, r] of [[60, 55, 22], [90, 45, 26], [120, 58, 20], [190, 80, 18], [215, 70, 22]]) {
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  // Estantería con libros/juguetes
+  ctx.fillStyle = '#6a4a2a';
+  ctx.fillRect(30, 80, 80, 8);
+  ctx.fillRect(30, 130, 80, 8);
+  // Libros
+  for (const [x, w, color] of [[35, 10, '#cc4444'], [48, 8, '#4444cc'], [59, 12, '#44aa44'], [74, 9, '#cc8822'], [86, 11, '#8844aa']]) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, 60, w, 20);
   }
-  // Sol
-  ctx.fillStyle = '#ffe066';
-  ctx.beginPath(); ctx.arc(210, 40, 24, 0, Math.PI * 2); ctx.fill();
-  // Arbolito simple
-  ctx.fillStyle = '#8a5a30';
-  ctx.fillRect(45, 150, 10, 45);
-  ctx.fillStyle = '#5fa855';
-  ctx.beginPath(); ctx.arc(50, 140, 26, 0, Math.PI * 2); ctx.fill();
+  // Juguetes en repisa baja
+  ctx.fillStyle = '#ff6644';
+  ctx.fillRect(40, 110, 14, 20);
+  ctx.fillStyle = '#44aaff';
+  ctx.beginPath(); ctx.arc(70, 118, 12, 0, Math.PI * 2); ctx.fill();
+  // Poster de guerra en la pared
+  ctx.fillStyle = '#336';
+  ctx.fillRect(150, 40, 70, 50);
+  ctx.fillStyle = '#ff4444';
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText('ATACK!', 160, 70);
+  // Soldado de juguete en silueta
+  ctx.fillStyle = '#556b2f';
+  ctx.fillRect(170, 100, 16, 40);
+  ctx.beginPath(); ctx.arc(178, 92, 10, 0, Math.PI * 2); ctx.fill();
   return new THREE.CanvasTexture(c);
 }
 const outsideView = new THREE.Mesh(
@@ -1400,140 +1422,63 @@ function addToonOutline(mesh, color) {
   mesh.add(line);
 }
 
-const porcelain = new THREE.MeshStandardMaterial({ color: 0xf2ede0, roughness: 0.45 });
-const porcelainShade = new THREE.MeshStandardMaterial({ color: 0xe4ecec, roughness: 0.45 });
-const chromeMat = new THREE.MeshStandardMaterial({ color: 0xcfd6da, metalness: 0.6, roughness: 0.3, envMap: envTexture, envMapIntensity: 1.8 });
+const cardboardBrown = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.85 });
+const cardboardDark = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.9 });
+const cardboardTape = new THREE.MeshStandardMaterial({ color: 0xD4C088, roughness: 0.6 });
+const legoRed = new THREE.MeshStandardMaterial({ color: 0xCC2222, roughness: 0.3, metalness: 0.1 });
+const legoBlue = new THREE.MeshStandardMaterial({ color: 0x2244CC, roughness: 0.3, metalness: 0.1 });
+const legoYellow = new THREE.MeshStandardMaterial({ color: 0xDDCC22, roughness: 0.3, metalness: 0.1 });
 
-const tub = new THREE.Group();
-const tubOuter = new THREE.Mesh(new THREE.CylinderGeometry(140, 120, 60, 28, 1, true), new THREE.MeshStandardMaterial({ color: 0xf2ede0, side: THREE.DoubleSide, roughness: 0.4 }));
-tubOuter.position.y = 30;
-addToonOutline(tubOuter, 0x88b6c4);
-tub.add(tubOuter);
-const tubRim = new THREE.Mesh(new THREE.TorusGeometry(140, 8, 12, 36), porcelainShade);
-tubRim.rotation.x = Math.PI / 2;
-tubRim.position.y = 60;
-tub.add(tubRim);
-// Abolladuras/rayones de batalla en el esmalte
-for (const [ang, y, size] of [[0.4, 20, 14], [2.1, 35, 10], [4.3, 15, 12]]) {
-  const dent = new THREE.Mesh(
-    new THREE.CircleGeometry(size, 10),
-    new THREE.MeshStandardMaterial({ color: 0x8a8378, transparent: true, opacity: 0.35, roughness: 0.7 })
-  );
-  dent.position.set(Math.cos(ang) * 132, y, Math.sin(ang) * 132);
-  dent.lookAt(dent.position.clone().multiplyScalar(2));
-  tub.add(dent);
+function buildCardboardBox(w, h, d, mat) {
+  const group = new THREE.Group();
+  const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat || cardboardBrown);
+  box.position.y = h / 2;
+  addToonOutline(box, 0x5a4510);
+  group.add(box);
+  const tape = new THREE.Mesh(new THREE.BoxGeometry(w * 1.02, 2, d * 0.3), cardboardTape);
+  tape.position.y = h + 1;
+  group.add(tape);
+  return group;
 }
-const water = new THREE.Mesh(new THREE.CircleGeometry(130, 36), new THREE.MeshStandardMaterial({ color: 0x6fd6ee, transparent: true, opacity: 0.85 }));
-water.rotation.x = -Math.PI / 2;
-water.position.y = 45;
-tub.add(water);
-const curtainRod = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 160, 8), chromeMat);
-curtainRod.rotation.z = Math.PI / 2;
-curtainRod.position.set(0, 200, 0);
-tub.add(curtainRod);
-tub.position.set(-150, 0, -270);
-tub.scale.setScalar(0.4);
-scene.add(tub);
 
-const toilet = new THREE.Group();
-const toiletBase = new THREE.Mesh(new THREE.CylinderGeometry(55, 65, 90, 20), porcelain);
-toiletBase.position.y = 45;
-addToonOutline(toiletBase, 0x88b6c4);
-toilet.add(toiletBase);
-const toiletBowlRim = new THREE.Mesh(new THREE.TorusGeometry(58, 12, 12, 24), porcelainShade);
-toiletBowlRim.rotation.x = Math.PI / 2;
-toiletBowlRim.position.y = 92;
-toilet.add(toiletBowlRim);
-const toiletSeat = new THREE.Mesh(new THREE.TorusGeometry(58, 8, 10, 24, Math.PI * 1.8), new THREE.MeshStandardMaterial({ color: 0xfbe063, roughness: 0.4 }));
-toiletSeat.rotation.x = Math.PI / 2;
-toiletSeat.position.y = 98;
-addToonOutline(toiletSeat, 0xc9a832);
-toilet.add(toiletSeat);
-const toiletTank = new THREE.Mesh(new THREE.BoxGeometry(120, 100, 40), porcelain);
-toiletTank.position.set(0, 140, -55);
-addToonOutline(toiletTank, 0x88b6c4);
-toilet.add(toiletTank);
-const flushHandle = new THREE.Mesh(new THREE.BoxGeometry(18, 6, 6), chromeMat);
-flushHandle.position.set(55, 155, -34);
-toilet.add(flushHandle);
-toilet.position.set(150, 0, -280);
-toilet.scale.setScalar(0.4);
-toilet.rotation.y = Math.PI * 0.08;
-scene.add(toilet);
-
-const sinkGroup = new THREE.Group();
-const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(18, 28, 85, 16), porcelain);
-pedestal.position.y = 42.5;
-addToonOutline(pedestal, 0x88b6c4);
-sinkGroup.add(pedestal);
-const basin = new THREE.Mesh(
-  new THREE.SphereGeometry(55, 20, 14, 0, Math.PI * 2, Math.PI - 1.15, 1.15),
-  new THREE.MeshStandardMaterial({ color: porcelainShade.color, roughness: 0.35, side: THREE.DoubleSide })
-);
-basin.position.y = 140;
-addToonOutline(basin, 0x88b6c4);
-sinkGroup.add(basin);
-const drainHole = new THREE.Mesh(new THREE.CircleGeometry(6, 12), new THREE.MeshStandardMaterial({ color: 0x333333 }));
-drainHole.rotation.x = -Math.PI / 2;
-drainHole.position.y = 86;
-sinkGroup.add(drainHole);
-const basinRim = new THREE.Mesh(new THREE.TorusGeometry(55, 6, 10, 24), porcelain);
-basinRim.rotation.x = Math.PI / 2;
-basinRim.position.y = 118;
-sinkGroup.add(basinRim);
-sinkGroup.position.set(0, 0, -290);
-sinkGroup.scale.setScalar(0.4);
-scene.add(sinkGroup);
-
-const mirror = new THREE.Mesh(new THREE.BoxGeometry(160, 200, 8), new THREE.MeshStandardMaterial({ color: 0x5ecbe8, roughness: 1, metalness: 0 }));
-mirror.position.set(0, 70, -314);
-mirror.scale.setScalar(0.4);
-addToonOutline(mirror, 0x2a7fa0);
-scene.add(mirror);
-// Sombreado tipo crayón: un trazo diagonal azul mate, con medidas ya en escala final (no mezclar con la del espejo)
-const crayonStroke = new THREE.Mesh(
-  new THREE.PlaneGeometry(9, 62),
-  new THREE.MeshStandardMaterial({ color: 0x2a7fa0, roughness: 1, metalness: 0, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
-);
-crayonStroke.rotation.z = 0.35;
-crayonStroke.position.set(-8, 68, -312.4);
-scene.add(crayonStroke);
-const mirrorFrame = new THREE.Mesh(new THREE.BoxGeometry(180, 220, 6), new THREE.MeshStandardMaterial({ color: 0xd9c48c }));
-mirrorFrame.position.set(0, 70, -316);
-mirrorFrame.scale.setScalar(0.4);
-scene.add(mirrorFrame);
-
-const bathMat = new THREE.Mesh(new THREE.CircleGeometry(90, 24), new THREE.MeshStandardMaterial({ color: 0xffb3c6, roughness: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
-bathMat.rotation.x = -Math.PI / 2;
-bathMat.scale.setScalar(0.4);
-bathMat.position.set(-138, 2, -260);
-scene.add(bathMat);
-
-// ---- Charquitos de agua al lado de la bañera ----
-function makePuddle(x, z, radiusX, radiusZ, rotation) {
-  const puddle = new THREE.Mesh(
-    new THREE.CircleGeometry(1, 20),
-    new THREE.MeshStandardMaterial({ color: 0x8fd4ea, transparent: true, opacity: 0.55, roughness: 0.15, metalness: 0.1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
-  );
-  puddle.rotation.x = -Math.PI / 2;
-  puddle.rotation.z = rotation;
-  puddle.scale.set(radiusX, radiusZ, 1);
-  puddle.position.set(x, 2, z);
-  scene.add(puddle);
-  // Reflejo/brillo suave encima para que se note que es agua y no una mancha
-  const shine = new THREE.Mesh(
-    new THREE.CircleGeometry(1, 16),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.05, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })
-  );
-  shine.rotation.x = -Math.PI / 2;
-  shine.scale.set(radiusX * 0.4, radiusZ * 0.35, 1);
-  shine.position.set(x - radiusX * 0.2, 2.6, z + radiusZ * 0.15);
-  scene.add(shine);
+function buildLegoWall(w, h, d) {
+  const group = new THREE.Group();
+  const mats = [legoRed, legoBlue, legoYellow];
+  const brickH = 12;
+  const rows = Math.ceil(h / brickH);
+  const cols = Math.ceil(w / 24);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const mat = mats[(r + c) % 3];
+      const brick = new THREE.Mesh(new THREE.BoxGeometry(22, brickH - 2, d), mat);
+      brick.position.set(c * 24 - (cols * 24) / 2 + 12, r * brickH + brickH / 2, 0);
+      addToonOutline(brick, 0x111111);
+      group.add(brick);
+    }
+  }
+  return group;
 }
-makePuddle(-150, -239, 8, 5.6, 0.3);
-makePuddle(-135, -247, 5.2, 6.8, -0.5);
-makePuddle(-161, -250, 6, 4.4, 1.1);
-makePuddle(-129, -236, 4, 4, 0);
+
+const boxSur = buildCardboardBox(80, 70, 80);
+boxSur.position.set(-180, 0, 120);
+scene.add(boxSur);
+
+const boxNE = buildCardboardBox(50, 100, 50);
+boxNE.position.set(200, 0, -150);
+scene.add(boxNE);
+
+const legoWall = buildLegoWall(120, 80, 20);
+legoWall.position.set(150, 0, 180);
+legoWall.rotation.y = 0.4;
+scene.add(legoWall);
+
+const boxOeste = buildCardboardBox(120, 40, 60, cardboardDark);
+boxOeste.position.set(-250, 0, 0);
+scene.add(boxOeste);
+
+const boxCentro = buildCardboardBox(40, 55, 40);
+boxCentro.position.set(50, 0, -120);
+scene.add(boxCentro);
 
 // ---- Array central de decoración: todo lo que se puede colocar/borrar desde el editor vive acá ----
 const decorationInstances = [];
@@ -1755,23 +1700,22 @@ scene.add(portalGroup);
 
 // ---- Registro de objetos editables (modo editor) ----
 const editableObjects = [
-  { name: 'Bañera', obj: tub },
-  { name: 'Inodoro', obj: toilet },
-  { name: 'Lavamanos', obj: sinkGroup },
-  { name: 'Espejo', obj: mirror },
-  { name: 'Marco del espejo', obj: mirrorFrame },
-  { name: 'Alfombra', obj: bathMat },
+  { name: 'Caja Sur', obj: boxSur },
+  { name: 'Caja NE', obj: boxNE },
+  { name: 'Caja Oeste', obj: boxOeste },
+  { name: 'Caja Centro', obj: boxCentro },
+  { name: 'Pared LEGO', obj: legoWall },
   { name: 'Ventana', obj: windowGroup },
   { name: 'Lámpara', obj: lampGroup },
   { name: 'Portal', obj: portalGroup }
 ];
 
-// ---- Objetos con los que la nave puede chocar (colisión + daño estilo Ace Online) ----
-// La bañera NO tiene colisión sólida a propósito: es zona de agua, se puede volar/meter adentro (ver splash más abajo)
+// ---- Objetos con los que la nave puede chocar ----
 const worldColliders = [
-  { pos: new THREE.Vector3(toilet.position.x, 36, toilet.position.z), radius: 27, damaging: false },
-  { pos: new THREE.Vector3(sinkGroup.position.x, 36, sinkGroup.position.z), radius: 23, damaging: false },
-  { pos: new THREE.Vector3(mirror.position.x, mirror.position.y, mirror.position.z), radius: 26, damaging: false },
+  { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false },
+  { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false },
+  { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false },
+  { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false },
   ...tapePostColliders,
 ];
 
@@ -1830,8 +1774,8 @@ window.addEventListener('blur', () => {
   editorDragging = false;
 });
 const EDITOR_VAR_NAMES = {
-  'Bañera': 'tub', 'Inodoro': 'toilet', 'Lavamanos': 'sinkGroup', 'Espejo': 'mirror',
-  'Marco del espejo': 'mirrorFrame', 'Alfombra': 'bathMat', 'Ventana': 'windowGroup', 'Lámpara': 'lampGroup',
+  'Caja Sur': 'boxSur', 'Caja NE': 'boxNE', 'Caja Oeste': 'boxOeste', 'Caja Centro': 'boxCentro',
+  'Pared LEGO': 'legoWall', 'Ventana': 'windowGroup', 'Lámpara': 'lampGroup',
   'Portal': 'portalGroup'
 };
 
@@ -3465,77 +3409,7 @@ function spawnBoostFlame() {
   explosions.push({ points, velocities, life: 0.35, maxLife: 0.35 });
 }
 
-// ================= Agua de la bañera: splash al meter al pato adentro =================
-const WATER_RADIUS = 52;
-const WATER_SURFACE_Y = 18;
-let duckInWater = false;
-let waterRippleTimer = 0;
-function spawnSplash(position) {
-  const count = 55;
-  const positions = new Float32Array(count * 3);
-  const velocities = [];
-  for (let i = 0; i < count; i++) {
-    positions[i*3] = position.x; positions[i*3+1] = position.y; positions[i*3+2] = position.z;
-    const ang = Math.random() * Math.PI * 2;
-    const spd = 8 + Math.random() * 22;
-    velocities.push(new THREE.Vector3(Math.cos(ang) * spd, 16 + Math.random() * 22, Math.sin(ang) * spd));
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xcdf1ff, size: 2.6, transparent: true, opacity: 1 });
-  const points = new THREE.Points(geo, mat);
-  scene.add(points);
-  explosions.push({ points, velocities, life: 0.9, maxLife: 0.9 });
-}
-function spawnRipple(position) {
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(1, 2, 24),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
-  );
-  ring.rotation.x = Math.PI / 2;
-  ring.position.copy(position);
-  scene.add(ring);
-  shockwaveRings.push({ mesh: ring, life: 0.7, maxLife: 0.7 });
-}
-// La pared de la bañera SÍ bloquea (es porcelana sólida), pero solo por el costado y por debajo
-// del borde — por arriba queda libre para poder zambullirse en el agua desde el aire.
-const TUB_WALL_OUTER = WATER_RADIUS + 4;
-const TUB_WALL_INNER = WATER_RADIUS - 6;
-const TUB_RIM_Y = 24;
-function checkTubWallCollision() {
-  const dx = ship.position.x - tub.position.x;
-  const dz = ship.position.z - tub.position.z;
-  const distXZ = Math.hypot(dx, dz);
-  const outerBand = TUB_WALL_OUTER + SHIP_COLLISION_RADIUS;
-  const innerBand = TUB_WALL_INNER - SHIP_COLLISION_RADIUS;
-  if (ship.position.y > -5 && ship.position.y < TUB_RIM_Y && distXZ > innerBand && distXZ < outerBand) {
-    const nx = distXZ > 0.001 ? dx / distXZ : 1, nz = distXZ > 0.001 ? dz / distXZ : 0;
-    const pushToOuter = distXZ > (TUB_WALL_OUTER + TUB_WALL_INNER) / 2;
-    const targetDist = pushToOuter ? outerBand : innerBand;
-    ship.position.x = tub.position.x + nx * targetDist;
-    ship.position.z = tub.position.z + nz * targetDist;
-    speed *= 0.3; // frena al golpear, pero no hace daño (es solo una pared de bañera)
-  }
-}
-
-function updateWaterInteraction(dt) {
-  const dx = ship.position.x - tub.position.x;
-  const dz = ship.position.z - tub.position.z;
-  const distXZ = Math.hypot(dx, dz);
-  const isInWater = distXZ < WATER_RADIUS && ship.position.y < WATER_SURFACE_Y + 10 && ship.position.y > WATER_SURFACE_Y - 20;
-  if (isInWater && !duckInWater) {
-    spawnSplash(new THREE.Vector3(ship.position.x, WATER_SURFACE_Y, ship.position.z));
-  }
-  if (isInWater) {
-    waterRippleTimer -= dt;
-    if (waterRippleTimer <= 0) {
-      spawnRipple(new THREE.Vector3(ship.position.x, WATER_SURFACE_Y + 0.5, ship.position.z));
-      waterRippleTimer = 0.45;
-    }
-    speed *= 0.985; // el agua frena un poco, se siente como "chapoteando"
-  }
-  duckInWater = isInWater;
-}
+// ================= Arena: sin interacción con agua =================
 
 // ================= Lock-on =================
 let currentLockTarget = null;
@@ -4173,7 +4047,7 @@ function startWave() {
   updateAmmoHUD();
   if (isBossWave) {
     spawnBossWave();
-    showWaveBanner('¡BOSS! Barquito de baño');
+    showWaveBanner('¡BOSS! Barco de Guerra');
   } else {
     spawnTeddyWave();
   }
@@ -4629,8 +4503,6 @@ function animate() {
   updatePowerups(dt);
   updateCatEvent(dt);
   updateShockwaveRings(dt);
-  checkTubWallCollision();
-  updateWaterInteraction(dt);
 
   // Overheat: cooldowns
   stdFireCooldown -= dt;
@@ -4890,24 +4762,21 @@ function animate() {
 }
 
 /* EDITOR_STATE_PATCH_START */
-tub.position.set(-224.45, -0.00, -40.65);
-tub.rotation.y = 0.00000;
-tub.scale.setScalar(0.7700);
-toilet.position.set(277.50, 0.00, 20.10);
-toilet.rotation.y = -1.60570;
-toilet.scale.setScalar(0.5100);
-sinkGroup.position.set(69.90, 0.00, -274.20);
-sinkGroup.rotation.y = 0.00000;
-sinkGroup.scale.setScalar(0.8300);
-mirror.position.set(66.00, 160.00, -258.00);
-mirror.rotation.y = 0.00000;
-mirror.scale.setScalar(0.4100);
-mirrorFrame.position.set(66.00, 160.00, -258.00);
-mirrorFrame.rotation.y = 0.00000;
-mirrorFrame.scale.setScalar(0.4100);
-bathMat.position.set(-222.23, 2.00, -41.37);
-bathMat.rotation.y = 0.00000;
-bathMat.scale.setScalar(1.1100);
+boxSur.position.set(-180, 0, 120);
+boxSur.rotation.y = 0;
+boxSur.scale.setScalar(1);
+boxNE.position.set(200, 0, -150);
+boxNE.rotation.y = 0;
+boxNE.scale.setScalar(1);
+boxOeste.position.set(-250, 0, 0);
+boxOeste.rotation.y = 0;
+boxOeste.scale.setScalar(1);
+boxCentro.position.set(50, 0, -120);
+boxCentro.rotation.y = 0;
+boxCentro.scale.setScalar(1);
+legoWall.position.set(150, 0, 180);
+legoWall.rotation.y = 0.4;
+legoWall.scale.setScalar(1);
 windowGroup.position.set(-1.75, 140.00, 321.39);
 windowGroup.rotation.y = 3.14159;
 windowGroup.scale.setScalar(1.0000);
