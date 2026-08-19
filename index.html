@@ -3324,6 +3324,7 @@ function fireProjectile() {
   const chargeMult = chargeShotActive ? 3 : 1;
   if (chargeShotActive) chargeShotActive = false;
   const baseDamage = Math.round(weapon.baseDamage * (weapon.type === 'vulcan' || weapon.type === 'gatling' || weapon.type === 'rifle' || weapon.type === 'cannon' ? getStdDmgMultiplier() : getAdvDmgMultiplier()) * chargeMult);
+  const bullets = firePatternBullets(pattern);
   for (let i = 0; i < bullets.length; i++) {
     setTimeout(() => {
       if (!gameRunning) return;
