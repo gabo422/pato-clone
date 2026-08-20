@@ -4,352 +4,437 @@
 <meta charset="UTF-8">
 <title>Pato Clone - Guerra de Juguetes</title>
 <style>
-  html, body { margin: 0; padding: 0; overflow: hidden; background: #cbe8f0; font-family: 'Comic Sans MS', 'Segoe UI', Arial, sans-serif; }
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700&display=swap');
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #0a0e14; font-family: 'Rajdhani', 'Exo 2', 'Segoe UI', sans-serif; }
   canvas { display: block; }
-  #hud {
-    position: absolute; top: 12px; left: 12px; color: #084b66; font-size: 12px;
-    background: rgba(255,255,255,0.75); padding: 10px 14px; border: 2px solid #2aa6cf;
-    border-radius: 10px; line-height: 1.5; pointer-events: none; user-select: none;
-    width: 190px; z-index: 10;
-  }
-  #hud b { color: #0a2e40; }
 
-  /* ---- Munición (arriba del todo) ---- */
-  #ammoRow { display: flex; gap: 10px; margin-bottom: 8px; }
-  .ammoBox { display: flex; align-items: center; gap: 5px; flex: 1; }
-  .ammoIcon { font-size: 13px; }
+  /* ============ HUD CONTAINER ============ */
+  #hud {
+    position: absolute; top: 12px; left: 12px; color: #c0d8e8; font-size: 12px;
+    background: linear-gradient(180deg, rgba(5,12,25,0.92) 0%, rgba(8,18,35,0.88) 100%);
+    padding: 10px 12px; border: 1px solid rgba(0,180,255,0.25);
+    border-radius: 4px; line-height: 1.4; pointer-events: none; user-select: none;
+    width: 185px; z-index: 10;
+    box-shadow: 0 0 20px rgba(0,100,180,0.1), inset 0 1px 0 rgba(0,180,255,0.08);
+  }
+  #hud b { color: #00d4ff; font-weight: 600; }
+
+  /* ---- Ammo / Heat Bars ---- */
+  #ammoRow { display: flex; gap: 8px; margin-bottom: 8px; }
+  .ammoBox { display: flex; align-items: center; gap: 4px; flex: 1; }
+  .ammoIcon { font-size: 12px; opacity: 0.8; }
   .cooldownBar {
-    flex: 1; height: 5px; border-radius: 3px; overflow: hidden;
-    background: rgba(0,0,0,0.15); position: relative;
+    flex: 1; height: 4px; border-radius: 2px; overflow: hidden;
+    background: rgba(255,255,255,0.08); position: relative;
   }
   .cooldownFill {
-    height: 100%; width: 0%; border-radius: 3px;
-    background: linear-gradient(90deg, #ff8a1f, #e0392a);
+    height: 100%; width: 0%; border-radius: 2px;
+    background: linear-gradient(90deg, #ff8800, #ff3322);
     transition: width 0.08s linear;
+    box-shadow: 0 0 6px rgba(255,100,0,0.4);
   }
-  .ammoNum { font-size: 11px; font-weight: bold; min-width: 18px; text-align: right; }
+  .ammoNum { font-size: 10px; font-weight: 600; min-width: 18px; text-align: right; color: #8099aa; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  /* ---- Círculo de vida/escudo/velocidad/boost ---- */
-  #gaugeWrap { position: relative; width: 150px; height: 150px; margin: 0 auto 8px; }
+  /* ---- Circular Gauge (Life/Shield/Speed) ---- */
+  #gaugeWrap { position: relative; width: 140px; height: 140px; margin: 0 auto 6px; }
   #gaugeSvg { width: 100%; height: 100%; }
-  .ringBg { fill: none; stroke: rgba(120,140,150,0.18); stroke-width: 18; }
-  .ringFillLife { fill: none; stroke: #e04a3a; stroke-width: 18; stroke-linecap: round; transition: stroke-dasharray 0.15s; }
-  .ringFillShield { fill: none; stroke: #4fc3f7; stroke-width: 18; stroke-linecap: round; transition: stroke-dasharray 0.15s; }
-  #boostRow { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
-  .boostLabel { font-size: 10px; color: #7a5a1a; white-space: nowrap; }
-  #boostBarWrap {
-    flex: 1; height: 7px; border-radius: 4px; overflow: hidden;
-    background: rgba(0,0,0,0.15);
-  }
-  #boostBarFill {
-    height: 100%; width: 100%; border-radius: 4px;
-    background: linear-gradient(90deg, #ffd84d, #ff9a1f);
-    transition: width 0.1s linear, background 0.2s;
-  }
-  #boostBarFill.empty { background: #b0453a; }
-  #specialRow { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
-  #specialBarWrap {
-    flex: 1; height: 7px; border-radius: 4px; overflow: hidden;
-    background: rgba(0,0,0,0.15);
-  }
-  #specialBarFill {
-    height: 100%; width: 0%; border-radius: 4px;
-    background: linear-gradient(90deg, #bf9dff, #7a3ff0);
-    transition: width 0.15s linear, background 0.2s;
-  }
-  #specialBarFill.ready { background: linear-gradient(90deg, #ffe66d, #ff9a1f); animation: specialPulse 0.7s ease-in-out infinite; }
-  @keyframes specialPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
-  #speedDial { fill: #ffcf4d; opacity: 0.9; }
-  #speedNeedle { stroke: #33291a; stroke-width: 3.5; stroke-linecap: round; }
+  .ringBg { fill: none; stroke: rgba(0,180,255,0.1); stroke-width: 16; }
+  .ringFillLife { fill: none; stroke: #ff3344; stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 0.15s; filter: drop-shadow(0 0 4px rgba(255,50,60,0.5)); }
+  .ringFillShield { fill: none; stroke: #00bbee; stroke-width: 16; stroke-linecap: round; transition: stroke-dasharray 0.15s; filter: drop-shadow(0 0 4px rgba(0,180,238,0.5)); }
+  #speedDial { fill: #ffaa00; opacity: 0.85; }
+  #speedNeedle { stroke: #1a1a2e; stroke-width: 3; stroke-linecap: round; }
   #waveGaugeText {
-    position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-    font-size: 10px; color: #0a2e40; font-weight: bold; text-align: center;
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: #5a8aaa; font-weight: 600; text-align: center;
+    text-transform: uppercase; letter-spacing: 1px;
   }
+  #waveGaugeText b { color: #00d4ff; }
   #speedGaugeText {
-    position: absolute; top: 76px; left: 50%; transform: translateX(-50%);
-    font-size: 20px; font-weight: bold; color: #33291a; text-align: center;
+    position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
+    font-size: 18px; font-weight: 700; color: #e0e8f0; text-align: center;
+    text-shadow: 0 0 8px rgba(0,180,255,0.3);
   }
   .gaugeSideLabel {
-    position: absolute; top: 68px; font-size: 11px; font-weight: bold; color: #0a2e40;
+    position: absolute; top: 64px; font-size: 10px; font-weight: 700;
   }
-  #lifeGaugeLabel { left: -4px; color: #c23325; }
-  #shieldGaugeLabel { right: -4px; color: #1a7fa8; }
+  #lifeGaugeLabel { left: -2px; color: #ff4455; }
+  #lifeGaugeLabel b { color: #ff4455; }
+  #shieldGaugeLabel { right: -2px; color: #00ccee; }
+  #shieldGaugeLabel b { color: #00ccee; }
 
-  #hudText { border-top: 1px solid rgba(42,166,207,0.3); padding-top: 6px; }
+  /* ---- Boost Bar ---- */
+  #boostRow { display: flex; align-items: center; gap: 6px; margin: 4px 0 6px; }
+  .boostLabel { font-size: 9px; color: #5a7a8a; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+  #boostBarWrap {
+    flex: 1; height: 5px; border-radius: 3px; overflow: hidden;
+    background: rgba(255,255,255,0.06);
+  }
+  #boostBarFill {
+    height: 100%; width: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, #ffcc00, #ff8800);
+    transition: width 0.1s linear, background 0.2s;
+    box-shadow: 0 0 6px rgba(255,150,0,0.4);
+  }
+  #boostBarFill.empty { background: #ff3322; box-shadow: 0 0 4px rgba(255,50,30,0.3); }
 
+  /* ---- SP Bar ---- */
+  #spBar { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+  #spBarWrap { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,0.06); }
+  #spBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #8844ff, #cc66ff); border-radius: 2px; transition: width 0.15s linear; box-shadow: 0 0 5px rgba(136,68,255,0.4); }
+  #spLabel { font-size: 9px; color: #8866cc; min-width: 50px; text-align: right; }
+
+  /* ---- Juguete Name + Level ---- */
+  #gearNameHud {
+    font-size: 12px; color: #00d4ff; text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 3px; font-weight: 700;
+    text-shadow: 0 0 10px rgba(0,212,255,0.3);
+  }
+  #levelRow { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; font-size: 10px; color: #ffaa00; }
+  #levelBadge {
+    background: linear-gradient(135deg, #ffaa00, #ff6600); color: #0a0a00; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; font-size: 11px; min-width: 18px; text-align: center;
+    box-shadow: 0 0 6px rgba(255,150,0,0.3);
+  }
+  #xpBarWrap { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,0.06); }
+  #xpBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #ffaa00, #ff6600); border-radius: 2px; transition: width 0.3s linear; }
+  #xpLabel { font-size: 8px; color: #887744; min-width: 55px; text-align: right; }
+
+  /* ---- Buff Icons ---- */
+  #buffRow { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
+  .buffIcon {
+    font-size: 9px; padding: 1px 4px; border-radius: 2px;
+    background: rgba(0,180,255,0.15); color: #00ccee;
+    border: 1px solid rgba(0,180,255,0.25);
+    text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600;
+  }
+
+  /* ---- HUD Text (score, time, etc.) ---- */
+  #hudText {
+    border-top: 1px solid rgba(0,180,255,0.12); padding-top: 5px;
+    font-size: 11px; color: #6a8899;
+  }
+  #hudText b { color: #99bbcc; }
+
+  /* ---- Action Buttons (top-right) ---- */
   #restartBtn, #resetBotsBtn, #scoreboardBtn, #fullscreenBtn {
     position: absolute; right: 12px; z-index: 20;
-    background: #fff2c2; border: 2px solid #f0a030; color: #7a4a00; font-weight: bold;
-    padding: 9px 16px; border-radius: 10px; cursor: pointer; font-size: 13px;
+    background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.3);
+    color: #80aacc; font-weight: 600; font-family: 'Rajdhani', sans-serif;
+    padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    transition: all 0.15s;
   }
   #restartBtn { top: 12px; }
-  #resetBotsBtn { top: 56px; background: #e6f7ea; border-color: #4caf7d; color: #17603e; }
-  #resetBotsBtn:hover { background: #d2f0da; }
-  #scoreboardBtn { top: 100px; background: #eaf0ff; border-color: #6a8fd6; color: #1c3a80; }
-  #scoreboardBtn:hover { background: #d8e2ff; }
-  #fullscreenBtn { top: 144px; background: #f3e8ff; border-color: #9a6ad6; color: #4a1c80; }
-  #fullscreenBtn:hover { background: #e6d4ff; }
-  #restartBtn:hover { background: #ffe6a0; }
+  #resetBotsBtn { top: 50px; border-color: rgba(0,200,100,0.3); color: #66cc88; }
+  #scoreboardBtn { top: 88px; border-color: rgba(255,170,0,0.3); color: #ccaa66; }
+  #fullscreenBtn { top: 126px; border-color: rgba(136,100,255,0.3); color: #aa88ee; }
+  #restartBtn:hover { background: rgba(0,180,255,0.15); border-color: rgba(0,180,255,0.5); }
+  #resetBotsBtn:hover { background: rgba(0,200,100,0.1); }
+  #scoreboardBtn:hover { background: rgba(255,170,0,0.1); }
+  #fullscreenBtn:hover { background: rgba(136,100,255,0.1); }
+
+  /* ---- Boss Bar ---- */
   #bossBar {
     position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    width: 300px; background: rgba(255,255,255,0.75); border: 2px solid #e04a3a; border-radius: 8px;
-    padding: 6px 10px; display: none; pointer-events: none;
+    width: 280px; background: rgba(5,12,25,0.9); border: 1px solid rgba(255,50,50,0.4);
+    border-radius: 3px; padding: 5px 8px; display: none; pointer-events: none;
+    box-shadow: 0 0 15px rgba(255,50,50,0.15);
   }
-  #bossBar .label { font-size: 11px; color: #7a1a10; margin-bottom: 3px; text-align: center; }
-  #bossBar .track { width: 100%; height: 10px; background: #f4d4d0; border-radius: 5px; overflow: hidden; }
-  #bossBar .fill { height: 100%; background: #e04a3a; width: 100%; transition: width 0.15s; }
+  #bossBar .label { font-size: 10px; color: #cc4444; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  #bossBar .track { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+  #bossBar .fill { height: 100%; background: linear-gradient(90deg, #ff2222, #ff6644); width: 100%; transition: width 0.15s; border-radius: 3px; box-shadow: 0 0 8px rgba(255,50,50,0.4); }
 
+  /* ---- Mob Bar ---- */
   #mobBar {
     position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    width: 220px; background: rgba(255,255,255,0.75); border: 2px solid #c9822a; border-radius: 8px;
-    padding: 6px 10px; display: none; pointer-events: none;
+    width: 200px; background: rgba(5,12,25,0.9); border: 1px solid rgba(255,170,0,0.3);
+    border-radius: 3px; padding: 4px 8px; display: none; pointer-events: none;
   }
-  #mobBar .label { font-size: 11px; color: #7a4a10; margin-bottom: 3px; text-align: center; }
-  #mobBar .track { width: 100%; height: 8px; background: #f4e4d0; border-radius: 4px; overflow: hidden; }
-  #mobBar .fill { height: 100%; background: #d99a3a; width: 100%; transition: width 0.15s; }
+  #mobBar .label { font-size: 9px; color: #ccaa44; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  #mobBar .track { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  #mobBar .fill { height: 100%; background: linear-gradient(90deg, #cc8800, #ffaa33); width: 100%; transition: width 0.15s; border-radius: 3px; }
 
+  /* ---- Crosshair ---- */
   #crosshair {
-    position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
+    position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
     transform: translate(-50%, -50%); pointer-events: none;
-    border: 2px solid rgba(20, 90, 120, 0.3);
-    border-radius: 50%;
+    border: 1px solid rgba(0,200,255,0.35); border-radius: 50%;
     box-sizing: border-box;
   }
-  #crosshair.locked { border-color: rgba(230, 70, 60, 0.3); }
+  #crosshair.locked { border-color: rgba(255,80,60,0.5); }
 
+  /* ---- Lock-On Ring ---- */
   #lockInRing {
-    position: absolute; top: 50%; left: 50%; width: 40px; height: 40px;
+    position: absolute; top: 50%; left: 50%; width: 36px; height: 36px;
     transform: translate(-50%, -50%) scale(0.7); pointer-events: none;
-    border: 3px solid #ff3b30; border-radius: 50%;
+    border: 2px solid #ff4433; border-radius: 50%;
     box-sizing: border-box; opacity: 0;
     transition: opacity 0.12s, transform 0.12s;
   }
   #lockInRing.active { opacity: 1; transform: translate(-50%, -50%) scale(1); animation: lockInPulse 0.6s ease-in-out infinite; }
   @keyframes lockInPulse {
-    0%, 100% { box-shadow: 0 0 0 rgba(255,59,48,0.5); }
-    50% { box-shadow: 0 0 10px rgba(255,59,48,0.8); }
+    0%, 100% { box-shadow: 0 0 0 rgba(255,68,51,0.4); }
+    50% { box-shadow: 0 0 12px rgba(255,68,51,0.7); }
   }
-
   #lockBox {
-    position: absolute; width: 34px; height: 34px; transform: translate(-50%,-50%);
-    border: 3px solid rgba(230,70,60,0.9); border-radius: 6px; pointer-events: none; display: none;
+    position: absolute; width: 30px; height: 30px; transform: translate(-50%,-50%);
+    border: 2px solid rgba(255,80,60,0.9); border-radius: 4px; pointer-events: none; display: none;
   }
   #lockArrow {
     position: absolute; width: 0; height: 0; pointer-events: none; display: none;
-    border-left: 9px solid transparent; border-right: 9px solid transparent;
-    border-bottom: 16px solid rgba(230,70,60,0.9);
+    border-left: 8px solid transparent; border-right: 8px solid transparent;
+    border-bottom: 14px solid rgba(255,80,60,0.9);
   }
 
+  /* ---- Hint Bar ---- */
   #hint {
     position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-    color: #084b66; font-size: 12px; background: rgba(255,255,255,0.75); padding: 8px 16px;
-    border-radius: 10px; border: 2px solid #2aa6cf; user-select: none; text-align: center;
-  }
-  #hitmarker {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    color: #e04a3a; font-size: 22px; font-weight: bold; opacity: 0; pointer-events: none;
-  }
-  #siegeWarn {
-    position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%);
-    color: #b05a10; font-size: 13px; opacity: 0; pointer-events: none;
-    background: rgba(255,255,255,0.85); padding: 4px 10px; border-radius: 6px; border: 2px solid #f0a030;
-  }
-  #damageFlash {
-    position: absolute; inset: 0; background: rgba(224,74,58,0.35); opacity: 0; pointer-events: none;
-    transition: opacity 0.1s;
-  }
-  #speedLines {
-    position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.12s;
-    background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.9) 0deg 1deg, transparent 1deg 9deg);
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 24%, black 55%, black 100%);
-            mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 24%, black 55%, black 100%);
-    mix-blend-mode: screen; z-index: 1;
-  }
-  #speedLines.active { opacity: 0.6; }
-  #waveClearBanner {
-    position: absolute; top: 30%; left: 50%; transform: translate(-50%,-50%);
-    font-size: 26px; font-weight: bold; color: #2aa6cf; text-shadow: 0 2px 0 #fff; opacity: 0;
-    pointer-events: none; text-align: center;
+    color: #6a8899; font-size: 11px;
+    background: rgba(5,12,25,0.85); padding: 6px 14px;
+    border-radius: 3px; border: 1px solid rgba(0,180,255,0.15);
+    user-select: none; text-align: center;
+    max-width: 80vw;
   }
 
+  /* ---- Hit Marker ---- */
+  #hitmarker {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    color: #ff4433; font-size: 20px; font-weight: 700; opacity: 0; pointer-events: none;
+    text-shadow: 0 0 8px rgba(255,50,30,0.6);
+  }
+
+  /* ---- Siege Warning ---- */
+  #siegeWarn {
+    position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%);
+    color: #ffaa00; font-size: 12px; opacity: 0; pointer-events: none;
+    background: rgba(5,12,25,0.9); padding: 4px 10px; border-radius: 3px;
+    border: 1px solid rgba(255,170,0,0.4); font-weight: 600;
+  }
+
+  /* ---- Damage Flash ---- */
+  #damageFlash {
+    position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,30,20,0.3) 0%, rgba(255,30,20,0.1) 60%, transparent 100%);
+    opacity: 0; pointer-events: none; transition: opacity 0.1s;
+  }
+
+  /* ---- Speed Lines ---- */
+  #speedLines {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.12s;
+    background: repeating-conic-gradient(from 0deg, rgba(0,180,255,0.6) 0deg 0.5deg, transparent 0.5deg 8deg);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 20%, black 50%, black 100%);
+            mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 20%, black 50%, black 100%);
+    mix-blend-mode: screen; z-index: 1;
+  }
+  #speedLines.active { opacity: 0.5; }
+
+  /* ---- Wave Clear Banner ---- */
+  #waveClearBanner {
+    position: absolute; top: 28%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 24px; font-weight: 700; color: #00d4ff; opacity: 0;
+    pointer-events: none; text-align: center;
+    text-shadow: 0 0 20px rgba(0,212,255,0.5), 0 2px 0 rgba(0,0,0,0.3);
+    text-transform: uppercase; letter-spacing: 2px;
+  }
+
+  /* ---- Overlays (menus, game over, etc.) ---- */
   #menuOverlay, #gameOverOverlay, #scoreboardOverlay, #waveClearOverlay, #controlsOverlay {
-    position: absolute; inset: 0; background: rgba(90,160,190,0.55);
+    position: absolute; inset: 0; background: rgba(5,12,25,0.75);
     display: flex; align-items: center; justify-content: center; z-index: 10;
+    backdrop-filter: blur(4px);
   }
   #menuOverlay.hidden, #gameOverOverlay.hidden, #scoreboardOverlay.hidden, #waveClearOverlay.hidden, #controlsOverlay.hidden { display: none; }
   #menuPanel, #gameOverPanel, #controlsPanel {
-    width: 400px; background: #fffef2; border: 3px solid #2aa6cf;
-    border-radius: 16px; padding: 22px 24px; color: #0a2e40; text-align: center;
+    width: 400px; background: rgba(10,20,40,0.95); border: 1px solid rgba(0,180,255,0.3);
+    border-radius: 6px; padding: 22px 24px; color: #c0d8e8; text-align: center;
+    box-shadow: 0 0 40px rgba(0,100,180,0.15);
   }
   #menuPanel, #controlsPanel { text-align: left; }
-  #menuPanel h2, #gameOverPanel h2, #controlsPanel h2 { margin: 0 0 4px; font-size: 19px; color: #0a2e40; }
-  #controlsPanel p.sub { margin: 0 0 18px; font-size: 12px; color: #3d7c93; }
-  #gameOverPanel p { color: #3d7c93; font-size: 14px; margin: 6px 0; }
+  #menuPanel h2, #gameOverPanel h2, #controlsPanel h2 { margin: 0 0 4px; font-size: 18px; color: #00d4ff; text-transform: uppercase; letter-spacing: 1px; }
+  #controlsPanel p.sub { margin: 0 0 18px; font-size: 12px; color: #5a8aaa; }
+  #gameOverPanel p { color: #80aabb; font-size: 13px; margin: 6px 0; }
+  #gameOverPanel p b { color: #00d4ff; }
   #backToMenuBtn {
-    width: 100%; margin-top: 14px; padding: 10px; border-radius: 8px; border: 2px solid #2aa6cf;
-    background: #eaf8fc; color: #0a2e40; font-size: 14px; cursor: pointer; font-weight: bold;
+    width: 100%; margin-top: 14px; padding: 10px; border-radius: 4px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.1);
+    color: #00d4ff; font-size: 13px; cursor: pointer; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Rajdhani', sans-serif;
+    transition: all 0.15s;
   }
-  #backToMenuBtn:hover { background: #d4f0f7; }
+  #backToMenuBtn:hover { background: rgba(0,180,255,0.2); border-color: rgba(0,180,255,0.5); }
   .bindRow {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 0; border-bottom: 1px solid #cfeaf2; font-size: 13px;
+    padding: 6px 0; border-bottom: 1px solid rgba(0,180,255,0.08); font-size: 12px;
   }
   .bindKey {
-    background: #eaf8fc; border: 2px solid #2aa6cf;
-    color: #0a2e40; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
-    min-width: 70px; text-align: center; font-family: monospace;
+    background: rgba(0,180,255,0.08); border: 1px solid rgba(0,180,255,0.2);
+    color: #00d4ff; padding: 3px 8px; border-radius: 3px; cursor: pointer;
+    font-size: 11px; min-width: 65px; text-align: center; font-family: monospace;
+    transition: all 0.15s;
   }
-  .bindKey:hover { background: #d4f0f7; }
-  .bindKey.waiting { background: #ffe6c2; color: #b05a10; border-color: #f0a030; }
-  #invertRow { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 6px; font-size: 13px; }
-  #difficultyRow { padding: 10px 0 16px; border-top: none; }
-  .difficultyLabel { font-size: 13px; color: #0a2e40; display: block; margin-bottom: 6px; }
+  .bindKey:hover { background: rgba(0,180,255,0.15); }
+  .bindKey.waiting { background: rgba(255,170,0,0.15); color: #ffaa00; border-color: rgba(255,170,0,0.4); }
+  #invertRow { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 6px; font-size: 12px; }
+  #difficultyRow { padding: 8px 0 14px; border-top: none; }
+  .difficultyLabel { font-size: 12px; color: #80aabb; display: block; margin-bottom: 5px; }
   #difficultySelect, .menuSelectBtn {
-    width: 100%; padding: 9px 10px; border-radius: 8px; border: 2px solid #2aa6cf;
-    background: #eaf8fc; color: #0a2e40; font-size: 14px; font-weight: bold; cursor: pointer;
+    width: 100%; padding: 8px; border-radius: 4px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.08);
+    color: #c0d8e8; font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
   }
-  .menuSelectBtn { margin-bottom: 14px; text-align: center; }
-  .menuSelectBtn:hover { background: #d4f0f7; }
-  .diffHint { font-size: 11px; color: #3d7c93; margin: 6px 0 0; line-height: 1.4; }
+  .menuSelectBtn { margin-bottom: 12px; text-align: center; }
+  .menuSelectBtn:hover { background: rgba(0,180,255,0.15); }
+  .diffHint { font-size: 10px; color: #5a7a8a; margin: 5px 0 0; line-height: 1.4; }
   #resumeBtn, #resetBtn, #restartGameBtn, #gameOverRestartBtn {
-    width: 100%; margin-top: 16px; padding: 10px; border-radius: 8px; border: 2px solid #2aa6cf;
-    background: #eaf8fc; color: #0a2e40; font-size: 14px; cursor: pointer; font-weight: bold;
+    width: 100%; margin-top: 14px; padding: 9px; border-radius: 4px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.08);
+    color: #c0d8e8; font-size: 13px; cursor: pointer; font-weight: 600;
+    font-family: 'Rajdhani', sans-serif; transition: all 0.15s;
   }
-  #resumeBtn:hover, #restartGameBtn:hover, #gameOverRestartBtn:hover { background: #d4f0f7; }
-  #saveScoreRow { display: flex; gap: 8px; margin: 14px 0 10px; }
+  #resumeBtn:hover, #restartGameBtn:hover, #gameOverRestartBtn:hover { background: rgba(0,180,255,0.2); }
+  #saveScoreRow { display: flex; gap: 8px; margin: 12px 0 8px; }
   #playerNameInput {
-    flex: 1; padding: 8px 10px; border-radius: 6px; border: 2px solid #2aa6cf;
-    font-size: 13px; font-family: inherit;
+    flex: 1; padding: 7px 10px; border-radius: 3px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.05);
+    color: #c0d8e8; font-size: 12px; font-family: 'Rajdhani', sans-serif;
   }
   #saveScoreBtn {
-    padding: 8px 14px; border-radius: 6px; border: 2px solid #2aa6cf; background: #eaf8fc;
-    color: #0a2e40; font-weight: bold; cursor: pointer; font-size: 13px;
+    padding: 7px 12px; border-radius: 3px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.1);
+    color: #00d4ff; font-weight: 600; cursor: pointer; font-size: 12px;
+    font-family: 'Rajdhani', sans-serif;
   }
-  #saveScoreBtn:hover { background: #d4f0f7; }
-  .scoreboardList { max-height: 220px; overflow-y: auto; margin: 4px 0 6px; text-align: left; }
+  #saveScoreBtn:hover { background: rgba(0,180,255,0.2); }
+  .scoreboardList { max-height: 200px; overflow-y: auto; margin: 4px 0 6px; text-align: left; }
   .scoreRow {
-    display: flex; justify-content: space-between; font-size: 13px; padding: 5px 8px;
-    border-bottom: 1px solid #cfeaf2;
+    display: flex; justify-content: space-between; font-size: 12px; padding: 4px 6px;
+    border-bottom: 1px solid rgba(0,180,255,0.06);
   }
-  .scoreRow .rank { color: #2aa6cf; font-weight: bold; margin-right: 6px; }
-  #scoreboardPanel { width: 380px; background: #fffef2; border: 3px solid #2aa6cf; border-radius: 16px; padding: 22px 24px; color: #0a2e40; text-align: center; }
+  .scoreRow .rank { color: #00d4ff; font-weight: 700; margin-right: 6px; }
+  #scoreboardPanel { width: 360px; background: rgba(10,20,40,0.95); border: 1px solid rgba(0,180,255,0.3); border-radius: 6px; padding: 20px 22px; color: #c0d8e8; text-align: center; }
   #closeScoreboardBtn {
-    width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: 2px solid #2aa6cf;
-    background: #eaf8fc; color: #0a2e40; font-size: 14px; cursor: pointer; font-weight: bold;
+    width: 100%; margin-top: 8px; padding: 9px; border-radius: 4px;
+    border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.08);
+    color: #c0d8e8; font-size: 13px; cursor: pointer; font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
   }
-  #closeScoreboardBtn:hover { background: #d4f0f7; }
+  #closeScoreboardBtn:hover { background: rgba(0,180,255,0.15); }
   #minimapWrap {
-    position: absolute; bottom: 60px; right: 14px;
-    width: 164px; height: 164px; border-radius: 50%;
-    border: 3px solid #2aa6cf; background: rgba(255,255,255,0.55);
+    position: absolute; bottom: 55px; right: 14px;
+    width: 150px; height: 150px; border-radius: 50%;
+    border: 1px solid rgba(0,180,255,0.25); background: rgba(5,12,25,0.7);
     overflow: hidden; pointer-events: none;
+    box-shadow: 0 0 15px rgba(0,100,180,0.1);
   }
   #minimap { display: block; }
-  #resetBtn { margin-top: 8px; background: transparent; font-size: 12px; color: #3d7c93; border-color: #cfeaf2; font-weight: normal; }
-  #resetBtn:hover { color: #0a2e40; }
-  #restartGameBtn { margin-top: 8px; border-color: #f0a030; background: #fff2c2; color: #7a4a00; }
-  #restartGameBtn:hover { background: #ffe6a0; }
-  #openEditorBtn { margin-top: 8px; border-color: #7fc98a; background: #e2f7e4; color: #1f5c2a; }
-  #openEditorBtn:hover { background: #cdf0d2; }
+  #resetBtn { margin-top: 6px; background: transparent; font-size: 11px; color: #5a7a8a; border-color: rgba(0,180,255,0.1); font-weight: 400; }
+  #resetBtn:hover { color: #80aacc; }
+  #restartGameBtn { margin-top: 6px; border-color: rgba(255,170,0,0.3); background: rgba(255,170,0,0.1); color: #ffaa00; }
+  #restartGameBtn:hover { background: rgba(255,170,0,0.2); }
+  #openEditorBtn { margin-top: 6px; border-color: rgba(0,200,100,0.3); background: rgba(0,200,100,0.1); color: #66cc88; }
+  #openEditorBtn:hover { background: rgba(0,200,100,0.15); }
 
   #editorPanel {
     position: absolute; top: 12px; right: 12px; width: 260px; z-index: 25;
-    background: #fffef2; border: 3px solid #2aa6cf; border-radius: 14px; padding: 14px 16px;
-    color: #0a2e40; font-size: 13px; max-height: 92vh; overflow-y: auto;
+    background: rgba(5,12,25,0.92); border: 1px solid rgba(0,180,255,0.25); border-radius: 4px;
+    color: #c0d8e8; font-size: 13px; max-height: 92vh; overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0,100,180,0.1);
   }
   #editorPanel.hidden { display: none; }
   #editorHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   #undoRedoRow { display: flex; gap: 4px; }
   #undoBtn, #redoBtn {
-    width: 26px; height: 26px; border-radius: 6px; border: 1px solid #2aa6cf; background: #eaf8fc;
-    color: #0a2e40; font-size: 14px; cursor: pointer; line-height: 1;
+    width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.2); background: rgba(0,180,255,0.08);
+    color: #80aacc; font-size: 14px; cursor: pointer; line-height: 1;
   }
-  #undoBtn:hover:not(:disabled), #redoBtn:hover:not(:disabled) { background: #d4f0f7; }
-  #undoBtn:disabled, #redoBtn:disabled { opacity: 0.35; cursor: default; }
-  #closeEditorBtn { background: transparent; border: none; color: #e04a3a; font-weight: bold; cursor: pointer; font-size: 13px; }
+  #undoBtn:hover:not(:disabled), #redoBtn:hover:not(:disabled) { background: rgba(0,180,255,0.15); }
+  #undoBtn:disabled, #redoBtn:disabled { opacity: 0.3; cursor: default; }
+  #closeEditorBtn { background: transparent; border: none; color: #cc4444; font-weight: 700; cursor: pointer; font-size: 13px; }
   #editorTabs { display: flex; gap: 4px; margin-bottom: 10px; }
   .editorTabBtn {
-    flex: 1; padding: 6px 4px; border-radius: 6px; border: 2px solid #cfeaf2; background: #f4fbfd;
-    color: #3d7c93; font-size: 11px; cursor: pointer; font-weight: bold;
+    flex: 1; padding: 6px 4px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.15); background: rgba(0,180,255,0.05);
+    color: #6a8899; font-size: 11px; cursor: pointer; font-weight: 600;
   }
-  .editorTabBtn.active { background: #2aa6cf; border-color: #2aa6cf; color: #fff; }
+  .editorTabBtn.active { background: rgba(0,180,255,0.2); border-color: rgba(0,180,255,0.4); color: #00d4ff; }
   #editorModelsTab.hidden, #editorObjectsTab.hidden { display: none; }
   #editorModelList { display: flex; gap: 4px; margin-bottom: 8px; }
   .editorModelItem {
-    flex: 1; padding: 8px 4px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 11px;
-    border: 1px solid #cfeaf2;
+    flex: 1; padding: 8px 4px; text-align: center; border-radius: 3px; cursor: pointer; font-size: 11px;
+    border: 1px solid rgba(0,180,255,0.12); color: #80aacc;
   }
-  .editorModelItem:hover { background: #eaf8fc; }
-  .editorModelItem.selected { background: #d4f0f7; border-color: #2aa6cf; font-weight: bold; }
-  #editorModelCoords { border-top: 1px solid #cfeaf2; padding-top: 8px; }
+  .editorModelItem:hover { background: rgba(0,180,255,0.1); }
+  .editorModelItem.selected { background: rgba(0,180,255,0.15); border-color: rgba(0,180,255,0.4); font-weight: 700; color: #00d4ff; }
+  #editorModelCoords { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; }
   #editorModelCoords.hidden { display: none; }
   #editorDecorTab.hidden { display: none; }
   #decorPalette { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
   #decorPalette .editorModelItem { flex: 0 0 auto; padding: 6px 8px; }
   #decorSelectedRow.hidden { display: none; }
   #deleteDecorBtn {
-    width: 100%; padding: 8px; border-radius: 8px; border: 2px solid #e04a3a; background: #fbe4e1;
-    color: #7a1a10; font-size: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px;
+    width: 100%; padding: 8px; border-radius: 3px; border: 1px solid rgba(255,60,50,0.4); background: rgba(255,60,50,0.1);
+    color: #cc4444; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 8px;
   }
-  #deleteDecorBtn:hover { background: #f5cfc9; }
-  #customAssetsHeader { font-size: 11px; color: #3d7c93; border-top: 1px solid #cfeaf2; padding-top: 8px; margin-top: 4px; }
+  #deleteDecorBtn:hover { background: rgba(255,60,50,0.2); }
+  #customAssetsHeader { font-size: 11px; color: #6a8899; border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; margin-top: 4px; }
   #customAssetsList { margin: 6px 0; }
   .customAssetRow {
     display: flex; align-items: center; justify-content: space-between; padding: 5px 8px;
-    border-radius: 6px; border: 1px solid #cfeaf2; margin-bottom: 4px; font-size: 11px;
+    border-radius: 3px; border: 1px solid rgba(0,180,255,0.1); margin-bottom: 4px; font-size: 11px;
   }
   .customAssetRemoveBtn {
-    width: 20px; height: 20px; border-radius: 50%; border: 1px solid #e04a3a; background: #fbe4e1;
-    color: #7a1a10; font-weight: bold; cursor: pointer; font-size: 12px; line-height: 1; flex-shrink: 0;
+    width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,60,50,0.4); background: rgba(255,60,50,0.1);
+    color: #cc4444; font-weight: 700; cursor: pointer; font-size: 12px; line-height: 1; flex-shrink: 0;
   }
-  .customAssetRemoveBtn:hover { background: #f5cfc9; }
+  .customAssetRemoveBtn:hover { background: rgba(255,60,50,0.2); }
   .editorFileBtn {
-    display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 2px dashed #2aa6cf;
-    background: #eaf8fc; color: #0a2e40; font-size: 11px; cursor: pointer; font-weight: bold; text-align: center;
+    display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 3px; border: 1px dashed rgba(0,180,255,0.3);
+    background: rgba(0,180,255,0.05); color: #80aacc; font-size: 11px; cursor: pointer; font-weight: 600; text-align: center;
     box-sizing: border-box;
   }
-  .editorFileBtn:hover { background: #d4f0f7; }
+  .editorFileBtn:hover { background: rgba(0,180,255,0.1); }
   #editorList { max-height: 180px; overflow-y: auto; margin-bottom: 8px; }
   .editorItem {
-    padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-bottom: 3px;
+    padding: 6px 8px; border-radius: 3px; cursor: pointer; font-size: 12px; margin-bottom: 3px;
     border: 1px solid transparent;
   }
-  .editorItem:hover { background: #eaf8fc; }
-  .editorItem.selected { background: #d4f0f7; border-color: #2aa6cf; font-weight: bold; }
-  #editorCoords { border-top: 1px solid #cfeaf2; padding-top: 8px; margin-bottom: 8px; }
+  .editorItem:hover { background: rgba(0,180,255,0.08); }
+  .editorItem.selected { background: rgba(0,180,255,0.12); border-color: rgba(0,180,255,0.3); font-weight: 700; }
+  #editorCoords { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; margin-bottom: 8px; }
   #editorCoords.hidden { display: none; }
   .editorRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 6px; }
-  .editorRow span { color: #3d7c93; flex-shrink: 0; font-size: 11px; }
+  .editorRow span { color: #6a8899; flex-shrink: 0; font-size: 11px; }
   .editorRow input[type="number"] {
-    width: 70px; padding: 3px 6px; border-radius: 5px; border: 1px solid #2aa6cf; font-size: 12px;
+    width: 70px; padding: 3px 6px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.3);
+    background: rgba(0,180,255,0.05); color: #c0d8e8; font-size: 12px;
   }
   .editorRow input[type="range"] { flex: 1; }
   #exportPositionsBtn {
-    width: 100%; padding: 8px; border-radius: 8px; border: 2px solid #2aa6cf; background: #eaf8fc;
-    color: #0a2e40; font-size: 12px; cursor: pointer; font-weight: bold;
+    width: 100%; padding: 8px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.08);
+    color: #80aacc; font-size: 12px; cursor: pointer; font-weight: 600;
   }
-  #exportPositionsBtn:hover { background: #d4f0f7; }
+  #exportPositionsBtn:hover { background: rgba(0,180,255,0.15); }
   #exportOutput {
     width: 100%; height: 90px; margin-top: 8px; font-family: monospace; font-size: 10px;
-    border: 1px solid #cfeaf2; border-radius: 6px; padding: 6px; box-sizing: border-box; resize: vertical;
+    border: 1px solid rgba(0,180,255,0.15); border-radius: 3px; padding: 6px; box-sizing: border-box; resize: vertical;
+    background: rgba(0,180,255,0.03); color: #80aacc;
   }
   #exportOutput.hidden { display: none; }
-  #editorSaveRow { border-top: 1px solid #cfeaf2; padding-top: 10px; margin-top: 10px; }
+  #editorSaveRow { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 10px; margin-top: 10px; }
   #saveChangesBtn, #exportNoEditorBtn {
-    width: 100%; padding: 9px; border-radius: 8px; border: 2px solid #4caf7d; background: #e6f7ea;
-    color: #17603e; font-size: 12px; cursor: pointer; font-weight: bold; margin-bottom: 6px;
+    width: 100%; padding: 9px; border-radius: 3px; border: 1px solid rgba(0,200,100,0.3); background: rgba(0,200,100,0.1);
+    color: #66cc88; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 6px;
   }
-  #saveChangesBtn:hover { background: #d2f0da; }
-  #exportNoEditorBtn { border-color: #9a6ad6; background: #f3e8ff; color: #4a1c80; }
-  #exportNoEditorBtn:hover { background: #e6d4ff; }
+  #saveChangesBtn:hover { background: rgba(0,200,100,0.2); }
+  #exportNoEditorBtn { border-color: rgba(136,100,255,0.3); background: rgba(136,100,255,0.1); color: #aa88ee; }
+  #exportNoEditorBtn:hover { background: rgba(136,100,255,0.2); }
   #saveStatusText { min-height: 12px; }
-  .editorHint { font-size: 10px; color: #3d7c93; margin: 8px 0 0; line-height: 1.4; }
-  .lifeBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #e04a3a; }
-  .lifeBar.empty { background: rgba(224,74,58,0.25); }
-  .shieldBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #4fc3f7; }
-  .shieldBar.empty { background: rgba(79,195,247,0.25); }
+  .editorHint { font-size: 10px; color: #5a7a8a; margin: 8px 0 0; line-height: 1.4; }
+  .lifeBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #ff3344; }
+  .lifeBar.empty { background: rgba(255,50,60,0.2); }
+  .shieldBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #00ccee; }
+  .shieldBar.empty { background: rgba(0,200,238,0.2); }
   /* ---- Controles táctiles (solo mobile) ---- */
-  /* ---- Gear Selection ---- */
+  /* ---- Selección de Juguete ---- */
   #gearSelectOverlay {
     position: absolute; inset: 0;
     background: radial-gradient(ellipse at 50% 40%, #0a1628 0%, #020a14 70%, #000 100%);
@@ -377,7 +462,7 @@
     background: radial-gradient(circle at 50% 0%, rgba(42,166,207,0.08) 0%, transparent 60%);
     opacity: 0; transition: opacity 0.2s;
   }
-  .gearCard:hover { border-color: #2aa6cf; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(42,166,207,0.15); }
+  .gearCard:hover { border-color: #00b4d4; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,180,212,0.15); }
   .gearCard:hover::before { opacity: 1; }
   .gearCard.selected {
     border-color: #ffd84d; background: linear-gradient(180deg, #1a2e48 0%, #0f1f33 100%);
@@ -405,12 +490,13 @@
   .gearStatFill.defense { background: linear-gradient(90deg, #66bb6a, #43a047); }
   .gearStatFill.evasion { background: linear-gradient(90deg, #ffd84d, #ffb300); }
   #gearSelectStartBtn {
-    margin-top: 10px; padding: 14px 50px; border-radius: 12px; border: 1px solid rgba(42,166,207,0.4);
-    background: linear-gradient(180deg, #1a5276 0%, #0e3350 100%); color: #fff;
-    font-size: 16px; font-weight: bold; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
-    transition: all 0.2s; box-shadow: 0 4px 20px rgba(42,166,207,0.15);
+    margin-top: 10px; padding: 14px 50px; border-radius: 4px; border: 1px solid rgba(0,180,255,0.4);
+    background: linear-gradient(180deg, rgba(0,180,255,0.2) 0%, rgba(0,100,180,0.15) 100%); color: #00d4ff;
+    font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 2px; text-transform: uppercase;
+    transition: all 0.2s; box-shadow: 0 0 20px rgba(0,100,180,0.15);
+    font-family: 'Rajdhani', 'Exo 2', sans-serif;
   }
-  #gearSelectStartBtn:hover { background: linear-gradient(180deg, #2471a3 0%, #1a5276 100%); box-shadow: 0 4px 30px rgba(42,166,207,0.3); transform: translateY(-1px); }
+  #gearSelectStartBtn:hover { background: linear-gradient(180deg, rgba(0,180,255,0.3) 0%, rgba(0,100,180,0.25) 100%); box-shadow: 0 0 30px rgba(0,180,255,0.25); transform: translateY(-1px); border-color: rgba(0,180,255,0.6); }
   #gearSelectStartBtn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
 
   #touchLookZone, #touchJoystickBase, #touchButtons { display: none; }
@@ -420,12 +506,12 @@
   }
   body.mobile-active #touchJoystickBase {
     display: block; position: absolute; left: 22px; bottom: 22px; width: 120px; height: 120px;
-    border-radius: 50%; background: rgba(255,255,255,0.35); border: 3px solid rgba(42,166,207,0.6);
+    border-radius: 50%; background: rgba(5,12,25,0.5); border: 2px solid rgba(0,180,255,0.3);
     z-index: 12; touch-action: none;
   }
   #touchJoystickNub {
     position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px;
-    border-radius: 50%; background: rgba(42,166,207,0.85); border: 2px solid #fff;
+    border-radius: 50%; background: rgba(0,180,255,0.6); border: 2px solid rgba(0,212,255,0.5);
     pointer-events: none;
   }
   body.mobile-active #touchButtons {
@@ -433,94 +519,76 @@
     align-items: flex-end; z-index: 7;
   }
   .touchBtn {
-    border: 3px solid rgba(42,166,207,0.7); background: rgba(255,255,255,0.65);
-    color: #0a2e40; border-radius: 50%; display: flex; flex-direction: column;
+    border: 2px solid rgba(0,180,255,0.4); background: rgba(5,12,25,0.7);
+    color: #80aacc; border-radius: 50%; display: flex; flex-direction: column;
     align-items: center; justify-content: center; touch-action: none; cursor: pointer;
     font-size: 20px; user-select: none;
   }
-  .touchBtn span { font-size: 8px; font-weight: bold; margin-top: -2px; }
-  .touchBtnFire { width: 76px; height: 76px; font-size: 30px; }
+  .touchBtn span { font-size: 8px; font-weight: 700; margin-top: -2px; }
+  .touchBtnFire { width: 76px; height: 76px; font-size: 30px; border-color: rgba(255,100,60,0.4); color: #ff8866; }
   .touchBtnRound { width: 58px; height: 58px; }
-  .touchBtn:active, .touchBtn.touchActive { background: rgba(42,166,207,0.55); }
+  .touchBtn:active, .touchBtn.touchActive { background: rgba(0,180,255,0.3); border-color: rgba(0,180,255,0.6); }
   body.mobile-active #hint { display: none; }
   body.mobile-active #openEditorBtn { display: none; }
   body.mobile-active #hud {
-    font-size: 11px; width: 165px; transform: scale(0.7); transform-origin: top left;
+    font-size: 10px; width: 155px; transform: scale(0.7); transform-origin: top left;
   }
   body.mobile-active #restartBtn, body.mobile-active #resetBotsBtn, body.mobile-active #scoreboardBtn, body.mobile-active #fullscreenBtn {
-    padding: 6px 10px; font-size: 11px;
+    padding: 5px 9px; font-size: 10px;
   }
   #mobileBarsWrap { display: none; }
   body.mobile-active #gaugeWrap { display: none; }
   body.mobile-active #mobileBarsWrap { display: block; margin-bottom: 8px; }
   .mobileBarRow { margin-bottom: 5px; }
   .mobileBarWrap {
-    width: 100%; height: 9px; border-radius: 5px; overflow: hidden;
-    background: rgba(0,0,0,0.15); margin-top: 2px;
+    width: 100%; height: 6px; border-radius: 3px; overflow: hidden;
+    background: rgba(255,255,255,0.06); margin-top: 2px;
   }
-  .mobileBarFill { height: 100%; width: 100%; border-radius: 5px; transition: width 0.15s linear; }
-  .mobileBarLife { background: linear-gradient(90deg, #ff8a7a, #e04a3a); }
-  .mobileBarShield { background: linear-gradient(90deg, #7fd8f7, #2aa6cf); }
-  #spBar { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-  #spBarWrap { flex: 1; height: 6px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.15); }
-  #spBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #aa44ff, #dd66ff); border-radius: 4px; transition: width 0.15s linear; }
-  #spLabel { font-size: 10px; color: #c090ff; min-width: 55px; text-align: right; }
+  .mobileBarFill { height: 100%; width: 100%; border-radius: 3px; transition: width 0.15s linear; }
+  .mobileBarLife { background: linear-gradient(90deg, #ff5566, #ff2233); box-shadow: 0 0 4px rgba(255,50,50,0.3); }
+  .mobileBarShield { background: linear-gradient(90deg, #44ccee, #00aacc); box-shadow: 0 0 4px rgba(0,180,230,0.3); }
   #skillBar { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
   .skillSlot {
-    width: 42px; height: 36px; border-radius: 5px; flex: none;
-    background: rgba(10,15,30,0.7); border: 1px solid rgba(100,80,180,0.3);
+    width: 42px; height: 36px; border-radius: 3px; flex: none;
+    background: rgba(5,12,25,0.8); border: 1px solid rgba(0,180,255,0.15);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    overflow: hidden; cursor: pointer; transition: border-color 0.15s; position: relative;
+    overflow: hidden; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; position: relative;
   }
-  .skillSlot.movement { border-color: rgba(100,180,255,0.3); width: 52px; }
-  .skillSlot:hover { border-color: rgba(180,140,255,0.6); }
-  .skillSlot.onCooldown { opacity: 0.5; }
+  .skillSlot.movement { border-color: rgba(0,200,150,0.2); width: 52px; }
+  .skillSlot:hover { border-color: rgba(0,180,255,0.4); }
+  .skillSlot.onCooldown { opacity: 0.4; }
   .skillSlot.onCooldown::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(0,0,0,0.5); border-radius: 5px;
+    background: rgba(0,0,0,0.6); border-radius: 3px;
   }
-  .skillSlot.active { border-color: #ffd84d; box-shadow: 0 0 8px rgba(255,216,77,0.3); }
+  .skillSlot.active { border-color: rgba(255,170,0,0.5); box-shadow: 0 0 8px rgba(255,170,0,0.2); }
   .skillSlot.active::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(255,216,77,0.08); border-radius: 5px; animation: skillPulse 0.8s ease-in-out infinite;
+    background: rgba(255,170,0,0.08); border-radius: 3px; animation: skillPulse 0.8s ease-in-out infinite;
   }
   @keyframes skillPulse { 0%,100%{opacity:0.08} 50%{opacity:0.2} }
-  .skillSlot.locked { opacity: 0.25; }
+  .skillSlot.locked { opacity: 0.2; }
   .skillKey {
-    font-size: 10px; font-weight: bold; color: #c090ff; z-index: 1;
-    background: rgba(80,50,150,0.4); border-radius: 3px; padding: 0 3px; margin-bottom: 1px; line-height: 1.2;
+    font-size: 9px; font-weight: 700; color: #80aacc; z-index: 1;
+    background: rgba(0,100,150,0.3); border-radius: 2px; padding: 0 3px; margin-bottom: 1px; line-height: 1.3;
   }
-  .skillSlot.movement .skillKey { color: #88ccff; background: rgba(50,100,180,0.4); }
-  .skillName { font-size: 7px; color: #a080cc; text-transform: uppercase; letter-spacing: 0.3px; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38px; }
+  .skillSlot.movement .skillKey { color: #66ddaa; background: rgba(0,120,80,0.3); }
+  .skillName { font-size: 7px; color: #6a8899; text-transform: uppercase; letter-spacing: 0.3px; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38px; }
   .skillCooldown {
-    position: absolute; bottom: 1px; font-size: 8px; color: #ff6644; font-weight: bold; z-index: 2;
+    position: absolute; bottom: 1px; font-size: 8px; color: #ff6644; font-weight: 700; z-index: 2;
   }
   .skillSPCost {
     position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 2;
   }
-  #levelRow { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; color: #ffd700; }
-  #levelBadge { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1000; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 12px; min-width: 20px; text-align: center; }
-  #xpBarWrap { flex: 1; height: 5px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.2); }
-  #xpBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #ffd700, #ffaa00); border-radius: 4px; transition: width 0.3s linear; }
-  #xpLabel { font-size: 9px; color: #ccaa44; min-width: 60px; text-align: right; }
-  #gearNameHud { font-size: 11px; color: #88ccff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; font-weight: bold; }
-  #buffRow { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
-  .buffIcon { font-size: 10px; padding: 1px 4px; border-radius: 3px; background: rgba(50,80,150,0.4); color: #88ccff; border: 1px solid rgba(100,150,255,0.3); }
 </style>
 </head>
 <body>
 <div id="hud">
-  <div id="ammoRow">
-    <div class="ammoBox">
-      <div class="ammoIcon">🫧</div>
-      <div class="cooldownBar"><div class="cooldownFill" id="stdHeatFill"></div></div>
-      <div class="ammoNum" id="stdHeatLabel">STD</div>
-    </div>
-    <div class="ammoBox">
-      <div class="ammoIcon">🧼</div>
-      <div class="cooldownBar"><div class="cooldownFill" id="advHeatFill"></div></div>
-      <div class="ammoNum" id="advHeatLabel">ADV</div>
-    </div>
+  <div id="gearNameHud">—</div>
+  <div id="levelRow">
+    <span id="levelBadge">1</span>
+    <div id="xpBarWrap"><div id="xpBarFill"></div></div>
+    <span id="xpLabel">0 / 300 XP</span>
   </div>
 
   <div id="gaugeWrap">
@@ -531,9 +599,9 @@
       <path id="shieldFillArc" class="ringFillShield" d="M100,25 A75,75 0 0,1 100,175" />
       <path id="speedDial" d="M58,100 A42,42 0 0,1 142,100 L100,100 Z" />
       <line id="speedNeedle" x1="100" y1="100" x2="70" y2="100" />
-      <circle cx="100" cy="100" r="5" fill="#33291a" />
+      <circle cx="100" cy="100" r="5" fill="#0a0e14" />
     </svg>
-    <div id="waveGaugeText">Oleada <b id="waveGauge">1</b></div>
+    <div id="waveGaugeText">OLEADA <b id="waveGauge">1</b></div>
     <div id="speedGaugeText"><b id="speedNum">0</b></div>
     <div id="lifeGaugeLabel" class="gaugeSideLabel"><b id="livesFrac">5/5</b></div>
     <div id="shieldGaugeLabel" class="gaugeSideLabel"><b id="shieldFrac">3/3</b></div>
@@ -552,13 +620,8 @@
   </div>
 
   <div id="boostRow">
-    <span class="boostLabel">Boost</span>
+    <span class="boostLabel">BOOST</span>
     <div id="boostBarWrap"><div id="boostBarFill"></div></div>
-  </div>
-
-  <div id="specialRow">
-    <span class="boostLabel">Especial (R)</span>
-    <div id="specialBarWrap"><div id="specialBarFill"></div></div>
   </div>
 
   <div id="spBar">
@@ -566,12 +629,19 @@
     <span id="spLabel">SP: <b id="spNum">50</b>/100</span>
   </div>
 
-  <div id="gearNameHud">—</div>
-  <div id="levelRow">
-    <span id="levelBadge">1</span>
-    <div id="xpBarWrap"><div id="xpBarFill"></div></div>
-    <span id="xpLabel">0 / 300 XP</span>
+  <div id="ammoRow">
+    <div class="ammoBox">
+      <div class="ammoIcon">◆</div>
+      <div class="cooldownBar"><div class="cooldownFill" id="stdHeatFill"></div></div>
+      <div class="ammoNum" id="stdHeatLabel">STD</div>
+    </div>
+    <div class="ammoBox">
+      <div class="ammoIcon">◇</div>
+      <div class="cooldownBar"><div class="cooldownFill" id="advHeatFill"></div></div>
+      <div class="ammoNum" id="advHeatLabel">ADV</div>
+    </div>
   </div>
+
   <div id="buffRow"></div>
 
   <div id="skillBar">
@@ -623,7 +693,6 @@
 </div>
 <div id="touchButtons">
   <button id="touchBoostBtn" class="touchBtn touchBtnRound">⚡<span>Boost</span></button>
-  <button id="touchSpecialBtn" class="touchBtn touchBtnRound">💥<span>Especial</span></button>
   <button id="touchMissileBtn" class="touchBtn touchBtnFire">🧼</button>
   <button id="touchFireBtn" class="touchBtn touchBtnFire">🫧</button>
 </div>
@@ -633,7 +702,7 @@
   <div id="menuPanel">
     <h2>Menú</h2>
     <button id="openControlsBtn" class="menuSelectBtn">⌨ Controles y sensibilidad</button>
-    <button id="changeGearBtn" class="menuSelectBtn" style="background:#f3e8ff; border-color:#9a6ad6; color:#4a1c80;">🎮 Cambiar Gear</button>
+    <button id="changeGearBtn" class="menuSelectBtn" style="background:#f3e8ff; border-color:#9a6ad6; color:#4a1c80;">🎮 Cambiar Juguete</button>
     <div id="difficultyRow">
       <span class="difficultyLabel">Dificultad</span>
       <select id="difficultySelect">
@@ -652,8 +721,8 @@
 
 <div id="gearSelectOverlay" class="hidden">
   <div id="gearSelectPanel">
-    <h2>Elegí tu Gear</h2>
-    <p class="subtitle">Cada Gear tiene armas, habilidades y stats únicos</p>
+    <h2>Elegí tu Juguete</h2>
+    <p class="subtitle">Cada Juguete tiene armas, habilidades y stats únicos</p>
     <div id="gearCards">
       <div class="gearCard" data-gear="rayo">
         <div class="gearIcon">⚡</div>
@@ -708,7 +777,7 @@
         </div>
       </div>
     </div>
-    <button id="gearSelectStartBtn" disabled>Seleccioná un Gear</button>
+    <button id="gearSelectStartBtn" disabled>Seleccioná un Juguete</button>
   </div>
 </div>
 
@@ -830,13 +899,12 @@ if (isMobile) document.body.classList.add('mobile-active');
 // ================= CONFIG DE CONTROLES =================
 const DEFAULT_BINDINGS = {
   forward: 'KeyW', back: 'KeyS', rollLeft: 'KeyA', rollRight: 'KeyD',
-  boost: 'Space', toggleMode: 'KeyG', breakLock: 'ShiftLeft', special: 'KeyR'
+  boost: 'Space', toggleMode: 'KeyG', breakLock: 'ShiftLeft'
 };
 const BIND_LABELS = {
   forward: 'Acelerar', back: 'Frenar / reversa', rollLeft: 'Rolar / strafe izquierda',
   rollRight: 'Rolar / strafe derecha', boost: 'Boost (nado y siege)',
-  toggleMode: 'Siege Mode (deshabilitado por ahora)', breakLock: 'Soltar bloqueo de mira',
-  special: 'Arma especial (cuando está cargada)'
+  toggleMode: 'Siege Mode (deshabilitado por ahora)', breakLock: 'Soltar bloqueo de mira'
 };
 
 let bindings = { ...DEFAULT_BINDINGS };
@@ -858,7 +926,7 @@ const DIFFICULTY_HINTS = {
   sniper: 'Solo cañón, la munición justa para limpiar la oleada. Sin misiles.'
 };
 
-// ================= Selección de Gear =================
+// ================= Selección de Juguete =================
 const GEAR_CONFIGS = {
   rayo: {
     name: 'Rayo', role: 'Caza Veloz', icon: '⚡',
@@ -975,7 +1043,7 @@ gearSelectStartBtn.addEventListener('click', () => {
   if (!gameRunning) {
     renderLivesHUD();
     renderShieldHUD();
-    updateSpecialHUD();
+
     resetDestructibles();
     gameRunning = true;
     startWave();
@@ -3204,7 +3272,6 @@ const enemies = [];
 const ENEMIES_PER_WAVE = 6;
 
 // Daño base por arma (ahora viene de GEAR_CONFIGS[selectedGear].weapons)
-const SPECIAL_DAMAGE = 999999; // el arma especial siempre mata de un golpe
 let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube con nivel)
 
 // Vida de los ositos según dificultad: calibrada para que el básico mate en pocos golpes
@@ -3354,6 +3421,7 @@ function fireProjectile() {
       const spread = (Math.random() - 0.5) * 0.06 * bullets.length; // dispersión por ráfaga
       mesh.position.copy(ship.position).addScaledVector(forward, 3);
       scene.add(mesh);
+      aceMuzzleFlash(mesh.position.clone());
       projectiles.push({
         mesh,
         velocity: forward.clone().multiplyScalar(weapon.speed || 200),
@@ -3418,6 +3486,7 @@ function fireMissile() {
       mesh.position.copy(spawnPos);
       mesh.quaternion.copy(ship.quaternion);
       scene.add(mesh);
+      aceMuzzleFlash(spawnPos.clone());
       missiles.push({
         mesh,
         velocity: forward.clone().multiplyScalar(weapon.speed || 120),
@@ -3442,66 +3511,262 @@ function fireBossCannons(boss) {
     const dir = ship.position.clone().sub(worldPt).normalize();
     mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
     scene.add(mesh);
-    enemyMissiles.push({ mesh, velocity: dir.multiplyScalar(70), target: playerTargetRef, life: 7, speed: 70, trailTimer: 0, source: boss });
+    enemyMissiles.push({ mesh, velocity: dir.multiplyScalar(70), target: playerTargetRef, life: 7, speed: 70, trailTimer: 0, source: boss, isEnemy: true });
   }
 }
 
-// ---- Estela de burbujas detrás de los misiles (referencia de trayectoria / perspectiva) ----
+// ====================================================================
+//  SISTEMA DE EFECTOS DEL JUEGO MADRE — presets extraídos de effectInfo.inf
+// ====================================================================
+const ACE = {
+  // Explosión grande (06400152: fireball + 06400119: smoke ring + 06400153: shockwave)
+  explosionBig: {
+    fireball: { count: 40, speed: 40, life: 0.9, size: 2.8, color: 0xff8833, endColor: 0xff2200, spread: 1.0, gravity: -8 },
+    sparks:   { count: 25, speed: 55, life: 0.5, size: 1.8, color: 0xffcc44, endColor: 0xffffff, spread: 1.2, gravity: -15 },
+    smoke:    { count: 15, speed: 12, life: 1.6, size: 5.0, color: 0x555555, endColor: 0x222222, spread: 0.6, gravity: 4 },
+    ring:     { color: 0xff6622, startR: 1, endR: 28, life: 0.5 }
+  },
+  explosionSmall: {
+    fireball: { count: 20, speed: 28, life: 0.6, size: 2.0, color: 0xffaa44, endColor: 0xff4400, spread: 1.0, gravity: -5 },
+    sparks:   { count: 12, speed: 35, life: 0.35, size: 1.4, color: 0xffee88, endColor: 0xffffff, spread: 1.1, gravity: -12 },
+    smoke:    { count: 6,  speed: 8,  life: 1.0, size: 3.5, color: 0x666666, endColor: 0x333333, spread: 0.5, gravity: 3 },
+    ring:     { color: 0xff8844, startR: 0.5, endR: 18, life: 0.4 }
+  },
+  // Chispas de impacto (06400040: SPHERE emitter, emitMass=10, additive)
+  impactSpark: {
+    sparks:  { count: 18, speed: 32, life: 0.3, size: 1.6, color: 0xffffff, endColor: 0xffaa22, spread: 1.0, gravity: -10 },
+    sparks2: { count: 8,  speed: 18, life: 0.5, size: 2.2, color: 0xffdd66, endColor: 0xff8800, spread: 0.7, gravity: -6 },
+    debris:  { count: 5,  speed: 10, life: 0.7, size: 3.0, color: 0x888888, endColor: 0x444444, spread: 0.5, gravity: 8 }
+  },
+  // Estela de misil (06400131: POINT emitter, fixed size, additive + 06400145: wide plume)
+  missileTrail: {
+    glow:   { count: 3, speed: 4, life: 0.25, size: 2.0, color: 0x66ccff, endColor: 0x2266aa, spread: 0.15, gravity: 0 },
+    plume:  { count: 2, speed: 6, life: 0.4,  size: 4.5, color: 0x4488cc, endColor: 0x113366, spread: 0.25, gravity: 0 }
+  },
+  // Estela de misil enemigo
+  enemyMissileTrail: {
+    glow:   { count: 2, speed: 3, life: 0.2, size: 1.8, color: 0xff6644, endColor: 0xaa2200, spread: 0.12, gravity: 0 },
+    plume:  { count: 1, speed: 5, life: 0.35, size: 3.5, color: 0xcc4422, endColor: 0x661100, spread: 0.2, gravity: 0 }
+  },
+  // Llamas del motor / boost (06400131: POINT + 06400145: wide plume)
+  boostFlame: {
+    core:   { count: 5, speed: 35, life: 0.3,  size: 2.5, color: 0xffcc44, endColor: 0xff6600, spread: 0.3, gravity: 0 },
+    glow:   { count: 3, speed: 20, life: 0.45, size: 4.0, color: 0xff8833, endColor: 0xcc3300, spread: 0.5, gravity: 0 }
+  },
+  // Barrera / shield shimmer (06401173: POINT, loop, sizes 3→40, additive)
+  shieldShimmer: {
+    particles: { count: 6, speed: 8, life: 0.8, size: 3.0, endSize: 25.0, color: 0x6699cc, endColor: 0x336699, spread: 1.0, gravity: 0 }
+  },
+  // Impacto en barrera (06400673: SPHERE, very short life)
+  shieldImpact: {
+    flash: { count: 10, speed: 25, life: 0.2, size: 2.5, color: 0xaaddff, endColor: 0x4488cc, spread: 1.0, gravity: 0 }
+  },
+  // Muzzle flash (06200034: SPRITE, white billboard)
+  muzzleFlash: {
+    sprite: { count: 1, speed: 0, life: 0.12, size: 3.0, color: 0xffffff, spread: 0, gravity: 0 }
+  },
+  // Siege aura (06401124: POINT, loop, green tint)
+  siegeAura: {
+    particles: { count: 4, speed: 6, life: 1.0, size: 2.5, endSize: 18.0, color: 0x66aa66, endColor: 0x338833, spread: 0.8, gravity: 2 }
+  },
+  // Level up (gold ring burst)
+  levelUp: {
+    burst: { count: 50, speed: 35, life: 1.2, size: 2.5, color: 0xffd700, endColor: 0xffaa00, spread: 1.0, gravity: -5 },
+    ring:  { color: 0xffd700, startR: 1, endR: 35, life: 0.8 }
+  },
+  // ---- SKILL EFFECTS (inspirados en body conditions de Juego Madre) ----
+  // Berserker: rage aura (rojo, agresivo, additive)
+  berserker: {
+    activate: { count: 30, speed: 18, life: 0.6, size: 2.2, color: 0xff2200, endColor: 0x990000, spread: 1.2, gravity: -3 },
+    aura:     { count: 3, speed: 5, life: 0.5, size: 3.5, endSize: 12.0, color: 0xff4400, endColor: 0xcc0000, spread: 0.6, gravity: 1 }
+  },
+  // Overbooster: speed trail (azul brillante, veloz)
+  overbooster: {
+    activate: { count: 20, speed: 30, life: 0.5, size: 2.0, color: 0x4488ff, endColor: 0x1133aa, spread: 0.8, gravity: 0 },
+    trail:    { count: 4, speed: 15, life: 0.3, size: 3.0, color: 0x66aaff, endColor: 0x2255cc, spread: 0.3, gravity: 0 }
+  },
+  // Siege Mode: energía verde estacionaria (06401124)
+  siegeMode: {
+    activate: { count: 25, speed: 15, life: 0.8, size: 2.0, color: 0x66cc66, endColor: 0x338833, spread: 1.0, gravity: 2 },
+    aura:     { count: 3, speed: 4, life: 0.7, size: 2.5, endSize: 14.0, color: 0x88dd88, endColor: 0x44aa44, spread: 0.5, gravity: 1 }
+  },
+  // Barrier: shockwave azul de activación
+  barrier: {
+    activate: { count: 20, speed: 20, life: 0.4, size: 2.0, color: 0x44aaff, endColor: 0x2266cc, spread: 0.8, gravity: 0 }
+  },
+  // Deploy Chaffs: humo/gris explosivo (flares)
+  deployChaffs: {
+    burst: { count: 25, speed: 22, life: 0.8, size: 3.5, color: 0xaaaaaa, endColor: 0x555555, spread: 1.5, gravity: 3 }
+  },
+  // Remedy: cura verde hacia arriba
+  remedy: {
+    burst: { count: 15, speed: 18, life: 0.7, size: 2.0, color: 0x44ff88, endColor: 0x22aa44, spread: 0.6, gravity: -8 }
+  },
+  // Hyper Shot: proyectil con estela naranja
+  hyperShot: {
+    trail: { count: 6, speed: 12, life: 0.3, size: 2.5, color: 0xff6600, endColor: 0xcc2200, spread: 0.2, gravity: 0 }
+  },
+  // Ground Bombing: onda expansiva naranja
+  groundBombing: {
+    wave: { count: 30, speed: 25, life: 0.6, size: 3.0, color: 0xff8800, endColor: 0xcc4400, spread: 2.0, gravity: 5 }
+  },
+  // Air Bombing: lluvia de chispas descendente
+  airBombing: {
+    rain: { count: 35, speed: 30, life: 0.7, size: 2.5, color: 0xffaa33, endColor: 0xff6600, spread: 2.5, gravity: 15 }
+  },
+  // Charge Shot: energía naranja pulsante
+  chargeShot: {
+    activate: { count: 15, speed: 10, life: 0.5, size: 2.0, color: 0xff6600, endColor: 0xcc3300, spread: 0.5, gravity: 0 },
+    glow:     { count: 2, speed: 3, life: 0.4, size: 4.0, endSize: 8.0, color: 0xff8833, endColor: 0xff4400, spread: 0.3, gravity: 0 }
+  },
+  // Big Boom: explosión masiva multicapa
+  bigBoom: {
+    shockwave: { count: 50, speed: 50, life: 0.8, size: 3.5, color: 0xff2200, endColor: 0x990000, spread: 1.5, gravity: -5 },
+    embers:    { count: 30, speed: 35, life: 1.2, size: 1.8, color: 0xffaa00, endColor: 0xff4400, spread: 2.0, gravity: 8 }
+  },
+  // Full Recovery: burbuja verde masiva
+  fullRecovery: {
+    burst: { count: 40, speed: 25, life: 1.0, size: 2.5, color: 0x44ff66, endColor: 0x22cc44, spread: 1.0, gravity: -6 }
+  },
+  // Heal Target: chispas verdes
+  healTarget: {
+    burst: { count: 12, speed: 15, life: 0.6, size: 2.0, color: 0x66ff88, endColor: 0x33cc55, spread: 0.5, gravity: -10 }
+  },
+  // Energize Target: chispas doradas
+  energizeTarget: {
+    burst: { count: 12, speed: 15, life: 0.6, size: 2.0, color: 0xffd700, endColor: 0xcc9900, spread: 0.5, gravity: -10 }
+  },
+  // Healing Field: partículas verdes subiendo del anillo
+  healingField: {
+    particles: { count: 4, speed: 6, life: 0.8, size: 2.0, endSize: 8.0, color: 0x44ff66, endColor: 0x22aa44, spread: 1.0, gravity: -4 }
+  },
+  // Energizing Field: partículas doradas subiendo
+  energizingField: {
+    particles: { count: 4, speed: 6, life: 0.8, size: 2.0, endSize: 8.0, color: 0xffd700, endColor: 0xcc9900, spread: 1.0, gravity: -4 }
+  },
+  // Reverse Engine: onda expansiva azul
+  reverseEngine: {
+    wave: { count: 25, speed: 35, life: 0.4, size: 2.5, color: 0x88ccff, endColor: 0x4488aa, spread: 1.0, gravity: 0 }
+  },
+  // Snare Shot: aura azul ralentizante
+  snareShot: {
+    particles: { count: 3, speed: 4, life: 0.6, size: 2.5, endSize: 10.0, color: 0x4488ff, endColor: 0x2244aa, spread: 0.5, gravity: 0 }
+  },
+  // Multi Target: retícula roja de lock-on
+  multiTarget: {
+    burst: { count: 15, speed: 20, life: 0.5, size: 1.8, color: 0xff4444, endColor: 0xcc2222, spread: 0.8, gravity: 0 }
+  },
+  // Invisible: desvanecimiento con destellos
+  invisible: {
+    fadeOut: { count: 12, speed: 8, life: 0.8, size: 2.0, color: 0xaaddff, endColor: 0x6699cc, spread: 0.8, gravity: -2 }
+  }
+};
+
+// ---- Shared particle geometry (reused across all effects) ----
+const aceParticleGeo = new THREE.BufferGeometry();
+
+// ---- Generic Ace particle spawner: creates a Points object from preset params ----
+function aceSpawnParticles(preset, position, targetArray) {
+  const count = preset.count;
+  const posArr = new Float32Array(count * 3);
+  const vels = [];
+  const basePos = position;
+  for (let i = 0; i < count; i++) {
+    posArr[i*3]   = basePos.x + (Math.random()-0.5) * preset.spread * 2;
+    posArr[i*3+1] = basePos.y + (Math.random()-0.5) * preset.spread * 2;
+    posArr[i*3+2] = basePos.z + (Math.random()-0.5) * preset.spread * 2;
+    const angle = Math.random() * Math.PI * 2;
+    const elev  = (Math.random()-0.5) * Math.PI;
+    const spd   = preset.speed * (0.5 + Math.random() * 0.5);
+    vels.push(new THREE.Vector3(
+      Math.cos(angle) * Math.cos(elev) * spd,
+      Math.sin(elev) * spd + (Math.random()-0.3) * preset.speed * 0.3,
+      Math.sin(angle) * Math.cos(elev) * spd
+    ));
+  }
+  const geo = aceParticleGeo.clone();
+  geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  const mat = new THREE.PointsMaterial({
+    color: preset.color,
+    size: preset.size,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  const entry = { points, velocities: vels, life: preset.life, maxLife: preset.life, endColor: preset.endColor, startSize: preset.size, endSize: preset.endSize || preset.size * 0.3, gravity: preset.gravity || 0 };
+  targetArray.push(entry);
+  return entry;
+}
+
+// ---- Muzzle flash: creates a bright billboard at weapon hardpoints ----
+function aceMuzzleFlash(position) {
+  const count = 4;
+  const posArr = new Float32Array(count * 3);
+  const vels = [];
+  for (let i = 0; i < count; i++) {
+    posArr[i*3] = position.x; posArr[i*3+1] = position.y; posArr[i*3+2] = position.z;
+    const a = Math.random() * Math.PI * 2;
+    vels.push(new THREE.Vector3(Math.cos(a)*8, Math.sin(a)*8, (Math.random()-0.5)*8));
+  }
+  const geo = aceParticleGeo.clone();
+  geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 3.0, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  explosions.push({ points, velocities: vels, life: 0.12, maxLife: 0.12, endColor: 0xffcc44, startSize: 3.0, endSize: 0.5, gravity: 0 });
+}
+
+// ====================================================================
+//  ESTELA DE MISILES (reemplaza burbujas por glow + plume de Juego Madre)
+// ====================================================================
 const missTexts = [];
 const trailBubbles = [];
-const trailGeo = new THREE.SphereGeometry(1, 10, 8);
-function spawnTrailBubble(position) {
-  const size = 0.35 + Math.random() * 0.35;
-  const mat3 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false });
-  const mesh = new THREE.Mesh(trailGeo, mat3);
-  mesh.scale.setScalar(size);
-  mesh.position.copy(position).add(new THREE.Vector3((Math.random()-0.5)*0.4, (Math.random()-0.5)*0.4, (Math.random()-0.5)*0.4));
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.7, 1, 12), new THREE.MeshBasicMaterial({ color: 0xbfeeff, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }));
-  mesh.add(ring);
-  scene.add(mesh);
-  trailBubbles.push({ mesh, life: 0.55, maxLife: 0.55, rise: 0.5 + Math.random() * 0.5 });
+
+function spawnTrailBubble(position, isEnemy) {
+  const preset = isEnemy ? ACE.enemyMissileTrail : ACE.missileTrail;
+  aceSpawnParticles(preset.glow, position, trailBubbles);
+  if (Math.random() < 0.5) aceSpawnParticles(preset.plume, position, trailBubbles);
 }
 function updateMissileTrail(m, dt) {
   m.trailTimer -= dt;
   if (m.trailTimer <= 0) {
-    spawnTrailBubble(m.mesh.position);
-    m.trailTimer = 0.045;
+    spawnTrailBubble(m.mesh.position, !!m.isEnemy);
+    m.trailTimer = 0.05;
   }
 }
 
+// ====================================================================
+//  EXPLOSIONES multicapa (fireball + sparks + smoke + shockwave ring)
+// ====================================================================
 const explosions = [];
 function spawnExplosion(position, big) {
-  const geo = new THREE.BufferGeometry();
-  const count = big ? 60 : 36;
-  const positions = new Float32Array(count * 3);
-  const velocities = [];
-  for (let i = 0; i < count; i++) {
-    positions[i*3] = position.x; positions[i*3+1] = position.y; positions[i*3+2] = position.z;
-    velocities.push(new THREE.Vector3((Math.random()-0.5)*(big?36:24), (Math.random()-0.3)*(big?36:24), (Math.random()-0.5)*(big?36:24)));
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat2 = new THREE.PointsMaterial({ color: 0xeaf9ff, size: big?2.2:1.6, transparent: true, opacity: 1 });
-  const points = new THREE.Points(geo, mat2);
-  scene.add(points);
-  explosions.push({ points, velocities, life: 0.8, maxLife: 0.8 });
+  const cfg = big ? ACE.explosionBig : ACE.explosionSmall;
+  aceSpawnParticles(cfg.fireball, position, explosions);
+  aceSpawnParticles(cfg.sparks, position, explosions);
+  aceSpawnParticles(cfg.smoke, position, explosions);
+  // Shockwave ring
+  const rc = cfg.ring;
+  const ringGeo = new THREE.RingGeometry(rc.startR, rc.startR + 1.5, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color: rc.color, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(position);
+  ring.lookAt(camera.position);
+  scene.add(ring);
+  const expandRate = (rc.endR - rc.startR) / rc.life;
+  skillRings.push({ mesh: ring, life: rc.life, maxLife: rc.life, expand: expandRate });
 }
 
-// ---- Chispazo de impacto: golpe que NO mata (con la vida alta de ahora, la mayoría no matan,
-// y sin ningún feedback visual se sentía como que el disparo no había pegado) ----
+// ====================================================================
+//  CHISPAS DE IMPACTO (sparks + debris cloud de Juego Madre)
+// ====================================================================
 function spawnImpactSpark(position) {
-  const count = 10;
-  const geo = new THREE.BufferGeometry();
-  const positions = new Float32Array(count * 3);
-  const velocities = [];
-  for (let i = 0; i < count; i++) {
-    positions[i*3] = position.x; positions[i*3+1] = position.y; positions[i*3+2] = position.z;
-    velocities.push(new THREE.Vector3((Math.random()-0.5)*14, (Math.random()-0.2)*14, (Math.random()-0.5)*14));
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat3 = new THREE.PointsMaterial({ color: 0xfff3b0, size: 1.3, transparent: true, opacity: 1 });
-  const points = new THREE.Points(geo, mat3);
-  scene.add(points);
-  explosions.push({ points, velocities, life: 0.22, maxLife: 0.22 });
+  const cfg = ACE.impactSpark;
+  aceSpawnParticles(cfg.sparks, position, explosions);
+  aceSpawnParticles(cfg.sparks2, position, explosions);
+  aceSpawnParticles(cfg.debris, position, explosions);
 }
 
 // ---- Damage numbers flotantes ----
@@ -3611,8 +3876,9 @@ function removeEnergizingFieldVisual() {
   if (energizingFieldVisual) { ship.remove(energizingFieldVisual); energizingFieldVisual = null; }
 }
 
-// ---- Barrier visual (blue bubble) ----
+// ---- Barrier visual (blue bubble + shield shimmer particles) ----
 let barrierVisual = null;
+let barrierShimmerTimer = 0;
 function spawnBarrierVisual() {
   removeBarrierVisual();
   const geo = new THREE.SphereGeometry(7, 16, 12);
@@ -3620,6 +3886,7 @@ function spawnBarrierVisual() {
   const mesh = new THREE.Mesh(geo, mat);
   ship.add(mesh);
   barrierVisual = mesh;
+  barrierShimmerTimer = 0;
 }
 function removeBarrierVisual() {
   if (barrierVisual) { ship.remove(barrierVisual); barrierVisual = null; }
@@ -3663,26 +3930,14 @@ function removeChargeShotGlow() {
   if (chargeShotGlow) { ship.remove(chargeShotGlow); chargeShotGlow = null; }
 }
 
-// ---- Llamas del motor al usar boost: salen de la parte trasera del pato hacia atrás ----
-const BOOST_FLAME_LOCAL = new THREE.Vector3(0, -0.1, -2.4); // estimado: parte trasera del modelo, ajustable
+// ---- Llamas del motor al usar boost: core + glow de Juego Madre ----
+const BOOST_FLAME_LOCAL = new THREE.Vector3(0, -0.1, -2.4);
 let boostFlameTimer = 0;
 function spawnBoostFlame() {
   const worldPos = ship.localToWorld(BOOST_FLAME_LOCAL.clone());
-  const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
-  const count = 7;
-  const geo = new THREE.BufferGeometry();
-  const positions = new Float32Array(count * 3);
-  const velocities = [];
-  for (let i = 0; i < count; i++) {
-    positions[i*3] = worldPos.x; positions[i*3+1] = worldPos.y; positions[i*3+2] = worldPos.z;
-    const spread = new THREE.Vector3((Math.random()-0.5)*6, (Math.random()-0.5)*6, (Math.random()-0.5)*6);
-    velocities.push(backward.clone().multiplyScalar(28 + Math.random()*20).add(spread));
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat3 = new THREE.PointsMaterial({ color: Math.random() < 0.5 ? 0xffaa33 : 0xff5522, size: 2.0, transparent: true, opacity: 0.9 });
-  const points = new THREE.Points(geo, mat3);
-  scene.add(points);
-  explosions.push({ points, velocities, life: 0.35, maxLife: 0.35 });
+  const cfg = ACE.boostFlame;
+  aceSpawnParticles(cfg.core, worldPos, explosions);
+  if (Math.random() < 0.6) aceSpawnParticles(cfg.glow, worldPos, explosions);
 }
 
 // ================= Arena: sin interacción con agua =================
@@ -3850,7 +4105,6 @@ window.addEventListener('keydown', e => {
   if (!keys[e.code]) {
     if (e.code === bindings.toggleMode) toggleMode();
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
-    if (e.code === bindings.special) fireSpecial();
     if (e.code === 'KeyQ') { activateMovementSkill('q'); }
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
     if (e.code === 'Digit1') onSkillKey(0);
@@ -4013,7 +4267,6 @@ if (isMobile) {
   bindHoldButton('touchFireBtn', () => { firing = true; }, () => { firing = false; });
   bindHoldButton('touchBoostBtn', () => { keys[bindings.boost] = true; }, () => { keys[bindings.boost] = false; });
   bindHoldButton('touchMissileBtn', () => { fireMissile(); }, null);
-  bindHoldButton('touchSpecialBtn', () => { fireSpecial(); }, null);
 }
 
 // ================= Estado de vuelo / juego =================
@@ -4086,7 +4339,7 @@ function getAdvWeapon() {
 }
 
 function calcDamage(baseDamage, targetEvasion) {
-  // Accuracy vs Evasion: chance de acertar (fórmula simplificada de Ace Online)
+  // Accuracy vs Evasion: chance de acertar (fórmula simplificada de Juego Madre)
   const hitChance = Math.max(15, Math.min(95, 80 + (playerPierce - targetEvasion) * 2));
   const hits = Math.random() * 100 < hitChance;
   if (!hits) return 0; // esquivó
@@ -4236,28 +4489,84 @@ function isSkillActive(skillId) {
 }
 
 // ================= Skill Effects =================
+let berserkerAuraTimer = 0;
+let siegeAuraTimer = 0;
+let chargeShotGlowTimer = 0;
+let invisibleShimmerTimer = 0;
+let overboosterTrailTimer = 0;
+let healingFieldSpawnTimer = 0;
+let energizingFieldSpawnTimer = 0;
+
 function applySkillEffect(skillId, on) {
   if (!on) {
     delete activeSkillEffects[skillId];
-    if (skillId === 'siegeMode') isSiegeMode = false;
+    if (skillId === 'siegeMode') { isSiegeMode = false; }
     if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
     if (skillId === 'deployChaffs') { delete window._chaffHits; }
     if (skillId === 'healingField') { removeHealingFieldVisual(); }
     if (skillId === 'energizingField') { removeEnergizingFieldVisual(); }
-    if (skillId === 'berserker' || skillId === 'chargeShot') { removeSkillAura(); removeChargeShotGlow(); }
-    if (skillId === 'snareShot') { /* snare is passive, no visual to remove */ }
+    if (skillId === 'berserker') { removeSkillAura(); }
+    if (skillId === 'chargeShot') { chargeShotActive = false; removeChargeShotGlow(); }
+    if (skillId === 'snareShot') { removeSkillAura(); }
+    if (skillId === 'invisible') { ship.traverse(c => { if (c.isMesh && c.material) { c.material.transparent = c.userData._aceOrigTransparent || false; c.material.opacity = c.userData._aceOrigOpacity || 1; } }); }
     return;
   }
   activeSkillEffects[skillId] = true;
 
-  // ---- VFX por skill ----
-  if (skillId === 'berserker') { spawnSkillAura(0xff2200, 5); spawnSkillRing(ship.position, 0xff2200, 2, 35); }
-  if (skillId === 'overbooster') { invulnTimer = Math.max(invulnTimer, 3); spawnSkillRing(ship.position, 0x4488ff, 3, 40); }
-  if (skillId === 'siegeMode') { isSiegeMode = true; spawnSkillRing(ship.position, 0xff8800, 1, 25); }
-  if (skillId === 'airSiegeMode') { isSiegeMode = true; spawnSkillRing(ship.position, 0xff8800, 1, 25); }
-  if (skillId === 'barrier') { shield += 5; shieldMax += 5; renderShieldHUD(); spawnBarrierVisual(); spawnSkillRing(ship.position, 0x44aaff, 3, 20); }
-  if (skillId === 'deployChaffs') { window._chaffHits = 3; spawnSkillRing(ship.position, 0xcccccc, 2, 30); }
-  if (skillId === 'remedy') { spawnSkillRing(ship.position, 0x44ff88, 2, 25); }
+  // ---- RAYO: Berserker (rage mode) ----
+  if (skillId === 'berserker') {
+    spawnSkillAura(0xff2200, 5);
+    spawnSkillRing(ship.position, 0xff2200, 2, 35);
+    aceSpawnParticles(ACE.berserker.activate, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.berserker.activate, ship.position.clone(), explosions);
+    berserkerAuraTimer = 0;
+  }
+  // ---- RAYO: Overbooster ----
+  if (skillId === 'overbooster') {
+    invulnTimer = Math.max(invulnTimer, 3);
+    spawnSkillRing(ship.position, 0x4488ff, 3, 40);
+    aceSpawnParticles(ACE.overbooster.activate, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.overbooster.activate, ship.position.clone(), explosions);
+    overboosterTrailTimer = 0;
+  }
+  // ---- MURO: Siege Mode ----
+  if (skillId === 'siegeMode') {
+    isSiegeMode = true;
+    spawnSkillRing(ship.position, 0xff8800, 1, 25);
+    aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
+    siegeAuraTimer = 0;
+  }
+  // ---- MURO: Air Siege Mode ----
+  if (skillId === 'airSiegeMode') {
+    isSiegeMode = true;
+    spawnSkillRing(ship.position, 0xff8800, 1, 25);
+    aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
+    siegeAuraTimer = 0;
+  }
+  // ---- MURO: Barrier ----
+  if (skillId === 'barrier') {
+    shield += 5; shieldMax += 5; renderShieldHUD();
+    spawnBarrierVisual();
+    spawnSkillRing(ship.position, 0x44aaff, 3, 20);
+    aceSpawnParticles(ACE.barrier.activate, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.barrier.activate, ship.position.clone(), explosions);
+  }
+  // ---- MURO: Deploy Chaffs (flares) ----
+  if (skillId === 'deployChaffs') {
+    window._chaffHits = 3;
+    spawnSkillRing(ship.position, 0xcccccc, 2, 30);
+    aceSpawnParticles(ACE.deployChaffs.burst, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.deployChaffs.burst, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.deployChaffs.burst, ship.position.clone(), explosions);
+  }
+  // ---- MURO: Remedy ----
+  if (skillId === 'remedy') {
+    spawnSkillRing(ship.position, 0x44ff88, 2, 25);
+    aceSpawnParticles(ACE.remedy.burst, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.remedy.burst, ship.position.clone(), explosions);
+  }
+  // ---- MURO: Hyper Shot ----
   if (skillId === 'hyperShot') {
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     const mesh = new THREE.Sprite(projMat);
@@ -4266,33 +4575,103 @@ function applySkillEffect(skillId, on) {
     scene.add(mesh);
     projectiles.push({ mesh, velocity: forward.clone().multiplyScalar(300), life: BUBBLE_MAX_RANGE / 300, damage: 999999, pierce: true });
     spawnSkillRing(ship.position, 0xff4400, 2, 50);
+    aceSpawnParticles(ACE.hyperShot.trail, mesh.position.clone(), explosions);
   }
+  // ---- TRUENO: Ground Bombing ----
   if (skillId === 'groundBombing') {
     spawnExplosion(ship.position.clone(), true);
     spawnSkillRing(ship.position.clone().setY(1), 0xff6600, 5, 40);
+    aceSpawnParticles(ACE.groundBombing.wave, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.groundBombing.wave, ship.position.clone(), explosions);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 60) registerHit(e, 40, false); }
   }
+  // ---- TRUENO: Air Bombing ----
   if (skillId === 'airBombing') {
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -20, 0)), true);
     spawnSkillRing(ship.position, 0xff8800, 3, 50);
+    aceSpawnParticles(ACE.airBombing.rain, ship.position.clone().add(new THREE.Vector3(0, -10, 0)), explosions);
+    aceSpawnParticles(ACE.airBombing.rain, ship.position.clone().add(new THREE.Vector3(0, -10, 0)), explosions);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 100) registerHit(e, 55, false); }
   }
-  if (skillId === 'chargeShot') { chargeShotActive = true; spawnChargeShotGlow(); }
+  // ---- TRUENO: Charge Shot ----
+  if (skillId === 'chargeShot') {
+    chargeShotActive = true;
+    spawnChargeShotGlow();
+    spawnSkillRing(ship.position, 0xff6600, 1, 30);
+    aceSpawnParticles(ACE.chargeShot.activate, ship.position.clone(), explosions);
+    chargeShotGlowTimer = 0;
+  }
+  // ---- TRUENO: Multi-target ----
+  if (skillId === 'multiTarget') {
+    spawnSkillRing(ship.position, 0xff4444, 2, 30);
+    aceSpawnParticles(ACE.multiTarget.burst, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.multiTarget.burst, ship.position.clone(), explosions);
+  }
+  // ---- TRUENO: Big Boom (massive AoE) ----
   if (skillId === 'bigBoom') {
     spawnExplosion(ship.position.clone(), true);
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(10, 5, 0)), true);
+    spawnExplosion(ship.position.clone().add(new THREE.Vector3(-8, 3, 5)), true);
     spawnSkillRing(ship.position, 0xff2200, 5, 60);
     spawnSkillRing(ship.position, 0xffaa00, 3, 45);
+    spawnSkillRing(ship.position, 0xff6600, 2, 80);
+    aceSpawnParticles(ACE.bigBoom.shockwave, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.bigBoom.embers, ship.position.clone(), explosions);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 140) registerHit(e, 80, true); }
   }
-  if (skillId === 'fullRecovery') { lives = MAX_LIVES; shield = shieldMax; renderLivesHUD(); renderShieldHUD(); spawnSkillRing(ship.position, 0x44ff44, 3, 35); }
-  if (skillId === 'healTarget') { lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD(); spawnSkillRing(ship.position, 0x44ff44, 2, 25); }
-  if (skillId === 'energizeTarget') { playerSP = Math.min(MAX_SP, playerSP + 30); spawnSkillRing(ship.position, 0xffd700, 2, 25); }
-  if (skillId === 'healingField') { spawnHealingFieldVisual(); }
-  if (skillId === 'energizingField') { spawnEnergizingFieldVisual(); }
-  if (skillId === 'reverseEngine') { spawnSkillRing(ship.position, 0x88ccff, 2, 30); }
-  if (skillId === 'snareShot') { spawnSkillAura(0x4488ff, 3); }
-  if (skillId === 'multiTarget') { spawnSkillRing(ship.position, 0xff4444, 2, 30); }
+  // ---- TRUENO: Invisible ----
+  if (skillId === 'invisible') {
+    aceSpawnParticles(ACE.invisible.fadeOut, ship.position.clone(), explosions);
+    ship.traverse(c => {
+      if (c.isMesh && c.material) {
+        if (c.userData._aceOrigTransparent === undefined) c.userData._aceOrigTransparent = c.material.transparent;
+        if (c.userData._aceOrigOpacity === undefined) c.userData._aceOrigOpacity = c.material.opacity;
+        c.material.transparent = true;
+      }
+    });
+    invisibleShimmerTimer = 0;
+  }
+  // ---- VIENTO: Full Recovery ----
+  if (skillId === 'fullRecovery') {
+    lives = MAX_LIVES; shield = shieldMax; renderLivesHUD(); renderShieldHUD();
+    spawnSkillRing(ship.position, 0x44ff44, 3, 35);
+    aceSpawnParticles(ACE.fullRecovery.burst, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.fullRecovery.burst, ship.position.clone(), explosions);
+  }
+  // ---- VIENTO: Heal Target ----
+  if (skillId === 'healTarget') {
+    lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD();
+    spawnSkillRing(ship.position, 0x44ff44, 2, 25);
+    aceSpawnParticles(ACE.healTarget.burst, ship.position.clone(), explosions);
+  }
+  // ---- VIENTO: Energize Target ----
+  if (skillId === 'energizeTarget') {
+    playerSP = Math.min(MAX_SP, playerSP + 30);
+    spawnSkillRing(ship.position, 0xffd700, 2, 25);
+    aceSpawnParticles(ACE.energizeTarget.burst, ship.position.clone(), explosions);
+  }
+  // ---- VIENTO: Healing Field ----
+  if (skillId === 'healingField') {
+    spawnHealingFieldVisual();
+    spawnSkillRing(ship.position, 0x44ff44, 2, 20);
+  }
+  // ---- VIENTO: Energizing Field ----
+  if (skillId === 'energizingField') {
+    spawnEnergizingFieldVisual();
+    spawnSkillRing(ship.position, 0xffd700, 2, 20);
+  }
+  // ---- VIENTO: Reverse Engine ----
+  if (skillId === 'reverseEngine') {
+    spawnSkillRing(ship.position, 0x88ccff, 2, 30);
+    aceSpawnParticles(ACE.reverseEngine.wave, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.reverseEngine.wave, ship.position.clone(), explosions);
+  }
+  // ---- MURO: Snare Shot (aura) ----
+  if (skillId === 'snareShot') {
+    spawnSkillAura(0x4488ff, 3);
+    aceSpawnParticles(ACE.snareShot.particles, ship.position.clone(), explosions);
+    aceSpawnParticles(ACE.snareShot.particles, ship.position.clone(), explosions);
+  }
 }
 
 function applyMovementEffect(skillId, key) {
@@ -4553,7 +4932,6 @@ function registerHit(enemy, dmg, isMissile) {
     score += enemy.isBoss ? 1000 : (isMissile ? 200 : 100);
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
-    addSpecialCharge(enemy.isBoss ? 100 : 22);
     if (Math.random() < 0.35) spawnPowerup(enemy.mesh.position.clone());
     // Al morir, se desactiva cualquier disparo/misil suyo que siga en el aire (ya no hace daño)
     for (let i = teddyProjectiles.length - 1; i >= 0; i--) {
@@ -4591,6 +4969,7 @@ function registerPlayerHit() {
   flashDamage();
   spawnExplosion(ship.position, false);
   if (shield > 0) {
+    aceSpawnParticles(ACE.shieldImpact.flash, ship.position.clone(), explosions);
     shield -= 1;
     renderShieldHUD();
   } else {
@@ -4767,7 +5146,7 @@ function resetGame() {
   teddyProjectiles.length = 0;
   for (const ex of explosions) scene.remove(ex.points);
   explosions.length = 0;
-  for (const b of trailBubbles) scene.remove(b.mesh);
+  for (const b of trailBubbles) scene.remove(b.points);
   trailBubbles.length = 0;
   for (const t of missTexts) scene.remove(t.mesh);
   missTexts.length = 0;
@@ -4798,13 +5177,12 @@ function resetGame() {
   waveNumber = 1; clearedCount = 0; bossEncounters = 0; waveTimer = 0; bestWaveTime = null;
   currentLockTarget = null;
   gameOver = false;
-  specialCharge = 0;
-  updateSpecialHUD();
   rapidFireTimer = 0;
   chargeShotActive = false;
   isSiegeMode = false;
   Object.keys(activeSkillEffects).forEach(k => delete activeSkillEffects[k]);
   removeBarrierVisual(); removeHealingFieldVisual(); removeEnergizingFieldVisual(); removeSkillAura(); removeChargeShotGlow();
+  berserkerAuraTimer = 0; siegeAuraTimer = 0; chargeShotGlowTimer = 0; invisibleShimmerTimer = 0; overboosterTrailTimer = 0; healingFieldSpawnTimer = 0; energizingFieldSpawnTimer = 0;
   for (const p of powerups) scene.remove(p.mesh);
   powerups.length = 0;
   resetDestructibles();
@@ -4813,8 +5191,6 @@ function resetGame() {
   catSweeping = false;
   catPaw.visible = false;
   catShadow.visible = false;
-  for (const r of shockwaveRings) scene.remove(r.mesh);
-  shockwaveRings.length = 0;
 
   document.getElementById('score').textContent = 0;
   renderLivesHUD();
@@ -4827,18 +5203,6 @@ function resetGame() {
   startWave();
 }
 
-// ================= Arma especial (se carga matando enemigos) =================
-const SPECIAL_MAX = 100;
-let specialCharge = 0;
-function addSpecialCharge(amount) {
-  specialCharge = Math.min(SPECIAL_MAX, specialCharge + amount);
-  updateSpecialHUD();
-}
-function updateSpecialHUD() {
-  const el = document.getElementById('specialBarFill');
-  el.style.width = (specialCharge / SPECIAL_MAX * 100) + '%';
-  el.classList.toggle('ready', specialCharge >= SPECIAL_MAX);
-}
 function updateLevelHUD() {
   const badge = document.getElementById('levelBadge');
   const fill = document.getElementById('xpBarFill');
@@ -4861,46 +5225,6 @@ function updateBuffRow() {
     span.className = 'buffIcon';
     span.textContent = buffNames[key] || key.toUpperCase().slice(0, 6);
     row.appendChild(span);
-  }
-}
-function fireSpecial() {
-  if (specialCharge < SPECIAL_MAX || gameOver) return;
-  specialCharge = 0;
-  updateSpecialHUD();
-  // Onda expansiva: daña a todo enemigo vivo dentro del radio, con daño mayor cerca del centro
-  const SPECIAL_RADIUS = 90;
-  for (const enemy of enemies) {
-    if (!enemy.alive) continue;
-    const d = enemy.mesh.position.distanceTo(ship.position);
-    if (d < SPECIAL_RADIUS) {
-      registerHit(enemy, SPECIAL_DAMAGE, true);
-    }
-  }
-  for (const d of destructibles) {
-    if (!d.alive) continue;
-    if (d.mesh.position.distanceTo(ship.position) < SPECIAL_RADIUS) hitDestructible(d, 99);
-  }
-  spawnExplosion(ship.position, true);
-  // Anillo visual de onda expansiva
-  const ringGeo = new THREE.RingGeometry(1, 3, 32);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xbf9dff, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.copy(ship.position);
-  scene.add(ring);
-  shockwaveRings.push({ mesh: ring, life: 0.6, maxLife: 0.6 });
-}
-const shockwaveRings = [];
-function updateShockwaveRings(dt) {
-  for (let i = shockwaveRings.length - 1; i >= 0; i--) {
-    const r = shockwaveRings[i];
-    r.life -= dt;
-    const t = 1 - r.life / r.maxLife;
-    const s = 1 + t * 90;
-    r.mesh.scale.set(s, s, s);
-    r.mesh.material.opacity = Math.max(0, r.life / r.maxLife) * 0.9;
-    r.mesh.position.copy(ship.position);
-    if (r.life <= 0) { scene.remove(r.mesh); shockwaveRings.splice(i, 1); }
   }
 }
 
@@ -5240,7 +5564,6 @@ function animate() {
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
   updateCatEvent(dt);
-  updateShockwaveRings(dt);
 
   // Overheat: cooldowns
   stdFireCooldown -= dt;
@@ -5350,13 +5673,17 @@ function animate() {
   for (let i = trailBubbles.length - 1; i >= 0; i--) {
     const b = trailBubbles[i];
     b.life -= dt;
-    b.mesh.position.y += b.rise * dt;
+    const pos = b.points.geometry.attributes.position;
+    for (let j = 0; j < b.velocities.length; j++) {
+      pos.array[j*3]   += b.velocities[j].x * dt;
+      pos.array[j*3+1] += b.velocities[j].y * dt + (b.gravity || 0) * dt;
+      pos.array[j*3+2] += b.velocities[j].z * dt;
+    }
+    pos.needsUpdate = true;
     const t = Math.max(0, b.life / b.maxLife);
-    b.mesh.material.opacity = t * 0.9;
-    if (b.mesh.children[0]) b.mesh.children[0].material.opacity = t * 0.5;
-    const s = b.mesh.scale.x * (1 + dt * 0.6);
-    b.mesh.scale.setScalar(s);
-    if (b.life <= 0) { scene.remove(b.mesh); trailBubbles.splice(i, 1); }
+    b.points.material.opacity = t * 0.8;
+    if (b.startSize !== undefined) b.points.material.size = b.endSize + (b.startSize - b.endSize) * t;
+    if (b.life <= 0) { scene.remove(b.points); trailBubbles.splice(i, 1); }
   }
 
   for (let i = missTexts.length - 1; i >= 0; i--) {
@@ -5469,11 +5796,21 @@ function animate() {
     const pos = ex.points.geometry.attributes.position;
     for (let j = 0; j < ex.velocities.length; j++) {
       pos.array[j*3]   += ex.velocities[j].x * dt;
-      pos.array[j*3+1] += ex.velocities[j].y * dt;
+      pos.array[j*3+1] += ex.velocities[j].y * dt + (ex.gravity || 0) * dt;
       pos.array[j*3+2] += ex.velocities[j].z * dt;
     }
     pos.needsUpdate = true;
-    ex.points.material.opacity = Math.max(0, ex.life / ex.maxLife);
+    const t = Math.max(0, ex.life / ex.maxLife);
+    ex.points.material.opacity = t;
+    if (ex.endColor !== undefined && ex.startColor === undefined) {
+      ex.startColor = ex.points.material.color.getHex();
+    }
+    if (ex.startColor !== undefined && ex.endColor !== undefined) {
+      const sc = new THREE.Color(ex.startColor);
+      const ec = new THREE.Color(ex.endColor);
+      ex.points.material.color.lerpColors(ec, sc, t);
+    }
+    if (ex.startSize !== undefined) ex.points.material.size = ex.endSize + (ex.startSize - ex.endSize) * (1 - t);
     if (ex.life <= 0) { scene.remove(ex.points); explosions.splice(i, 1); }
   }
 
@@ -5518,11 +5855,17 @@ function animate() {
     energizingFieldVisual.material.opacity = 0.2 + Math.sin(clock.elapsedTime * 3) * 0.1;
   }
 
-  // ---- Barrier visual pulse ----
+  // ---- Barrier visual pulse + shield shimmer ----
   if (barrierVisual) {
     const bp = 0.15 + Math.sin(clock.elapsedTime * 5) * 0.08;
     barrierVisual.material.opacity = bp;
     barrierVisual.rotation.y += dt * 0.5;
+    barrierShimmerTimer -= dt;
+    if (barrierShimmerTimer <= 0) {
+      const worldPos = ship.position.clone();
+      aceSpawnParticles(ACE.shieldShimmer.particles, worldPos, explosions);
+      barrierShimmerTimer = 0.15;
+    }
   }
 
   // ---- Charge shot glow pulse ----
@@ -5530,6 +5873,82 @@ function animate() {
     const cp = 0.3 + Math.sin(clock.elapsedTime * 8) * 0.2;
     chargeShotGlow.material.opacity = cp;
     chargeShotGlow.scale.setScalar(0.8 + Math.sin(clock.elapsedTime * 6) * 0.3);
+    // Energy particles orbiting during charge
+    chargeShotGlowTimer -= dt;
+    if (chargeShotGlowTimer <= 0 && isSkillActive('chargeShot')) {
+      aceSpawnParticles(ACE.chargeShot.glow, ship.position.clone(), explosions);
+      chargeShotGlowTimer = 0.12;
+    }
+  }
+
+  // ---- Berserker aura: continuous rage particles ----
+  if (isSkillActive('berserker')) {
+    berserkerAuraTimer -= dt;
+    if (berserkerAuraTimer <= 0) {
+      aceSpawnParticles(ACE.berserker.aura, ship.position.clone(), explosions);
+      berserkerAuraTimer = 0.18;
+    }
+  }
+
+  // ---- Siege Mode aura: green energy particles ----
+  if (isSkillActive('siegeMode') || isSkillActive('airSiegeMode')) {
+    siegeAuraTimer -= dt;
+    if (siegeAuraTimer <= 0) {
+      aceSpawnParticles(ACE.siegeMode.aura, ship.position.clone(), explosions);
+      siegeAuraTimer = 0.2;
+    }
+  }
+
+  // ---- Overbooster trail: blue speed particles ----
+  if (isSkillActive('overbooster')) {
+    overboosterTrailTimer -= dt;
+    if (overboosterTrailTimer <= 0) {
+      const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
+      const trailPos = ship.position.clone().addScaledVector(backward, 3);
+      aceSpawnParticles(ACE.overbooster.trail, trailPos, explosions);
+      overboosterTrailTimer = 0.04;
+    }
+  }
+
+  // ---- Invisible: shimmer + fade ----
+  if (isSkillActive('invisible')) {
+    invisibleShimmerTimer -= dt;
+    if (invisibleShimmerTimer <= 0) {
+      aceSpawnParticles(ACE.invisible.fadeOut, ship.position.clone(), explosions);
+      invisibleShimmerTimer = 0.3;
+    }
+    ship.traverse(c => {
+      if (c.isMesh && c.material) {
+        c.material.opacity = 0.15 + Math.sin(clock.elapsedTime * 8) * 0.08;
+        c.material.transparent = true;
+      }
+    });
+  }
+
+  // ---- Healing Field: green particles rising ----
+  if (isSkillActive('healingField') && healingFieldVisual) {
+    healingFieldSpawnTimer -= dt;
+    if (healingFieldSpawnTimer <= 0) {
+      const fieldPos = ship.position.clone();
+      fieldPos.x += (Math.random() - 0.5) * 16;
+      fieldPos.z += (Math.random() - 0.5) * 16;
+      fieldPos.y = ship.position.y - 4;
+      aceSpawnParticles(ACE.healingField.particles, fieldPos, explosions);
+      healingFieldSpawnTimer = 0.15;
+    }
+  }
+
+  // ---- Energizing Field: gold particles rising ----
+  if (isSkillActive('energizingField') && energizingFieldVisual) {
+    energizingFieldSpawnTimer -= dt;
+    if (energizingFieldSpawnTimer <= 0) {
+      const fieldPos = ship.position.clone();
+      fieldPos.x += (Math.random() - 0.5) * 16;
+      fieldPos.z += (Math.random() - 0.5) * 16;
+      fieldPos.y = ship.position.y - 4;
+      aceSpawnParticles(ACE.energizingField.particles, fieldPos, explosions);
+      energizingFieldSpawnTimer = 0.15;
+    }
   }
 
   clearWaveIfDone();
@@ -5654,7 +6073,7 @@ preloadModels(() => {
       applyGearSelection(selectedGear);
       renderLivesHUD();
       renderShieldHUD();
-      updateSpecialHUD();
+  
       resetDestructibles();
       gameRunning = true;
       startWave();
@@ -5668,7 +6087,7 @@ preloadModels(() => {
     applyGearSelection(savedGear);
     renderLivesHUD();
     renderShieldHUD();
-    updateSpecialHUD();
+
     resetDestructibles();
     gameRunning = true;
     startWave();
