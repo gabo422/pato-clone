@@ -2768,11 +2768,10 @@ const MODEL_LIBRARY = {
     offset: { x: 0, y: 0, z: 0 }
   },
   boss: {
-    type: 'stl',
-    url: "modelos/barco.stl",
-    scale: 0.37,              // ajusto esto una vez que vea el tamaño real en el juego
+    type: 'glb',
+    url: "modelos/boat.glb",
+    scale: 0.37,
     rotationY: 0,
-    materialColor: 0xe0473a,  // rojo tipo juguete de baño (el STL no trae color propio)
     // Puntos locales de los cañones laterales del boss (de acá salen sus misiles)
     cannonPoints: [
       new THREE.Vector3(-9, 8, 0),
@@ -5119,7 +5118,7 @@ function triggerGameOver() {
 
 function startWave() {
   waveTimer = 0;
-  const isBossWave = clearedCount > 0 && (clearedCount % 5 === 0);
+  const isBossWave = waveNumber % 5 === 0;
   waveIsBoss = isBossWave;
   stdHeat = 0; advHeat = 0;
   stdOverheated = false; advOverheated = false;
