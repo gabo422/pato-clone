@@ -189,11 +189,12 @@
   /* ---- Hint Bar ---- */
   #hint {
     position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-    color: #6a8899; font-size: 11px;
-    background: rgba(5,12,25,0.85); padding: 6px 14px;
-    border-radius: 3px; border: 1px solid rgba(0,180,255,0.15);
+    color: #b0d0e8; font-size: 12px; font-weight: 500;
+    background: rgba(5,12,25,0.92); padding: 8px 16px;
+    border-radius: 4px; border: 1px solid rgba(0,180,255,0.2);
     user-select: none; text-align: center;
-    max-width: 80vw;
+    max-width: 85vw; line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
   /* ---- Hit Marker ---- */
@@ -499,36 +500,52 @@
   #gearSelectStartBtn:hover { background: linear-gradient(180deg, rgba(0,180,255,0.3) 0%, rgba(0,100,180,0.25) 100%); box-shadow: 0 0 30px rgba(0,180,255,0.25); transform: translateY(-1px); border-color: rgba(0,180,255,0.6); }
   #gearSelectStartBtn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
 
-  #touchLookZone, #touchJoystickBase, #touchButtons { display: none; }
+  #touchLookZone, #touchJoystickBase, #touchButtons, #touchTurnBtns, #touchExtraBtns { display: none; }
   body.mobile-active #touchLookZone {
     display: block; position: absolute; right: 0; top: 0; width: 55%; height: 100%;
     z-index: 6; touch-action: none;
   }
   body.mobile-active #touchJoystickBase {
-    display: block; position: absolute; left: 22px; bottom: 22px; width: 120px; height: 120px;
-    border-radius: 50%; background: rgba(5,12,25,0.5); border: 2px solid rgba(0,180,255,0.3);
+    display: block; position: absolute; left: 22px; bottom: 80px; width: 120px; height: 120px;
+    border-radius: 50%; background: rgba(5,12,25,0.6); border: 2px solid rgba(0,180,255,0.3);
     z-index: 12; touch-action: none;
   }
   #touchJoystickNub {
     position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px;
-    border-radius: 50%; background: rgba(0,180,255,0.6); border: 2px solid rgba(0,212,255,0.5);
+    border-radius: 50%; background: rgba(0,180,255,0.5); border: 2px solid rgba(0,212,255,0.4);
     pointer-events: none;
+  }
+  body.mobile-active #touchTurnBtns {
+    display: flex; position: absolute; left: 22px; bottom: 12px; gap: 10px; z-index: 12;
+  }
+  body.mobile-active #touchExtraBtns {
+    display: flex; position: absolute; left: 160px; bottom: 80px; gap: 8px; z-index: 12;
+    flex-direction: column;
   }
   body.mobile-active #touchButtons {
     display: flex; position: absolute; right: 16px; bottom: 16px; gap: 10px;
     align-items: flex-end; z-index: 7;
   }
   .touchBtn {
-    border: 2px solid rgba(0,180,255,0.4); background: rgba(5,12,25,0.7);
+    border: 2px solid rgba(0,180,255,0.35); background: rgba(5,12,25,0.75);
     color: #80aacc; border-radius: 50%; display: flex; flex-direction: column;
     align-items: center; justify-content: center; touch-action: none; cursor: pointer;
     font-size: 20px; user-select: none;
+    box-shadow: 0 0 8px rgba(0,100,180,0.15);
   }
-  .touchBtn span { font-size: 8px; font-weight: 700; margin-top: -2px; }
+  .touchBtn span { font-size: 8px; font-weight: 700; margin-top: -2px; letter-spacing: 0.5px; }
   .touchBtnFire { width: 76px; height: 76px; font-size: 30px; border-color: rgba(255,100,60,0.4); color: #ff8866; }
   .touchBtnRound { width: 58px; height: 58px; }
+  .touchBtnSmall { width: 50px; height: 50px; font-size: 16px; }
   .touchBtn:active, .touchBtn.touchActive { background: rgba(0,180,255,0.3); border-color: rgba(0,180,255,0.6); }
-  body.mobile-active #hint { display: none; }
+  .touchBtnTurn { width: 60px; height: 48px; font-size: 22px; border-radius: 8px; }
+  .touchBtnBrake { width: 50px; height: 50px; font-size: 16px; border-color: rgba(255,170,0,0.4); color: #ccaa66; }
+  .touchBtnMode { width: 50px; height: 36px; font-size: 10px; border-radius: 6px; font-weight: 700; letter-spacing: 0.5px; }
+  .touchBtnSkill {
+    width: 36px; height: 32px; font-size: 10px; border-radius: 4px; font-weight: 700;
+    background: rgba(5,12,25,0.8); border: 1px solid rgba(0,180,255,0.2); color: #6a8899;
+  }
+  .touchBtnSkill:active, .touchBtnSkill.touchActive { background: rgba(0,180,255,0.2); border-color: rgba(0,180,255,0.5); }
   body.mobile-active #openEditorBtn { display: none; }
   body.mobile-active #hud {
     font-size: 10px; width: 155px; transform: scale(0.7); transform-origin: top left;
@@ -691,10 +708,19 @@
 <div id="touchJoystickBase">
   <div id="touchJoystickNub"></div>
 </div>
+<div id="touchTurnBtns">
+  <button id="touchTurnLeftBtn" class="touchBtn touchBtnTurn">◀</button>
+  <button id="touchBrakeBtn" class="touchBtn touchBtnBrake">⬇<span>Freno</span></button>
+  <button id="touchTurnRightBtn" class="touchBtn touchBtnTurn">▶</button>
+</div>
+<div id="touchExtraBtns">
+  <button id="touchModeBtn" class="touchBtn touchBtnMode">MODO</button>
+</div>
 <div id="touchButtons">
+  <button id="touchSkillBtn" class="touchBtn touchBtnSmall">⚒<span>Skills</span></button>
   <button id="touchBoostBtn" class="touchBtn touchBtnRound">⚡<span>Boost</span></button>
-  <button id="touchMissileBtn" class="touchBtn touchBtnFire">🧼</button>
-  <button id="touchFireBtn" class="touchBtn touchBtnFire">🫧</button>
+  <button id="touchMissileBtn" class="touchBtn touchBtnFire">◆<span>ADV</span></button>
+  <button id="touchFireBtn" class="touchBtn touchBtnFire">◆<span>STD</span></button>
 </div>
 <div id="hint">Clic izq: burbujas · Clic der: jabón teledirigido · Izq+der juntos: cámara libre · Clic rueda: ver atrás · Shift: soltar mira · Espacio: boost · Rueda: zoom · ESC: menú</div>
 
@@ -4260,6 +4286,7 @@ if (isMobile) {
   // ---- Botones de acción ----
   function bindHoldButton(id, onStart, onEnd) {
     const el = document.getElementById(id);
+    if (!el) return;
     el.addEventListener('touchstart', e => { e.preventDefault(); el.classList.add('touchActive'); onStart(); }, { passive: false });
     el.addEventListener('touchend', e => { e.preventDefault(); el.classList.remove('touchActive'); if (onEnd) onEnd(); }, { passive: false });
     el.addEventListener('touchcancel', e => { el.classList.remove('touchActive'); if (onEnd) onEnd(); }, { passive: true });
@@ -4267,6 +4294,46 @@ if (isMobile) {
   bindHoldButton('touchFireBtn', () => { firing = true; }, () => { firing = false; });
   bindHoldButton('touchBoostBtn', () => { keys[bindings.boost] = true; }, () => { keys[bindings.boost] = false; });
   bindHoldButton('touchMissileBtn', () => { fireMissile(); }, null);
+  bindHoldButton('touchBrakeBtn', () => { keys[bindings.back] = true; }, () => { keys[bindings.back] = false; });
+
+  // ---- Giro izq/der (yaw continuo) ----
+  let turnLeftInterval = null, turnRightInterval = null;
+  const TURN_RATE = 0.035;
+  bindHoldButton('touchTurnLeftBtn',
+    () => { if (!turnLeftInterval) turnLeftInterval = setInterval(() => { pendingYawDelta += TURN_RATE; lookYaw += TURN_RATE; }, 16); },
+    () => { clearInterval(turnLeftInterval); turnLeftInterval = null; }
+  );
+  bindHoldButton('touchTurnRightBtn',
+    () => { if (!turnRightInterval) turnRightInterval = setInterval(() => { pendingYawDelta -= TURN_RATE; lookYaw -= TURN_RATE; }, 16); },
+    () => { clearInterval(turnRightInterval); turnRightInterval = null; }
+  );
+
+  // ---- Modo (toggle siege - deshabilitado por ahora) ----
+  bindHoldButton('touchModeBtn', () => { toggleMode(); }, null);
+
+  // ---- Skill popup ----
+  const skillBtn = document.getElementById('touchSkillBtn');
+  let skillBarVisible = false;
+  if (skillBtn) {
+    skillBtn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      skillBarVisible = !skillBarVisible;
+      document.getElementById('skillBar').style.display = skillBarVisible ? 'flex' : 'none';
+    }, { passive: false });
+  }
+
+  // ---- Skills touch: tocar los slots directamente ----
+  for (let i = 0; i < 10; i++) {
+    const slot = document.getElementById('skillSlot' + i);
+    if (slot) slot.addEventListener('touchstart', e => { e.preventDefault(); onSkillKey(i); }, { passive: false });
+  }
+  const qSlot = document.getElementById('skillSlotQ');
+  const eSlot = document.getElementById('skillSlotE');
+  if (qSlot) qSlot.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('q'); }, { passive: false });
+  if (eSlot) eSlot.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('e'); }, { passive: false });
+
+  // Ocultar skill bar por defecto en mobile
+  document.getElementById('skillBar').style.display = 'none';
 }
 
 // ================= Estado de vuelo / juego =================
