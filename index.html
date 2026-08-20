@@ -498,6 +498,14 @@
   .skillSPCost {
     position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 2;
   }
+  #levelRow { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 11px; color: #ffd700; }
+  #levelBadge { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1000; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 12px; min-width: 20px; text-align: center; }
+  #xpBarWrap { flex: 1; height: 5px; border-radius: 4px; overflow: hidden; background: rgba(0,0,0,0.2); }
+  #xpBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #ffd700, #ffaa00); border-radius: 4px; transition: width 0.3s linear; }
+  #xpLabel { font-size: 9px; color: #ccaa44; min-width: 60px; text-align: right; }
+  #gearNameHud { font-size: 11px; color: #88ccff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; font-weight: bold; }
+  #buffRow { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
+  .buffIcon { font-size: 10px; padding: 1px 4px; border-radius: 3px; background: rgba(50,80,150,0.4); color: #88ccff; border: 1px solid rgba(100,150,255,0.3); }
 </style>
 </head>
 <body>
@@ -557,6 +565,14 @@
     <div id="spBarWrap"><div id="spBarFill"></div></div>
     <span id="spLabel">SP: <b id="spNum">50</b>/100</span>
   </div>
+
+  <div id="gearNameHud">—</div>
+  <div id="levelRow">
+    <span id="levelBadge">1</span>
+    <div id="xpBarWrap"><div id="xpBarFill"></div></div>
+    <span id="xpLabel">0 / 300 XP</span>
+  </div>
+  <div id="buffRow"></div>
 
   <div id="skillBar">
     <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><div class="skillName" id="skillNameQ">—</div><div class="skillCooldown" id="skillCDQ"></div></div>
@@ -1011,6 +1027,8 @@ function applyGearSelection(gearKey) {
   renderShieldHUD();
   applyPassiveBuffs();
   initSkillSlots();
+  updateGearNameHud();
+  updateLevelHUD();
 }
 
 function keyLabel(code) {
@@ -1803,10 +1821,11 @@ const editableObjects = [
 
 // ---- Objetos con los que la nave puede chocar ----
 const worldColliders = [
-  { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false },
-  { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false },
-  { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false },
-  { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false },
+  { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
+  { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
+  { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false, hp: 6, maxHp: 6, mesh: boxOeste, type: 'cardboard' },
+  { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
+  { pos: new THREE.Vector3(legoWall.position.x, 40, legoWall.position.z), radius: 50, damaging: false, hp: 10, maxHp: 10, mesh: legoWall, type: 'lego' },
   ...tapePostColliders,
 ];
 
@@ -3485,6 +3504,165 @@ function spawnImpactSpark(position) {
   explosions.push({ points, velocities, life: 0.22, maxLife: 0.22 });
 }
 
+// ---- Damage numbers flotantes ----
+const damageNumbers = [];
+function spawnDamageNumber(pos, text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 48;
+  const ctx = canvas.getContext('2d');
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#' + (color || 0xffffff).toString(16).padStart(6, '0');
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.strokeText(text, 64, 34);
+  ctx.fillText(text, 64, 34);
+  const tex = new THREE.CanvasTexture(canvas);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sprite.position.copy(pos).add(new THREE.Vector3(0, 8, 0));
+  sprite.scale.set(12, 4.5, 1);
+  scene.add(sprite);
+  damageNumbers.push({ mesh: sprite, life: 0.9, maxLife: 0.9 });
+}
+
+// ---- Level Up Effect ----
+function spawnLevelUpEffect() {
+  const pos = ship.position.clone();
+  const count = 80;
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  const velocities = [];
+  for (let i = 0; i < count; i++) {
+    positions[i*3] = pos.x; positions[i*3+1] = pos.y; positions[i*3+2] = pos.z;
+    const angle = (i / count) * Math.PI * 2;
+    velocities.push(new THREE.Vector3(Math.cos(angle) * 30, 15 + Math.random() * 20, Math.sin(angle) * 30));
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const mat = new THREE.PointsMaterial({ color: 0xffd700, size: 2.5, transparent: true, opacity: 1 });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  explosions.push({ points, velocities, life: 1.2, maxLife: 1.2 });
+  // Ring effect
+  const ringGeo = new THREE.RingGeometry(1, 3, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(pos);
+  ring.lookAt(camera.position);
+  scene.add(ring);
+  skillRings.push({ mesh: ring, life: 0.8, maxLife: 0.8, expand: 40 });
+}
+
+// ---- Skill rings (expanding rings for various effects) ----
+const skillRings = [];
+function spawnSkillRing(pos, color, startRadius, expandSpeed) {
+  const geo = new THREE.RingGeometry(startRadius, startRadius + 1.5, 32);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
+  const ring = new THREE.Mesh(geo, mat);
+  ring.position.copy(pos);
+  ring.lookAt(camera.position);
+  scene.add(ring);
+  skillRings.push({ mesh: ring, life: 0.8, maxLife: 0.8, expand: expandSpeed || 30 });
+}
+
+// ---- Skill aura (glowing sphere around player) ----
+let activeSkillAura = null;
+function spawnSkillAura(color, size) {
+  removeSkillAura();
+  const geo = new THREE.SphereGeometry(size || 6, 16, 12);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.25, depthWrite: false });
+  const mesh = new THREE.Mesh(geo, mat);
+  ship.add(mesh);
+  mesh.position.set(0, 0, 0);
+  activeSkillAura = { mesh, life: 999 };
+}
+function removeSkillAura() {
+  if (activeSkillAura) { ship.remove(activeSkillAura.mesh); activeSkillAura = null; }
+}
+
+// ---- Healing field visual (green circle on ground) ----
+let healingFieldVisual = null;
+function spawnHealingFieldVisual() {
+  removeHealingFieldVisual();
+  const geo = new THREE.RingGeometry(0.5, 20, 32);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false });
+  const ring = new THREE.Mesh(geo, mat);
+  ring.rotation.x = -Math.PI / 2;
+  ship.add(ring);
+  ring.position.set(0, -5, 0);
+  healingFieldVisual = ring;
+}
+function removeHealingFieldVisual() {
+  if (healingFieldVisual) { ship.remove(healingFieldVisual); healingFieldVisual = null; }
+}
+
+// ---- Energizing field visual (gold circle on ground) ----
+let energizingFieldVisual = null;
+function spawnEnergizingFieldVisual() {
+  removeEnergizingFieldVisual();
+  const geo = new THREE.RingGeometry(0.5, 20, 32);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false });
+  const ring = new THREE.Mesh(geo, mat);
+  ring.rotation.x = -Math.PI / 2;
+  ship.add(ring);
+  ring.position.set(0, -5, 0);
+  energizingFieldVisual = ring;
+}
+function removeEnergizingFieldVisual() {
+  if (energizingFieldVisual) { ship.remove(energizingFieldVisual); energizingFieldVisual = null; }
+}
+
+// ---- Barrier visual (blue bubble) ----
+let barrierVisual = null;
+function spawnBarrierVisual() {
+  removeBarrierVisual();
+  const geo = new THREE.SphereGeometry(7, 16, 12);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x44aaff, transparent: true, opacity: 0.18, depthWrite: false, wireframe: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  ship.add(mesh);
+  barrierVisual = mesh;
+}
+function removeBarrierVisual() {
+  if (barrierVisual) { ship.remove(barrierVisual); barrierVisual = null; }
+}
+
+// ---- Enemy hit flash ----
+function flashEnemy(enemy, color) {
+  if (!enemy.mesh) return;
+  enemy.mesh.traverse(child => {
+    if (child.isMesh && child.material) {
+      const origColor = child.material.color.clone();
+      child.material.color.set(color || 0xffffff);
+      setTimeout(() => { if (child.material) child.material.color.copy(origColor); }, 100);
+    }
+  });
+}
+
+// ---- Invulnerability blink ----
+let invulnBlinkTimer = 0;
+function updateInvulnBlink(dt) {
+  if (invulnTimer > 0) {
+    invulnBlinkTimer += dt * 12;
+    ship.visible = Math.sin(invulnBlinkTimer) > 0;
+  } else {
+    ship.visible = true;
+    invulnBlinkTimer = 0;
+  }
+}
+
+// ---- Charge shot visual ----
+let chargeShotGlow = null;
+function spawnChargeShotGlow() {
+  removeChargeShotGlow();
+  const geo = new THREE.SphereGeometry(4, 12, 8);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.4, depthWrite: false });
+  const mesh = new THREE.Mesh(geo, mat);
+  ship.add(mesh);
+  chargeShotGlow = mesh;
+}
+function removeChargeShotGlow() {
+  if (chargeShotGlow) { ship.remove(chargeShotGlow); chargeShotGlow = null; }
+}
+
 // ---- Llamas del motor al usar boost: salen de la parte trasera del pato hacia atrás ----
 const BOOST_FLAME_LOCAL = new THREE.Vector3(0, -0.1, -2.4); // estimado: parte trasera del modelo, ajustable
 let boostFlameTimer = 0;
@@ -3844,6 +4022,25 @@ let speed = 0;
 let maxSpeed = 90, boostMaxSpeed = 240, accel = 40, boostAccel = 75;
 const damping = 0.985;
 let rollAngle = 0, score = 0;
+
+// ================= XP / Nivel =================
+let playerXP = 0, playerLevel = 1;
+const xpForLevel = (lvl) => lvl * 300;
+function getLevelDamageBonus() { return 1 + (playerLevel - 1) * 0.05; }
+function getLevelDefenseBonus() { return (playerLevel - 1) * 0.02; }
+function addXP(amount) {
+  playerXP += amount;
+  while (playerXP >= xpForLevel(playerLevel)) {
+    playerXP -= xpForLevel(playerLevel);
+    playerLevel++;
+    MAX_LIVES += 2;
+    lives = Math.min(lives + 2, MAX_LIVES);
+    spawnLevelUpEffect();
+    showWaveBanner('¡NIVEL ' + playerLevel + '!');
+    renderLivesHUD();
+    updateLevelHUD();
+  }
+}
 // Orientación "pura" acumulada por cuaterniones (yaw+pitch, sin el balanceo del roll).
 // Con esto la nave puede dar loops completos de 360°, no queda trabada en ±90° como con Euler.
 const shipQuat = new THREE.Quaternion();
@@ -4043,18 +4240,24 @@ function applySkillEffect(skillId, on) {
   if (!on) {
     delete activeSkillEffects[skillId];
     if (skillId === 'siegeMode') isSiegeMode = false;
-    if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); }
+    if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
     if (skillId === 'deployChaffs') { delete window._chaffHits; }
+    if (skillId === 'healingField') { removeHealingFieldVisual(); }
+    if (skillId === 'energizingField') { removeEnergizingFieldVisual(); }
+    if (skillId === 'berserker' || skillId === 'chargeShot') { removeSkillAura(); removeChargeShotGlow(); }
+    if (skillId === 'snareShot') { /* snare is passive, no visual to remove */ }
     return;
   }
   activeSkillEffects[skillId] = true;
 
-  if (skillId === 'overbooster') { invulnTimer = Math.max(invulnTimer, 3); }
-  if (skillId === 'siegeMode') { isSiegeMode = true; }
-  if (skillId === 'airSiegeMode') { isSiegeMode = true; }
-  if (skillId === 'barrier') { shield += 5; shieldMax += 5; renderShieldHUD(); }
-  if (skillId === 'deployChaffs') { window._chaffHits = 3; }
-  if (skillId === 'remedy') { /* clear any active debuffs — for now just a visual cue */ }
+  // ---- VFX por skill ----
+  if (skillId === 'berserker') { spawnSkillAura(0xff2200, 5); spawnSkillRing(ship.position, 0xff2200, 2, 35); }
+  if (skillId === 'overbooster') { invulnTimer = Math.max(invulnTimer, 3); spawnSkillRing(ship.position, 0x4488ff, 3, 40); }
+  if (skillId === 'siegeMode') { isSiegeMode = true; spawnSkillRing(ship.position, 0xff8800, 1, 25); }
+  if (skillId === 'airSiegeMode') { isSiegeMode = true; spawnSkillRing(ship.position, 0xff8800, 1, 25); }
+  if (skillId === 'barrier') { shield += 5; shieldMax += 5; renderShieldHUD(); spawnBarrierVisual(); spawnSkillRing(ship.position, 0x44aaff, 3, 20); }
+  if (skillId === 'deployChaffs') { window._chaffHits = 3; spawnSkillRing(ship.position, 0xcccccc, 2, 30); }
+  if (skillId === 'remedy') { spawnSkillRing(ship.position, 0x44ff88, 2, 25); }
   if (skillId === 'hyperShot') {
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     const mesh = new THREE.Sprite(projMat);
@@ -4062,24 +4265,34 @@ function applySkillEffect(skillId, on) {
     mesh.position.copy(ship.position).addScaledVector(forward, 3);
     scene.add(mesh);
     projectiles.push({ mesh, velocity: forward.clone().multiplyScalar(300), life: BUBBLE_MAX_RANGE / 300, damage: 999999, pierce: true });
+    spawnSkillRing(ship.position, 0xff4400, 2, 50);
   }
   if (skillId === 'groundBombing') {
     spawnExplosion(ship.position.clone(), true);
+    spawnSkillRing(ship.position.clone().setY(1), 0xff6600, 5, 40);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 60) registerHit(e, 40, false); }
   }
   if (skillId === 'airBombing') {
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -20, 0)), true);
+    spawnSkillRing(ship.position, 0xff8800, 3, 50);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 100) registerHit(e, 55, false); }
   }
-  if (skillId === 'chargeShot') { chargeShotActive = true; }
+  if (skillId === 'chargeShot') { chargeShotActive = true; spawnChargeShotGlow(); }
   if (skillId === 'bigBoom') {
     spawnExplosion(ship.position.clone(), true);
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(10, 5, 0)), true);
+    spawnSkillRing(ship.position, 0xff2200, 5, 60);
+    spawnSkillRing(ship.position, 0xffaa00, 3, 45);
     for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 140) registerHit(e, 80, true); }
   }
-  if (skillId === 'fullRecovery') { lives = MAX_LIVES; shield = shieldMax; renderLivesHUD(); renderShieldHUD(); }
-  if (skillId === 'healTarget') { lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD(); }
-  if (skillId === 'energizeTarget') { playerSP = Math.min(MAX_SP, playerSP + 30); }
+  if (skillId === 'fullRecovery') { lives = MAX_LIVES; shield = shieldMax; renderLivesHUD(); renderShieldHUD(); spawnSkillRing(ship.position, 0x44ff44, 3, 35); }
+  if (skillId === 'healTarget') { lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD(); spawnSkillRing(ship.position, 0x44ff44, 2, 25); }
+  if (skillId === 'energizeTarget') { playerSP = Math.min(MAX_SP, playerSP + 30); spawnSkillRing(ship.position, 0xffd700, 2, 25); }
+  if (skillId === 'healingField') { spawnHealingFieldVisual(); }
+  if (skillId === 'energizingField') { spawnEnergizingFieldVisual(); }
+  if (skillId === 'reverseEngine') { spawnSkillRing(ship.position, 0x88ccff, 2, 30); }
+  if (skillId === 'snareShot') { spawnSkillAura(0x4488ff, 3); }
+  if (skillId === 'multiTarget') { spawnSkillRing(ship.position, 0xff4444, 2, 30); }
 }
 
 function applyMovementEffect(skillId, key) {
@@ -4104,13 +4317,13 @@ function applyMovementEffect(skillId, key) {
 
 // ================= Damage/Defense Multipliers from Passives =================
 function getStdDmgMultiplier() {
-  return 1 + getPassive('stdDmgBonus') + (isSkillActive('berserker') ? 0.5 : 0);
+  return getLevelDamageBonus() + getPassive('stdDmgBonus') + (isSkillActive('berserker') ? 0.5 : 0);
 }
 function getAdvDmgMultiplier() {
-  return 1 + getPassive('advDmgBonus');
+  return getLevelDamageBonus() + getPassive('advDmgBonus');
 }
 function getDefenseMultiplier() {
-  let m = 1 + getPassive('defenseBonus');
+  let m = getLevelDefenseBonus() + getPassive('defenseBonus');
   if (isSkillActive('siegeMode') && selectedGear === 'muro') m += getPassive('siegeDefenseBonus');
   if (isSkillActive('berserker')) m *= 0.7;
   return m;
@@ -4334,6 +4547,9 @@ function registerHit(enemy, dmg, isMissile) {
     enemy.alive = false;
     scene.remove(enemy.mesh);
     spawnExplosion(enemy.mesh.position, isMissile || enemy.isBoss);
+    const xpGain = enemy.isBoss ? 500 : (isMissile ? 200 : 100);
+    addXP(xpGain);
+    spawnDamageNumber(enemy.mesh.position, '+' + xpGain + ' XP', 0x44ff44);
     score += enemy.isBoss ? 1000 : (isMissile ? 200 : 100);
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
@@ -4349,6 +4565,8 @@ function registerHit(enemy, dmg, isMissile) {
   } else {
     if (enemy.isBoss) document.getElementById('bossFill').style.width = Math.max(0, (enemy.hp / enemy.maxHp) * 100) + '%';
     spawnImpactSpark(enemy.mesh.position.clone());
+    flashEnemy(enemy);
+    spawnDamageNumber(enemy.mesh.position, '-' + Math.round(damage), 0xff4444);
   }
 }
 
@@ -4553,6 +4771,12 @@ function resetGame() {
   trailBubbles.length = 0;
   for (const t of missTexts) scene.remove(t.mesh);
   missTexts.length = 0;
+  for (const d of debrisPieces) scene.remove(d.mesh);
+  debrisPieces.length = 0;
+  for (const dn of damageNumbers) scene.remove(dn.mesh);
+  damageNumbers.length = 0;
+  for (const r of skillRings) scene.remove(r.mesh);
+  skillRings.length = 0;
 
   // Enemigos
   for (const e of enemies) scene.remove(e.mesh);
@@ -4560,7 +4784,7 @@ function resetGame() {
   document.getElementById('bossBar').style.display = 'none';
 
   // Estado
-  score = 0; invulnTimer = 0;
+  score = 0; invulnTimer = 0; playerXP = 0; playerLevel = 1;
   if (selectedGear && GEAR_CONFIGS[selectedGear]) {
     const cfg = GEAR_CONFIGS[selectedGear];
     MAX_LIVES = cfg.stats.hp;
@@ -4577,6 +4801,10 @@ function resetGame() {
   specialCharge = 0;
   updateSpecialHUD();
   rapidFireTimer = 0;
+  chargeShotActive = false;
+  isSiegeMode = false;
+  Object.keys(activeSkillEffects).forEach(k => delete activeSkillEffects[k]);
+  removeBarrierVisual(); removeHealingFieldVisual(); removeEnergizingFieldVisual(); removeSkillAura(); removeChargeShotGlow();
   for (const p of powerups) scene.remove(p.mesh);
   powerups.length = 0;
   resetDestructibles();
@@ -4610,6 +4838,30 @@ function updateSpecialHUD() {
   const el = document.getElementById('specialBarFill');
   el.style.width = (specialCharge / SPECIAL_MAX * 100) + '%';
   el.classList.toggle('ready', specialCharge >= SPECIAL_MAX);
+}
+function updateLevelHUD() {
+  const badge = document.getElementById('levelBadge');
+  const fill = document.getElementById('xpBarFill');
+  const label = document.getElementById('xpLabel');
+  if (badge) badge.textContent = playerLevel;
+  if (fill) fill.style.width = (playerXP / xpForLevel(playerLevel) * 100) + '%';
+  if (label) label.textContent = playerXP + ' / ' + xpForLevel(playerLevel) + ' XP';
+}
+function updateGearNameHud() {
+  const el = document.getElementById('gearNameHud');
+  if (el && selectedGear && GEAR_CONFIGS[selectedGear]) el.textContent = GEAR_CONFIGS[selectedGear].name;
+}
+function updateBuffRow() {
+  const row = document.getElementById('buffRow');
+  if (!row) return;
+  row.innerHTML = '';
+  const buffNames = { berserker: 'BERSERK', overbooster: 'OVERBOOST', siegeMode: 'SIEGE', barrier: 'BARRIER', healingField: 'HEAL+', energizingField: 'SP+', invisible: 'STEALTH', snareShot: 'SNARE', chargeShot: 'CHARGE', deployChaffs: 'CHAFFS', reverseEngine: 'REVERSE' };
+  for (const key in activeSkillEffects) {
+    const span = document.createElement('span');
+    span.className = 'buffIcon';
+    span.textContent = buffNames[key] || key.toUpperCase().slice(0, 6);
+    row.appendChild(span);
+  }
 }
 function fireSpecial() {
   if (specialCharge < SPECIAL_MAX || gameOver) return;
@@ -4714,6 +4966,7 @@ function updatePowerups(dt) {
 
 // ================= Objetos destructibles (decoración menor, dan puntos/power-up) =================
 const destructibles = [];
+const debrisPieces = [];
 function buildStackedCups() {
   const group = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ color: 0xffd93d, roughness: 0.4 });
@@ -4734,12 +4987,35 @@ function spawnDestructible(x, z) {
 function hitDestructible(d, dmg) {
   if (!d.alive) return;
   d.hp -= dmg;
+  // Flash impacto
+  if (d.mesh.material) { d.mesh.material.emissive.set(0xffffff); setTimeout(() => { if (d.mesh.material) d.mesh.material.emissive.set(0x000000); }, 80); }
   if (d.hp <= 0) {
     d.alive = false;
     scene.remove(d.mesh);
+    // --- Spawn de piezas que caen con gravedad ---
+    const pos = d.mesh.position.clone();
+    const pieceCount = 6 + Math.floor(Math.random() * 4);
+    const colors = [0xc87820, 0xd4a456, 0xa06020, 0xe0c070];
+    for (let i = 0; i < pieceCount; i++) {
+      const size = 1.5 + Math.random() * 2;
+      const pieceGeo = new THREE.BoxGeometry(size, size, size);
+      const pieceMat = new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+      const piece = new THREE.Mesh(pieceGeo, pieceMat);
+      piece.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * 4, Math.random() * 5 + 2, (Math.random() - 0.5) * 4));
+      scene.add(piece);
+      debrisPieces.push({
+        mesh: piece,
+        velocity: new THREE.Vector3((Math.random() - 0.5) * 30, 15 + Math.random() * 20, (Math.random() - 0.5) * 30),
+        rotVel: new THREE.Vector3(Math.random() * 8, Math.random() * 8, Math.random() * 8),
+        life: 2.5,
+        maxLife: 2.5
+      });
+    }
     score += 50;
-    spawnExplosion(d.mesh.position, false);
-    if (Math.random() < 0.6) spawnPowerup(d.mesh.position.clone().setY(20));
+    addXP(50);
+    spawnExplosion(pos, false);
+    spawnDamageNumber(pos, '+50 XP', 0x44ff44);
+    if (Math.random() < 0.6) spawnPowerup(pos.clone().setY(20));
   }
 }
 function resetDestructibles() {
@@ -4747,6 +5023,43 @@ function resetDestructibles() {
   destructibles.length = 0;
   const spots = [[200, 150], [-200, 180], [180, -200], [-190, -170]];
   for (const [x, z] of spots) spawnDestructible(x, z);
+}
+
+function hitWorldCollider(c, dmg) {
+  if (!c.hp || c.hp <= 0) return false;
+  c.hp -= dmg;
+  if (c.mesh && c.mesh.material) { c.mesh.material.emissive.set(0xffffff); setTimeout(() => { if (c.mesh && c.mesh.material) c.mesh.material.emissive.set(0x000000); }, 80); }
+  if (c.hp <= 0 && c.mesh) {
+    const pos = c.mesh.position.clone();
+    if (c.type === 'cardboard') {
+      const colors = [0xc87820, 0xd4a456, 0xa06020];
+      for (let i = 0; i < 12; i++) {
+        const size = 2 + Math.random() * 3;
+        const piece = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] }));
+        piece.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * 10, Math.random() * 6 + 2, (Math.random() - 0.5) * 10));
+        scene.add(piece);
+        debrisPieces.push({ mesh: piece, velocity: new THREE.Vector3((Math.random() - 0.5) * 35, 15 + Math.random() * 25, (Math.random() - 0.5) * 35), rotVel: new THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10), life: 3, maxLife: 3 });
+      }
+    } else if (c.type === 'lego') {
+      const legoColors = [0xCC2222, 0x2244CC, 0xDDCC22, 0x22AA22];
+      for (let i = 0; i < 30; i++) {
+        const piece = new THREE.Mesh(new THREE.BoxGeometry(10, 5, 18), new THREE.MeshLambertMaterial({ color: legoColors[Math.floor(Math.random() * legoColors.length)] }));
+        piece.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * 60, Math.random() * 30 + 2, (Math.random() - 0.5) * 20));
+        scene.add(piece);
+        debrisPieces.push({ mesh: piece, velocity: new THREE.Vector3((Math.random() - 0.5) * 25, 10 + Math.random() * 30, (Math.random() - 0.5) * 25), rotVel: new THREE.Vector3(Math.random() * 6, Math.random() * 6, Math.random() * 6), life: 3.5, maxLife: 3.5 });
+      }
+    }
+    scene.remove(c.mesh);
+    spawnExplosion(pos, false);
+    score += 200;
+    addXP(200);
+    spawnDamageNumber(pos, '+200 XP', 0xffd700);
+    // Remove from worldColliders
+    const idx = worldColliders.indexOf(c);
+    if (idx >= 0) worldColliders.splice(idx, 1);
+    return true;
+  }
+  return false;
 }
 
 // ================= El gato: evento ambiental aleatorio =================
@@ -4966,6 +5279,12 @@ function animate() {
         if (p.mesh.position.distanceTo(d.mesh.position) < 5) { hitDestructible(d, 1); hit = true; break; }
       }
     }
+    if (!hit) {
+      for (const c of worldColliders) {
+        if (!c.hp || c.hp <= 0) continue;
+        if (p.mesh.position.distanceTo(c.pos) < c.radius) { hitWorldCollider(c, 1); hit = true; spawnImpactSpark(p.mesh.position.clone()); break; }
+      }
+    }
     if (hit || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
   }
 
@@ -4992,6 +5311,12 @@ function animate() {
         if (m.mesh.position.distanceTo(d.mesh.position) < 5) { hitDestructible(d, 3); hit = true; break; }
       }
     }
+    if (!hit) {
+      for (const c of worldColliders) {
+        if (!c.hp || c.hp <= 0) continue;
+        if (m.mesh.position.distanceTo(c.pos) < c.radius) { hitWorldCollider(c, 3); hit = true; spawnExplosion(m.mesh.position.clone()); break; }
+      }
+    }
     if (hit || m.life <= 0) { scene.remove(m.mesh); missiles.splice(i, 1); }
   }
 
@@ -5014,6 +5339,11 @@ function animate() {
     p.life -= dt;
     let hit = false;
     if (p.mesh.position.distanceTo(ship.position) < 3) { registerPlayerHit(); hit = true; }
+    if (!hit) {
+      for (const c of worldColliders) {
+        if (p.mesh.position.distanceTo(c.pos) < c.radius) { hit = true; spawnImpactSpark(p.mesh.position.clone()); break; }
+      }
+    }
     if (hit || p.life <= 0) { scene.remove(p.mesh); teddyProjectiles.splice(i, 1); }
   }
 
@@ -5035,6 +5365,23 @@ function animate() {
     t.mesh.position.y += 8 * dt;
     t.mesh.material.opacity = Math.max(0, t.life / t.maxLife);
     if (t.life <= 0) { scene.remove(t.mesh); missTexts.splice(i, 1); }
+  }
+
+  // ---- Update debris (piezas de destruccion) ----
+  for (let i = debrisPieces.length - 1; i >= 0; i--) {
+    const dp = debrisPieces[i];
+    dp.life -= dt;
+    dp.velocity.y -= 40 * dt; // gravedad
+    dp.mesh.position.addScaledVector(dp.velocity, dt);
+    dp.mesh.rotation.x += dp.rotVel.x * dt;
+    dp.mesh.rotation.y += dp.rotVel.y * dt;
+    dp.mesh.rotation.z += dp.rotVel.z * dt;
+    // Bounce en el suelo
+    if (dp.mesh.position.y < 0.5) { dp.mesh.position.y = 0.5; dp.velocity.y *= -0.3; dp.velocity.x *= 0.7; dp.velocity.z *= 0.7; }
+    const t = Math.max(0, dp.life / dp.maxLife);
+    dp.mesh.material.opacity = t;
+    dp.mesh.material.transparent = true;
+    if (dp.life <= 0) { scene.remove(dp.mesh); debrisPieces.splice(i, 1); }
   }
 
   for (const enemy of enemies) {
@@ -5067,10 +5414,24 @@ function animate() {
       const toPlayer = ship.position.clone().sub(enemy.mesh.position);
       toPlayer.y = 0;
       if (toPlayer.lengthSq() > 0.0001) toPlayer.normalize();
+      // Obstacle avoidance: steer away from worldColliders
+      const avoidDir = new THREE.Vector3();
+      for (const c of worldColliders) {
+        const toObstacle = enemy.mesh.position.clone().sub(c.pos);
+        toObstacle.y = 0;
+        const dist = toObstacle.length();
+        const avoidRadius = c.radius + 15;
+        if (dist < avoidRadius && dist > 0.01) {
+          const strength = (avoidRadius - dist) / avoidRadius;
+          avoidDir.add(toObstacle.normalize().multiplyScalar(strength * 40));
+        }
+      }
+      const finalDir = toPlayer.clone().add(avoidDir);
+      if (finalDir.lengthSq() > 0.0001) finalDir.normalize();
       if (distToPlayer > enemy.fireRange) {
         let chaseMult = 1;
         if (enemy.snareTimer > 0) { chaseMult = enemy.snareFactor || 0.5; enemy.snareTimer -= dt; }
-        enemy.mesh.position.addScaledVector(toPlayer, enemy.chaseSpeed * chaseMult * dt);
+        enemy.mesh.position.addScaledVector(finalDir, enemy.chaseSpeed * chaseMult * dt);
       }
       enemy.mesh.lookAt(ship.position.x, enemy.mesh.position.y, ship.position.z);
       enemy.center.copy(enemy.mesh.position); // si vuelve a orbitar, que retome cerca de donde quedó
@@ -5114,6 +5475,61 @@ function animate() {
     pos.needsUpdate = true;
     ex.points.material.opacity = Math.max(0, ex.life / ex.maxLife);
     if (ex.life <= 0) { scene.remove(ex.points); explosions.splice(i, 1); }
+  }
+
+  // ---- Update damage numbers ----
+  for (let i = damageNumbers.length - 1; i >= 0; i--) {
+    const dn = damageNumbers[i];
+    dn.life -= dt;
+    dn.mesh.position.y += 12 * dt;
+    dn.mesh.material.opacity = Math.max(0, dn.life / dn.maxLife);
+    if (dn.life <= 0) { scene.remove(dn.mesh); damageNumbers.splice(i, 1); }
+  }
+
+  // ---- Update skill rings ----
+  for (let i = skillRings.length - 1; i >= 0; i--) {
+    const r = skillRings[i];
+    r.life -= dt;
+    const t = 1 - r.life / r.maxLife;
+    r.mesh.scale.setScalar(1 + t * r.expand);
+    r.mesh.material.opacity = Math.max(0, (1 - t) * 0.7);
+    if (r.life <= 0) { scene.remove(r.mesh); skillRings.splice(i, 1); }
+  }
+
+  // ---- Invulnerability blink ----
+  updateInvulnBlink(dt);
+
+  // ---- Skill aura pulse ----
+  if (activeSkillAura && activeSkillAura.mesh) {
+    const pulse = 0.8 + Math.sin(clock.elapsedTime * 6) * 0.2;
+    activeSkillAura.mesh.scale.setScalar(pulse);
+    activeSkillAura.mesh.material.opacity = 0.15 + Math.sin(clock.elapsedTime * 4) * 0.1;
+  }
+
+  // ---- Healing field visual rotate ----
+  if (healingFieldVisual) {
+    healingFieldVisual.rotation.z += dt * 0.5;
+    healingFieldVisual.material.opacity = 0.2 + Math.sin(clock.elapsedTime * 2) * 0.1;
+  }
+
+  // ---- Energizing field visual rotate ----
+  if (energizingFieldVisual) {
+    energizingFieldVisual.rotation.z -= dt * 0.7;
+    energizingFieldVisual.material.opacity = 0.2 + Math.sin(clock.elapsedTime * 3) * 0.1;
+  }
+
+  // ---- Barrier visual pulse ----
+  if (barrierVisual) {
+    const bp = 0.15 + Math.sin(clock.elapsedTime * 5) * 0.08;
+    barrierVisual.material.opacity = bp;
+    barrierVisual.rotation.y += dt * 0.5;
+  }
+
+  // ---- Charge shot glow pulse ----
+  if (chargeShotGlow) {
+    const cp = 0.3 + Math.sin(clock.elapsedTime * 8) * 0.2;
+    chargeShotGlow.material.opacity = cp;
+    chargeShotGlow.scale.setScalar(0.8 + Math.sin(clock.elapsedTime * 6) * 0.3);
   }
 
   clearWaveIfDone();
@@ -5183,6 +5599,8 @@ function animate() {
   document.getElementById('alt').textContent = ship.position.y.toFixed(0);
   document.getElementById('alive').textContent = enemies.filter(e => e.alive && !e.isBoss).length;
   document.getElementById('score').textContent = score;
+  updateLevelHUD();
+  updateBuffRow();
   updateAmmoHUD();
   updateSkills(dt);
   // Healing Field: regen 1 HP every 3s
