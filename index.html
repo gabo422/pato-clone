@@ -456,36 +456,43 @@
   .mobileBarShield { background: linear-gradient(90deg, #44ccee, #00aacc); box-shadow: 0 0 4px rgba(0,180,230,0.3); }
   #skillBar { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
   .skillSlot {
-    width: 42px; height: 36px; border-radius: 3px; flex: none;
-    background: rgba(5,12,25,0.8); border: 1px solid rgba(0,180,255,0.15);
+    width: 46px; height: 46px; border-radius: 4px; flex: none;
+    background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.2);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     overflow: hidden; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; position: relative;
   }
-  .skillSlot.movement { border-color: rgba(0,200,150,0.2); width: 52px; }
-  .skillSlot:hover { border-color: rgba(0,180,255,0.4); }
-  .skillSlot.onCooldown { opacity: 0.4; }
+  .skillSlot.movement { border-color: rgba(0,200,150,0.25); width: 52px; }
+  .skillSlot:hover { border-color: rgba(0,180,255,0.5); }
+  .skillSlot.onCooldown { opacity: 0.45; }
   .skillSlot.onCooldown::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(0,0,0,0.6); border-radius: 3px;
+    background: rgba(0,0,0,0.65); border-radius: 4px;
   }
-  .skillSlot.active { border-color: rgba(255,170,0,0.5); box-shadow: 0 0 8px rgba(255,170,0,0.2); }
+  .skillSlot.active { border-color: rgba(255,170,0,0.6); box-shadow: 0 0 8px rgba(255,170,0,0.25); }
   .skillSlot.active::after {
     content: ''; position: absolute; inset: 0;
-    background: rgba(255,170,0,0.08); border-radius: 3px; animation: skillPulse 0.8s ease-in-out infinite;
+    background: rgba(255,170,0,0.1); border-radius: 4px; animation: skillPulse 0.8s ease-in-out infinite;
   }
-  @keyframes skillPulse { 0%,100%{opacity:0.08} 50%{opacity:0.2} }
+  @keyframes skillPulse { 0%,100%{opacity:0.1} 50%{opacity:0.25} }
   .skillSlot.locked { opacity: 0.2; }
-  .skillKey {
-    font-size: 9px; font-weight: 700; color: #80aacc; z-index: 1;
-    background: rgba(0,100,150,0.3); border-radius: 2px; padding: 0 3px; margin-bottom: 1px; line-height: 1.3;
+  .skillIcon {
+    width: 32px; height: 32px; image-rendering: pixelated; z-index: 1;
+    object-fit: contain;
   }
-  .skillSlot.movement .skillKey { color: #66ddaa; background: rgba(0,120,80,0.3); }
-  .skillName { font-size: 7px; color: #6a8899; text-transform: uppercase; letter-spacing: 0.3px; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38px; }
+  .skillSlot.movement .skillIcon { width: 36px; height: 36px; }
+  .skillKey {
+    position: absolute; top: 1px; left: 2px;
+    font-size: 8px; font-weight: 700; color: #80aacc; z-index: 3;
+    background: rgba(0,100,150,0.5); border-radius: 2px; padding: 0 2px; line-height: 1.3;
+  }
+  .skillSlot.movement .skillKey { color: #66ddaa; background: rgba(0,120,80,0.4); }
+  .skillName { display: none; }
   .skillCooldown {
-    position: absolute; bottom: 1px; font-size: 8px; color: #ff6644; font-weight: 700; z-index: 2;
+    position: absolute; bottom: 1px; font-size: 9px; color: #ff6644; font-weight: 700; z-index: 2;
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
   }
   .skillSPCost {
-    position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 2;
+    position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 3;
   }
 </style>
 </head>
@@ -561,18 +568,18 @@
   </div>
 
   <div id="skillBar">
-    <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><div class="skillName" id="skillNameQ">—</div><div class="skillCooldown" id="skillCDQ"></div></div>
-    <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><div class="skillName" id="skillNameE">—</div><div class="skillCooldown" id="skillCDE"></div></div>
-    <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><div class="skillName" id="skillName0">—</div><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
-    <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><div class="skillName" id="skillName1">—</div><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
-    <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><div class="skillName" id="skillName2">—</div><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
-    <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><div class="skillName" id="skillName3">—</div><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
-    <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><div class="skillName" id="skillName4">—</div><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
-    <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><div class="skillName" id="skillName5">—</div><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
-    <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><div class="skillName" id="skillName6">—</div><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
-    <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><div class="skillName" id="skillName7">—</div><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
-    <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><div class="skillName" id="skillName8">—</div><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
-    <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><div class="skillName" id="skillName9">—</div><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
+    <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><img class="skillIcon" id="skillIconQ"><div class="skillCooldown" id="skillCDQ"></div></div>
+    <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><img class="skillIcon" id="skillIconE"><div class="skillCooldown" id="skillCDE"></div></div>
+    <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><img class="skillIcon" id="skillIcon0"><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
+    <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><img class="skillIcon" id="skillIcon1"><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
+    <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><img class="skillIcon" id="skillIcon2"><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
+    <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><img class="skillIcon" id="skillIcon3"><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
+    <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><img class="skillIcon" id="skillIcon4"><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
+    <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><img class="skillIcon" id="skillIcon5"><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
+    <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><img class="skillIcon" id="skillIcon6"><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
+    <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><img class="skillIcon" id="skillIcon7"><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
+    <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><img class="skillIcon" id="skillIcon8"><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
+    <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><img class="skillIcon" id="skillIcon9"><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
   </div>
 </div>
 <button id="restartBtn">↻ Reiniciar</button>
@@ -751,12 +758,12 @@ if (isMobile) document.body.classList.add('mobile-active');
 // ================= CONFIG DE CONTROLES =================
 const DEFAULT_BINDINGS = {
   forward: 'KeyW', back: 'KeyS', rollLeft: 'KeyA', rollRight: 'KeyD',
-  boost: 'Space', breakLock: 'ShiftLeft'
+  boost: 'Space', missile: 'KeyR', breakLock: 'ShiftLeft'
 };
 const BIND_LABELS = {
   forward: 'Acelerar', back: 'Frenar / reversa', rollLeft: 'Rolar / strafe izquierda',
   rollRight: 'Rolar / strafe derecha', boost: 'Boost (nado y siege)',
-  breakLock: 'Soltar bloqueo de mira'
+  missile: 'Misil teledirigido', breakLock: 'Soltar bloqueo de mira'
 };
 
 let bindings = { ...DEFAULT_BINDINGS };
@@ -3463,6 +3470,39 @@ function getPassive(stat) {
   return passiveBuffs[stat] || 0;
 }
 
+// ================= Skill Icon Mapping =================
+// Maps skill IDs → Ace Online icon filenames (from icons/skills_ace/)
+// To replace an icon: put your PNG in icons/skills_ace/ with the same filename
+const SKILL_ICON_MAP = {
+  // rayo (S-Gear / Interceptor) — 0783xxxx
+  berserker:       '07833050.png',
+  overbooster:     '07832030.png',
+  turnaround:      '07832040.png',
+  backMoveMach:    '07833010.png',
+  // muro (D-Gear / Tank) — 0782xxxx
+  siegeMode:       '07820050.png',
+  airSiegeMode:    '07820060.png',
+  hyperShot:       '07821030.png',
+  barrier:         '07821040.png',
+  remedy:          '07821050.png',
+  // trueno (B-Gear / Bomber) — 0780xxxx
+  groundBombing:   '07800040.png',
+  airBombing:      '07800050.png',
+  chargeShot:      '07800060.png',
+  multiTarget:     '07800070.png',
+  deployChaffs:    '07801010.png',
+  bigBoom:         '07801020.png',
+  invisible:       '07803030.png',
+  // viento (O-Gear / Support) — 0781xxxx
+  healingField:    '07811030.png',
+  energizingField: '07811040.png',
+  healTarget:      '07811050.png',
+  energizeTarget:  '07811060.png',
+  reverseEngine:   '07813010.png',
+  fullRecovery:    '07813020.png',
+};
+const SKILL_ICON_DIR = 'icons/skills_ace/';
+
 // ================= Skill Slot Management =================
 function initSkillSlots() {
   const gear = getGearConfig();
@@ -3786,11 +3826,11 @@ function renderSkillBar() {
     const slotEl = document.getElementById('skillSlot' + i);
     if (!slotEl) continue;
     const sk = skillSlots[i];
-    const nameEl = slotEl.querySelector('.skillName');
+    const iconEl = document.getElementById('skillIcon' + i);
     const cdEl = slotEl.querySelector('.skillCooldown');
     const spCostEl = slotEl.querySelector('.skillSPCost');
     if (!sk) {
-      nameEl.textContent = '—';
+      if (iconEl) iconEl.src = '';
       cdEl.textContent = '';
       if (spCostEl) spCostEl.textContent = '';
       slotEl.classList.add('locked');
@@ -3798,7 +3838,11 @@ function renderSkillBar() {
       continue;
     }
     slotEl.classList.remove('locked');
-    nameEl.textContent = sk.name;
+    if (iconEl) {
+      const iconFile = SKILL_ICON_MAP[sk.id];
+      iconEl.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+      iconEl.alt = sk.name;
+    }
     const cd = skillCooldowns[i];
     cdEl.textContent = cd > 0 ? Math.ceil(cd) + 's' : '';
     slotEl.classList.toggle('onCooldown', cd > 0);
@@ -3813,22 +3857,34 @@ function renderSkillBar() {
     const qEl = document.getElementById('skillSlotQ');
     const eEl = document.getElementById('skillSlotE');
     if (qEl && gear.movement.q) {
-      qEl.querySelector('.skillName').textContent = gear.movement.q.name;
+      const qIcon = document.getElementById('skillIconQ');
+      if (qIcon) {
+        const iconFile = SKILL_ICON_MAP[gear.movement.q.id];
+        qIcon.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+        qIcon.alt = gear.movement.q.name;
+      }
       qEl.querySelector('.skillCooldown').textContent = movementCooldowns.q > 0 ? Math.ceil(movementCooldowns.q) + 's' : '';
       qEl.classList.toggle('onCooldown', movementCooldowns.q > 0);
       qEl.classList.remove('locked');
+      qEl.title = gear.movement.q.name + ': ' + gear.movement.q.desc;
     }
     if (eEl && gear.movement.e) {
-      eEl.querySelector('.skillName').textContent = gear.movement.e.name;
+      const eIcon = document.getElementById('skillIconE');
+      if (eIcon) {
+        const iconFile = SKILL_ICON_MAP[gear.movement.e.id];
+        eIcon.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+        eIcon.alt = gear.movement.e.name;
+      }
       eEl.querySelector('.skillCooldown').textContent = movementCooldowns.e > 0 ? Math.ceil(movementCooldowns.e) + 's' : '';
       eEl.classList.toggle('onCooldown', movementCooldowns.e > 0);
       eEl.classList.remove('locked');
+      eEl.title = gear.movement.e.name + ': ' + gear.movement.e.desc;
     }
   } else {
     const qEl = document.getElementById('skillSlotQ');
     const eEl = document.getElementById('skillSlotE');
-    if (qEl) { qEl.querySelector('.skillName').textContent = '—'; qEl.classList.add('locked'); qEl.classList.remove('onCooldown'); }
-    if (eEl) { eEl.querySelector('.skillName').textContent = '—'; eEl.classList.add('locked'); eEl.classList.remove('onCooldown'); }
+    if (qEl) { const ic = document.getElementById('skillIconQ'); if (ic) ic.src = ''; qEl.classList.add('locked'); qEl.classList.remove('onCooldown'); }
+    if (eEl) { const ic = document.getElementById('skillIconE'); if (ic) ic.src = ''; eEl.classList.add('locked'); eEl.classList.remove('onCooldown'); }
   }
   // SP bar
   const spFill = document.getElementById('spBarFill');
