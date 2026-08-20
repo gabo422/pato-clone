@@ -3447,6 +3447,7 @@ let activeSkillEffects = {};   // { gearId_skillId: true }
 
 // Movement skills cooldowns
 let movementCooldowns = { q: 0, e: 0 };
+const movementAnim = { turnaround: { active: false, remaining: 0, total: 0.35, startYaw: 0, delta: 0 }, backMove: { active: false, remaining: 0, total: 0.3, startPos: null, delta: null } };
 
 function getGearConfig() {
   if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return null;
@@ -3510,6 +3511,8 @@ function initSkillSlots() {
   skillCooldowns = new Array(10).fill(0);
   skillActiveTimers = {};
   movementCooldowns = { q: 0, e: 0 };
+  movementAnim.turnaround.active = false;
+  movementAnim.backMove.active = false;
   if (!gear) return;
   // Auto-assign active skills to slots 0-9 in order
   const skills = gear.activeSkills || [];
@@ -3778,12 +3781,14 @@ function applySkillEffect(skillId, on) {
 
 function applyMovementEffect(skillId, key) {
   if (skillId === 'turnaround') {
-    lookYaw += Math.PI;
+    const a = movementAnim.turnaround;
+    a.active = true; a.remaining = a.total; a.startYaw = lookYaw; a.delta = Math.PI;
   }
   if (skillId === 'backMoveMach') {
+    const a = movementAnim.backMove;
     const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
-    ship.position.addScaledVector(backward, 40);
-    speed = Math.max(-20, speed * 0.3);
+    a.active = true; a.remaining = a.total;
+    a.startPos = ship.position.clone(); a.delta = backward.multiplyScalar(40);
   }
   if (skillId === 'reverseEngine') {
     speed = 0;
@@ -3793,6 +3798,21 @@ function applyMovementEffect(skillId, key) {
         enemyMissiles.splice(i, 1);
       }
     }
+  }
+}
+
+function updateMovementAnimations(dt) {
+  const ta = movementAnim.turnaround;
+  if (ta.active) {
+    ta.remaining -= dt;
+    if (ta.remaining <= 0) { lookYaw = ta.startYaw + ta.delta; ta.active = false; }
+    else { const t = 1 - ta.remaining / ta.total; lookYaw = ta.startYaw + ta.delta * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2); }
+  }
+  const bm = movementAnim.backMove;
+  if (bm.active) {
+    bm.remaining -= dt;
+    if (bm.remaining <= 0) { ship.position.copy(bm.startPos).add(bm.delta); speed = Math.max(-20, speed * 0.3); bm.active = false; }
+    else { const t = 1 - bm.remaining / bm.total; ship.position.lerpVectors(bm.startPos, bm.startPos.clone().add(bm.delta), t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); }
   }
 }
 
@@ -4167,6 +4187,8 @@ function startWave() {
   skillActiveTimers = {};
   activeSkillEffects = {};
   movementCooldowns = { q: 0, e: 0 };
+  movementAnim.turnaround.active = false;
+  movementAnim.backMove.active = false;
   isSiegeMode = false;
   chargeShotActive = false;
   delete window._chaffHits;
@@ -5123,6 +5145,7 @@ function animate() {
   updateBuffRow();
   updateAmmoHUD();
   updateSkills(dt);
+  updateMovementAnimations(dt);
   // Healing Field: regen 1 HP every 3s
   if (isSkillActive('healingField')) {
     if (!window._healTimer) window._healTimer = 0;
