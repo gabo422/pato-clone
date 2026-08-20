@@ -206,14 +206,6 @@
     text-shadow: 0 0 8px rgba(255,50,30,0.6);
   }
 
-  /* ---- Siege Warning ---- */
-  #siegeWarn {
-    position: absolute; top: 46%; left: 50%; transform: translate(-50%,-50%);
-    color: #ffaa00; font-size: 12px; opacity: 0; pointer-events: none;
-    background: rgba(5,12,25,0.9); padding: 4px 10px; border-radius: 3px;
-    border: 1px solid rgba(255,170,0,0.4); font-weight: 600;
-  }
-
   /* ---- Damage Flash ---- */
   #damageFlash {
     position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,30,20,0.3) 0%, rgba(255,30,20,0.1) 60%, transparent 100%);
@@ -334,104 +326,6 @@
   #resetBtn:hover { color: #80aacc; }
   #restartGameBtn { margin-top: 6px; border-color: rgba(255,170,0,0.3); background: rgba(255,170,0,0.1); color: #ffaa00; }
   #restartGameBtn:hover { background: rgba(255,170,0,0.2); }
-  #openEditorBtn { margin-top: 6px; border-color: rgba(0,200,100,0.3); background: rgba(0,200,100,0.1); color: #66cc88; }
-  #openEditorBtn:hover { background: rgba(0,200,100,0.15); }
-
-  #editorPanel {
-    position: absolute; top: 12px; right: 12px; width: 260px; z-index: 25;
-    background: rgba(5,12,25,0.92); border: 1px solid rgba(0,180,255,0.25); border-radius: 4px;
-    color: #c0d8e8; font-size: 13px; max-height: 92vh; overflow-y: auto;
-    box-shadow: 0 0 20px rgba(0,100,180,0.1);
-  }
-  #editorPanel.hidden { display: none; }
-  #editorHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  #undoRedoRow { display: flex; gap: 4px; }
-  #undoBtn, #redoBtn {
-    width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.2); background: rgba(0,180,255,0.08);
-    color: #80aacc; font-size: 14px; cursor: pointer; line-height: 1;
-  }
-  #undoBtn:hover:not(:disabled), #redoBtn:hover:not(:disabled) { background: rgba(0,180,255,0.15); }
-  #undoBtn:disabled, #redoBtn:disabled { opacity: 0.3; cursor: default; }
-  #closeEditorBtn { background: transparent; border: none; color: #cc4444; font-weight: 700; cursor: pointer; font-size: 13px; }
-  #editorTabs { display: flex; gap: 4px; margin-bottom: 10px; }
-  .editorTabBtn {
-    flex: 1; padding: 6px 4px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.15); background: rgba(0,180,255,0.05);
-    color: #6a8899; font-size: 11px; cursor: pointer; font-weight: 600;
-  }
-  .editorTabBtn.active { background: rgba(0,180,255,0.2); border-color: rgba(0,180,255,0.4); color: #00d4ff; }
-  #editorModelsTab.hidden, #editorObjectsTab.hidden { display: none; }
-  #editorModelList { display: flex; gap: 4px; margin-bottom: 8px; }
-  .editorModelItem {
-    flex: 1; padding: 8px 4px; text-align: center; border-radius: 3px; cursor: pointer; font-size: 11px;
-    border: 1px solid rgba(0,180,255,0.12); color: #80aacc;
-  }
-  .editorModelItem:hover { background: rgba(0,180,255,0.1); }
-  .editorModelItem.selected { background: rgba(0,180,255,0.15); border-color: rgba(0,180,255,0.4); font-weight: 700; color: #00d4ff; }
-  #editorModelCoords { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; }
-  #editorModelCoords.hidden { display: none; }
-  #editorDecorTab.hidden { display: none; }
-  #decorPalette { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-  #decorPalette .editorModelItem { flex: 0 0 auto; padding: 6px 8px; }
-  #decorSelectedRow.hidden { display: none; }
-  #deleteDecorBtn {
-    width: 100%; padding: 8px; border-radius: 3px; border: 1px solid rgba(255,60,50,0.4); background: rgba(255,60,50,0.1);
-    color: #cc4444; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 8px;
-  }
-  #deleteDecorBtn:hover { background: rgba(255,60,50,0.2); }
-  #customAssetsHeader { font-size: 11px; color: #6a8899; border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; margin-top: 4px; }
-  #customAssetsList { margin: 6px 0; }
-  .customAssetRow {
-    display: flex; align-items: center; justify-content: space-between; padding: 5px 8px;
-    border-radius: 3px; border: 1px solid rgba(0,180,255,0.1); margin-bottom: 4px; font-size: 11px;
-  }
-  .customAssetRemoveBtn {
-    width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,60,50,0.4); background: rgba(255,60,50,0.1);
-    color: #cc4444; font-weight: 700; cursor: pointer; font-size: 12px; line-height: 1; flex-shrink: 0;
-  }
-  .customAssetRemoveBtn:hover { background: rgba(255,60,50,0.2); }
-  .editorFileBtn {
-    display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 3px; border: 1px dashed rgba(0,180,255,0.3);
-    background: rgba(0,180,255,0.05); color: #80aacc; font-size: 11px; cursor: pointer; font-weight: 600; text-align: center;
-    box-sizing: border-box;
-  }
-  .editorFileBtn:hover { background: rgba(0,180,255,0.1); }
-  #editorList { max-height: 180px; overflow-y: auto; margin-bottom: 8px; }
-  .editorItem {
-    padding: 6px 8px; border-radius: 3px; cursor: pointer; font-size: 12px; margin-bottom: 3px;
-    border: 1px solid transparent;
-  }
-  .editorItem:hover { background: rgba(0,180,255,0.08); }
-  .editorItem.selected { background: rgba(0,180,255,0.12); border-color: rgba(0,180,255,0.3); font-weight: 700; }
-  #editorCoords { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 8px; margin-bottom: 8px; }
-  #editorCoords.hidden { display: none; }
-  .editorRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 6px; }
-  .editorRow span { color: #6a8899; flex-shrink: 0; font-size: 11px; }
-  .editorRow input[type="number"] {
-    width: 70px; padding: 3px 6px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.3);
-    background: rgba(0,180,255,0.05); color: #c0d8e8; font-size: 12px;
-  }
-  .editorRow input[type="range"] { flex: 1; }
-  #exportPositionsBtn {
-    width: 100%; padding: 8px; border-radius: 3px; border: 1px solid rgba(0,180,255,0.3); background: rgba(0,180,255,0.08);
-    color: #80aacc; font-size: 12px; cursor: pointer; font-weight: 600;
-  }
-  #exportPositionsBtn:hover { background: rgba(0,180,255,0.15); }
-  #exportOutput {
-    width: 100%; height: 90px; margin-top: 8px; font-family: monospace; font-size: 10px;
-    border: 1px solid rgba(0,180,255,0.15); border-radius: 3px; padding: 6px; box-sizing: border-box; resize: vertical;
-    background: rgba(0,180,255,0.03); color: #80aacc;
-  }
-  #exportOutput.hidden { display: none; }
-  #editorSaveRow { border-top: 1px solid rgba(0,180,255,0.1); padding-top: 10px; margin-top: 10px; }
-  #saveChangesBtn, #exportNoEditorBtn {
-    width: 100%; padding: 9px; border-radius: 3px; border: 1px solid rgba(0,200,100,0.3); background: rgba(0,200,100,0.1);
-    color: #66cc88; font-size: 12px; cursor: pointer; font-weight: 600; margin-bottom: 6px;
-  }
-  #saveChangesBtn:hover { background: rgba(0,200,100,0.2); }
-  #exportNoEditorBtn { border-color: rgba(136,100,255,0.3); background: rgba(136,100,255,0.1); color: #aa88ee; }
-  #exportNoEditorBtn:hover { background: rgba(136,100,255,0.2); }
-  #saveStatusText { min-height: 12px; }
-  .editorHint { font-size: 10px; color: #5a7a8a; margin: 8px 0 0; line-height: 1.4; }
   .lifeBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #ff3344; }
   .lifeBar.empty { background: rgba(255,50,60,0.2); }
   .shieldBar { width: 6px; height: 14px; border-radius: 2px; display: inline-block; margin-right: 2px; background: #00ccee; }
@@ -502,7 +396,7 @@
   #gearSelectStartBtn:hover { background: linear-gradient(180deg, rgba(0,180,255,0.3) 0%, rgba(0,100,180,0.25) 100%); box-shadow: 0 0 30px rgba(0,180,255,0.25); transform: translateY(-1px); border-color: rgba(0,180,255,0.6); }
   #gearSelectStartBtn:disabled { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
 
-  #touchLookZone, #touchJoystickBase, #touchButtons, #touchTurnBtns, #touchExtraBtns { display: none; }
+  #touchLookZone, #touchJoystickBase, #touchButtons, #touchTurnBtns { display: none; }
   body.mobile-active #touchLookZone {
     display: block; position: absolute; right: 0; top: 0; width: 55%; height: 100%;
     z-index: 6; touch-action: none;
@@ -519,10 +413,6 @@
   }
   body.mobile-active #touchTurnBtns {
     display: flex; position: absolute; left: 22px; bottom: 12px; gap: 10px; z-index: 12;
-  }
-  body.mobile-active #touchExtraBtns {
-    display: flex; position: absolute; left: 160px; bottom: 80px; gap: 8px; z-index: 12;
-    flex-direction: column;
   }
   body.mobile-active #touchButtons {
     display: flex; position: absolute; right: 16px; bottom: 16px; gap: 10px;
@@ -542,13 +432,11 @@
   .touchBtn:active, .touchBtn.touchActive { background: rgba(0,180,255,0.3); border-color: rgba(0,180,255,0.6); }
   .touchBtnTurn { width: 60px; height: 48px; font-size: 22px; border-radius: 8px; }
   .touchBtnBrake { width: 50px; height: 50px; font-size: 16px; border-color: rgba(255,170,0,0.4); color: #ccaa66; }
-  .touchBtnMode { width: 50px; height: 36px; font-size: 10px; border-radius: 6px; font-weight: 700; letter-spacing: 0.5px; }
   .touchBtnSkill {
     width: 36px; height: 32px; font-size: 10px; border-radius: 4px; font-weight: 700;
     background: rgba(5,12,25,0.8); border: 1px solid rgba(0,180,255,0.2); color: #6a8899;
   }
   .touchBtnSkill:active, .touchBtnSkill.touchActive { background: rgba(0,180,255,0.2); border-color: rgba(0,180,255,0.5); }
-  body.mobile-active #openEditorBtn { display: none; }
   body.mobile-active #hud {
     font-size: 10px; width: 155px; transform: scale(0.7); transform-origin: top left;
   }
@@ -701,7 +589,6 @@
 <div id="damageFlash"></div>
 <div id="speedLines"></div>
 <div id="waveClearBanner"></div>
-<div id="siegeWarn">No podés apuntar por debajo de la horizontal en Siege Mode</div>
 <div id="minimapWrap">
   <canvas id="minimap" width="160" height="160"></canvas>
 </div>
@@ -714,9 +601,6 @@
   <button id="touchTurnLeftBtn" class="touchBtn touchBtnTurn">◀</button>
   <button id="touchBrakeBtn" class="touchBtn touchBtnBrake">⬇<span>Freno</span></button>
   <button id="touchTurnRightBtn" class="touchBtn touchBtnTurn">▶</button>
-</div>
-<div id="touchExtraBtns">
-  <button id="touchModeBtn" class="touchBtn touchBtnMode">MODO</button>
 </div>
 <div id="touchButtons">
   <button id="touchSkillBtn" class="touchBtn touchBtnSmall">⚒<span>Skills</span></button>
@@ -743,7 +627,6 @@
     </div>
     <button id="resumeBtn">Reanudar (clic en pantalla también funciona)</button>
     <button id="restartGameBtn">↻ Reiniciar partida completa</button>
-    <!-- EDITOR_BTN_START --><button id="openEditorBtn">🛠 Modo editor (mover objetos)</button><!-- EDITOR_BTN_END -->
   </div>
 </div>
 
@@ -848,65 +731,6 @@
   </div>
 </div>
 
-<div id="editorPanel" class="hidden">
-  <!-- EDITOR_UI_START -->
-  <div id="editorHeader">
-    <b>🛠 Modo editor</b>
-    <div id="undoRedoRow">
-      <button id="undoBtn" title="Deshacer (Ctrl+Z)" disabled>↶</button>
-      <button id="redoBtn" title="Rehacer (Ctrl+Y)" disabled>↷</button>
-    </div>
-    <button id="closeEditorBtn">✕ Cerrar</button>
-  </div>
-  <div id="editorTabs">
-    <button class="editorTabBtn active" data-tab="objects">Objetos</button>
-    <button class="editorTabBtn" data-tab="models">Modelos</button>
-    <button class="editorTabBtn" data-tab="decor">Decoración</button>
-  </div>
-  <div id="editorObjectsTab">
-    <div id="editorList"></div>
-    <div id="editorCoords" class="hidden">
-      <div class="editorRow"><span>X</span><input type="number" id="editX" step="1"></div>
-      <div class="editorRow"><span>Y</span><input type="number" id="editY" step="1"></div>
-      <div class="editorRow"><span>Z</span><input type="number" id="editZ" step="1"></div>
-      <div class="editorRow"><span>Rotación Y</span><input type="range" id="editRotY" min="-180" max="180" step="1"></div>
-      <div class="editorRow"><span>Escala</span><input type="range" id="editScale" step="0.02" min="0.05" max="4"></div>
-    </div>
-    <button id="exportPositionsBtn">📋 Copiar código con las posiciones</button>
-    <textarea id="exportOutput" class="hidden" readonly></textarea>
-  </div>
-  <div id="editorModelsTab" class="hidden">
-    <div id="editorModelList"></div>
-    <div id="editorModelCoords" class="hidden">
-      <div class="editorRow"><span>Rotación Y</span><input type="range" id="modelRotY" min="-180" max="180" step="1"></div>
-      <div class="editorRow"><span>Escala</span><input type="range" id="modelScale" step="0.02" min="0.1" max="10"></div>
-      <label id="modelFileLabel" class="editorFileBtn">📁 Cargar modelo nuevo (.glb / .stl)
-        <input type="file" id="modelFileInput" accept=".glb,.stl" style="display:none;">
-      </label>
-      <p id="modelFileStatus" class="editorHint"></p>
-    </div>
-  </div>
-  <div id="editorDecorTab" class="hidden">
-    <p class="editorHint">Elegí un tipo y hacé clic en el piso para colocarlo. Clic sobre uno ya puesto (sin ningún tipo elegido) para seleccionarlo y poder borrarlo.</p>
-    <div id="decorPalette"></div>
-    <div id="decorSelectedRow" class="hidden">
-      <div class="editorRow"><span>Rotación Y</span><input type="range" id="decorRotY" min="-180" max="180" step="1"></div>
-      <button id="deleteDecorBtn">🗑 Borrar seleccionado</button>
-    </div>
-    <div id="customAssetsHeader"><b>Assets personalizados</b></div>
-    <div id="customAssetsList"></div>
-    <label class="editorFileBtn">📁 Cargar asset nuevo (.glb / .stl)
-      <input type="file" id="customAssetFileInput" accept=".glb,.stl" style="display:none;">
-    </label>
-  </div>
-  <div id="editorSaveRow">
-    <button id="saveChangesBtn">💾 Guardar cambios en el archivo</button>
-    <button id="exportNoEditorBtn">📦 Exportar versión sin editor</button>
-    <p class="editorHint" id="saveStatusText"></p>
-  </div>
-  <p class="editorHint">Clic + arrastrar: mover en el piso · Rueda: subir/bajar el seleccionado · Clic derecho + arrastrar: mirar alrededor · WASD: mover la cámara</p>
-  <!-- EDITOR_UI_END -->
-</div>
 
 <div id="scoreboardOverlay" class="hidden">
   <div id="scoreboardPanel">
@@ -927,12 +751,12 @@ if (isMobile) document.body.classList.add('mobile-active');
 // ================= CONFIG DE CONTROLES =================
 const DEFAULT_BINDINGS = {
   forward: 'KeyW', back: 'KeyS', rollLeft: 'KeyA', rollRight: 'KeyD',
-  boost: 'Space', toggleMode: 'KeyG', breakLock: 'ShiftLeft'
+  boost: 'Space', breakLock: 'ShiftLeft'
 };
 const BIND_LABELS = {
   forward: 'Acelerar', back: 'Frenar / reversa', rollLeft: 'Rolar / strafe izquierda',
   rollRight: 'Rolar / strafe derecha', boost: 'Boost (nado y siege)',
-  toggleMode: 'Siege Mode (deshabilitado por ahora)', breakLock: 'Soltar bloqueo de mira'
+  breakLock: 'Soltar bloqueo de mira'
 };
 
 let bindings = { ...DEFAULT_BINDINGS };
@@ -1903,18 +1727,6 @@ portalGroup.position.set(roomSize - 45, wallHeight / 2, roomSize - 45);
 portalGroup.rotation.y = -Math.PI * 3 / 4;
 scene.add(portalGroup);
 
-// ---- Registro de objetos editables (modo editor) ----
-const editableObjects = [
-  { name: 'Caja Sur', obj: boxSur },
-  { name: 'Caja NE', obj: boxNE },
-  { name: 'Caja Oeste', obj: boxOeste },
-  { name: 'Caja Centro', obj: boxCentro },
-  { name: 'Pared LEGO', obj: legoWall },
-  { name: 'Ventana', obj: windowGroup },
-  { name: 'Lámpara', obj: lampGroup },
-  { name: 'Portal', obj: portalGroup }
-];
-
 // ---- Objetos con los que la nave puede chocar ----
 const worldColliders = [
   { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
@@ -1924,814 +1736,6 @@ const worldColliders = [
   { pos: new THREE.Vector3(legoWall.position.x, 40, legoWall.position.z), radius: 50, damaging: false, hp: 10, maxHp: 10, mesh: legoWall, type: 'lego' },
   ...tapePostColliders,
 ];
-
-// editorActive vive AFUERA del bloque del editor a propósito: se usa como guardia en varios
-// lugares del código normal (mousemove, keydown, el loop principal). En la versión "sin editor"
-// el resto del bloque se elimina, pero esta variable sigue existiendo (siempre false ahí, inofensiva).
-let editorActive = false;
-
-/* EDITOR_JS_START */
-// ================= Modo editor: elegir objetos y moverlos con el mouse =================
-let selectedEditable = null;
-let editorSelectionBox = null;
-let editorDragging = false;
-let editorDragStartPos = null;
-let editorDragPlaneY = 0;
-const editorDragOffset = new THREE.Vector3();
-const editorRaycaster = new THREE.Raycaster();
-const editorMouseNDC = new THREE.Vector2();
-let editorCamYaw = Math.PI, editorCamPitch = -0.5;
-
-// ---- Historial de deshacer/rehacer (hasta 50 cambios) ----
-const undoStack = [];
-const redoStack = [];
-const MAX_HISTORY = 50;
-function pushHistory(cmd) {
-  undoStack.push(cmd);
-  if (undoStack.length > MAX_HISTORY) undoStack.shift();
-  redoStack.length = 0;
-  updateHistoryButtons();
-}
-function undoLast() {
-  if (undoStack.length === 0) return;
-  const cmd = undoStack.pop();
-  cmd.undo();
-  redoStack.push(cmd);
-  updateHistoryButtons();
-}
-function redoLast() {
-  if (redoStack.length === 0) return;
-  const cmd = redoStack.pop();
-  cmd.redo();
-  undoStack.push(cmd);
-  updateHistoryButtons();
-}
-function updateHistoryButtons() {
-  document.getElementById('undoBtn').disabled = undoStack.length === 0;
-  document.getElementById('redoBtn').disabled = redoStack.length === 0;
-}
-let editorLooking = false;
-const editorKeys = {};
-// Si la ventana pierde el foco (el mouse se va afuera del navegador mientras arrastrás/movés,
-// alt-tab, etc.) a veces el mouseup/keyup no llega a dispararse. Esto resetea todo por las dudas.
-window.addEventListener('blur', () => {
-  for (const k in editorKeys) editorKeys[k] = false;
-  editorLooking = false;
-  editorDragging = false;
-});
-const EDITOR_VAR_NAMES = {
-  'Caja Sur': 'boxSur', 'Caja NE': 'boxNE', 'Caja Oeste': 'boxOeste', 'Caja Centro': 'boxCentro',
-  'Pared LEGO': 'legoWall', 'Ventana': 'windowGroup', 'Lámpara': 'lampGroup',
-  'Portal': 'portalGroup'
-};
-
-const editorPanel = document.getElementById('editorPanel');
-const editorListEl = document.getElementById('editorList');
-const editorCoordsEl = document.getElementById('editorCoords');
-const editXEl = document.getElementById('editX');
-const editYEl = document.getElementById('editY');
-const editZEl = document.getElementById('editZ');
-const editRotYEl = document.getElementById('editRotY');
-const editScaleEl = document.getElementById('editScale');
-const exportOutputEl = document.getElementById('exportOutput');
-
-function refreshEditorList() {
-  editorListEl.innerHTML = '';
-  editableObjects.forEach(entry => {
-    const item = document.createElement('div');
-    item.className = 'editorItem' + (selectedEditable === entry ? ' selected' : '');
-    item.textContent = entry.name;
-    item.addEventListener('click', () => selectEditable(entry));
-    editorListEl.appendChild(item);
-  });
-}
-
-function selectEditable(entry) {
-  selectedEditable = entry;
-  if (editorSelectionBox) { scene.remove(editorSelectionBox); editorSelectionBox = null; }
-  if (entry) {
-    editorSelectionBox = new THREE.BoxHelper(entry.obj, 0xff3b30);
-    scene.add(editorSelectionBox);
-    editorCoordsEl.classList.remove('hidden');
-    editXEl.value = entry.obj.position.x.toFixed(1);
-    editYEl.value = entry.obj.position.y.toFixed(1);
-    editZEl.value = entry.obj.position.z.toFixed(1);
-    editRotYEl.value = (entry.obj.rotation.y * 180 / Math.PI).toFixed(0);
-    editScaleEl.value = (entry.obj.scale.x || 1).toFixed(2);
-  } else {
-    editorCoordsEl.classList.add('hidden');
-  }
-  refreshEditorList();
-}
-
-function applyCoordInputs() {
-  if (!selectedEditable) return;
-  selectedEditable.obj.position.set(parseFloat(editXEl.value) || 0, parseFloat(editYEl.value) || 0, parseFloat(editZEl.value) || 0);
-  selectedEditable.obj.rotation.y = (parseFloat(editRotYEl.value) || 0) * Math.PI / 180;
-  const s = parseFloat(editScaleEl.value);
-  if (s && s > 0) selectedEditable.obj.scale.setScalar(s);
-  if (editorSelectionBox) editorSelectionBox.update();
-}
-[editXEl, editYEl, editZEl, editRotYEl, editScaleEl].forEach(el => el.addEventListener('input', applyCoordInputs));
-
-let editPanelBefore = null;
-function captureEditPanelBefore() {
-  if (selectedEditable) editPanelBefore = { pos: selectedEditable.obj.position.clone(), rotY: selectedEditable.obj.rotation.y, scale: selectedEditable.obj.scale.x };
-}
-function commitEditPanelHistory() {
-  if (!selectedEditable || !editPanelBefore) return;
-  const entry = selectedEditable;
-  const before = editPanelBefore;
-  const after = { pos: entry.obj.position.clone(), rotY: entry.obj.rotation.y, scale: entry.obj.scale.x };
-  if (!before.pos.equals(after.pos) || before.rotY !== after.rotY || before.scale !== after.scale) {
-    pushHistory({
-      undo: () => { entry.obj.position.copy(before.pos); entry.obj.rotation.y = before.rotY; entry.obj.scale.setScalar(before.scale); if (editorSelectionBox) editorSelectionBox.update(); if (selectedEditable === entry) selectEditable(entry); },
-      redo: () => { entry.obj.position.copy(after.pos); entry.obj.rotation.y = after.rotY; entry.obj.scale.setScalar(after.scale); if (editorSelectionBox) editorSelectionBox.update(); if (selectedEditable === entry) selectEditable(entry); }
-    });
-  }
-  editPanelBefore = null;
-}
-[editXEl, editYEl, editZEl, editRotYEl, editScaleEl].forEach(el => {
-  el.addEventListener('focus', captureEditPanelBefore);
-  el.addEventListener('mousedown', captureEditPanelBefore);
-  el.addEventListener('change', commitEditPanelHistory);
-});
-
-// ---- Tabs Objetos / Modelos ----
-document.querySelectorAll('.editorTabBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.editorTabBtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    document.getElementById('editorObjectsTab').classList.toggle('hidden', tab !== 'objects');
-    document.getElementById('editorModelsTab').classList.toggle('hidden', tab !== 'models');
-    document.getElementById('editorDecorTab').classList.toggle('hidden', tab !== 'decor');
-    selectEditable(null);
-    if (tab === 'models') refreshEditorModelList();
-    else clearModelPreview();
-    if (tab === 'decor') { refreshDecorPalette(); refreshCustomAssetsList(); }
-    else { placeMode = null; selectDecoration(null); }
-  });
-});
-
-// ---- Pestaña Modelos: vista previa en vivo + carga de archivos ----
-const MODEL_LABELS = { duck: 'Pato', teddy: 'Osito', boss: 'Boss' };
-const PROCEDURAL_BUILDERS = { duck: buildDuck, teddy: buildTeddy, boss: buildBoatBoss };
-let selectedModelKey = null;
-let editorPreviewMesh = null;
-const modelRotYEl = document.getElementById('modelRotY');
-const modelScaleEl = document.getElementById('modelScale');
-const modelFileInput = document.getElementById('modelFileInput');
-const modelFileStatus = document.getElementById('modelFileStatus');
-
-function refreshEditorModelList() {
-  const listEl = document.getElementById('editorModelList');
-  listEl.innerHTML = '';
-  Object.keys(MODEL_LABELS).forEach(key => {
-    const item = document.createElement('div');
-    item.className = 'editorModelItem' + (selectedModelKey === key ? ' selected' : '');
-    item.textContent = MODEL_LABELS[key];
-    item.addEventListener('click', () => selectModelKey(key));
-    listEl.appendChild(item);
-  });
-}
-
-function clearModelPreview() {
-  if (editorPreviewMesh) { scene.remove(editorPreviewMesh); editorPreviewMesh = null; }
-}
-
-function buildPreviewForKey(key) {
-  clearModelPreview();
-  const cfg = MODEL_LIBRARY[key];
-  let mesh = tryUseCustomModel(key);
-  if (!mesh) mesh = PROCEDURAL_BUILDERS[key]();
-  mesh.position.set(0, 150, 0);
-  scene.add(mesh);
-  editorPreviewMesh = mesh;
-}
-
-function selectModelKey(key) {
-  selectedModelKey = key;
-  refreshEditorModelList();
-  document.getElementById('editorModelCoords').classList.remove('hidden');
-  const cfg = MODEL_LIBRARY[key];
-  modelRotYEl.value = (cfg.rotationY * 180 / Math.PI).toFixed(0);
-  modelScaleEl.value = cfg.scale.toFixed(2);
-  modelFileStatus.textContent = cfg.url ? `Cargando desde: ${cfg.url}` : 'Usando forma de reserva (sin modelo configurado).';
-  buildPreviewForKey(key);
-  // Cámara mirando al pedestal de vista previa
-  camera.position.set(0, 160, 40);
-  camera.lookAt(0, 150, 0);
-  editorCamYaw = Math.PI; editorCamPitch = -0.12;
-}
-
-function applyModelSliders() {
-  if (!selectedModelKey) return;
-  const cfg = MODEL_LIBRARY[selectedModelKey];
-  cfg.rotationY = (parseFloat(modelRotYEl.value) || 0) * Math.PI / 180;
-  const s = parseFloat(modelScaleEl.value);
-  if (s && s > 0) cfg.scale = s;
-  buildPreviewForKey(selectedModelKey);
-}
-[modelRotYEl, modelScaleEl].forEach(el => el.addEventListener('input', applyModelSliders));
-
-let modelSliderBefore = null;
-function captureModelSliderBefore() {
-  if (selectedModelKey) modelSliderBefore = { rotY: MODEL_LIBRARY[selectedModelKey].rotationY, scale: MODEL_LIBRARY[selectedModelKey].scale };
-}
-function commitModelSliderHistory() {
-  if (!selectedModelKey || !modelSliderBefore) return;
-  const key = selectedModelKey;
-  const before = modelSliderBefore;
-  const cfg = MODEL_LIBRARY[key];
-  const after = { rotY: cfg.rotationY, scale: cfg.scale };
-  if (before.rotY !== after.rotY || before.scale !== after.scale) {
-    pushHistory({
-      undo: () => {
-        cfg.rotationY = before.rotY; cfg.scale = before.scale;
-        if (selectedModelKey === key) { modelRotYEl.value = (before.rotY * 180 / Math.PI).toFixed(0); modelScaleEl.value = before.scale.toFixed(2); buildPreviewForKey(key); }
-      },
-      redo: () => {
-        cfg.rotationY = after.rotY; cfg.scale = after.scale;
-        if (selectedModelKey === key) { modelRotYEl.value = (after.rotY * 180 / Math.PI).toFixed(0); modelScaleEl.value = after.scale.toFixed(2); buildPreviewForKey(key); }
-      }
-    });
-  }
-  modelSliderBefore = null;
-}
-[modelRotYEl, modelScaleEl].forEach(el => {
-  el.addEventListener('mousedown', captureModelSliderBefore);
-  el.addEventListener('change', commitModelSliderHistory);
-});
-
-modelFileInput.addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file || !selectedModelKey) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext !== 'glb' && ext !== 'stl') { modelFileStatus.textContent = 'Formato no soportado (usá .glb o .stl).'; return; }
-  modelFileStatus.textContent = 'Cargando...';
-  const buffer = await file.arrayBuffer();
-  const cfg = MODEL_LIBRARY[selectedModelKey];
-  const targetFileName = cfg.url.split('/').pop(); // ej: "pato.glb" — mantiene el nombre que ya usa el juego
-  const originalExt = targetFileName.split('.').pop().toLowerCase();
-  const formatChanged = originalExt !== ext;
-  try {
-    if (ext === 'stl') {
-      const stlLoader = new THREE.STLLoader();
-      const geometry = stlLoader.parse(buffer);
-      geometry.rotateX(-Math.PI / 2);
-      geometry.computeBoundingBox();
-      const bb = geometry.boundingBox;
-      const cx = (bb.max.x + bb.min.x) / 2;
-      const cz = (bb.max.z + bb.min.z) / 2;
-      geometry.translate(-cx, -bb.min.y, -cz);
-      MODEL_CACHE[selectedModelKey] = geometry;
-    } else {
-      const gltfLoader = new THREE.GLTFLoader();
-      await new Promise((resolve, reject) => {
-        gltfLoader.parse(buffer, '', gltf => { MODEL_CACHE[selectedModelKey] = gltf.scene; resolve(); }, reject);
-      });
-    }
-    // Vista previa en vivo con el archivo recién cargado (en memoria, no hace falta guardar nada para verlo ya).
-    buildPreviewForKey(selectedModelKey);
-    if (selectedModelKey === 'duck') swapDuckModelIfReady();
-    // Los modelos "core" (pato/oso/barco) viven como archivo aparte en la carpeta modelos/, no
-    // embebidos — te lo devuelvo para que reemplaces el archivo viejo ahí. El código ya apunta
-    // a ese nombre de archivo (${cfg.url}), así que no hace falta tocar nada más al guardar.
-    const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = targetFileName;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    modelFileStatus.textContent = formatChanged
-      ? `Cargado. OJO: subiste un .${ext} pero el juego espera .${originalExt} en ese nombre — avisame así actualizo el código, no alcanza con reemplazar el archivo.`
-      : `Cargado y descargado como "${targetFileName}" — reemplazá ese archivo en tu carpeta modelos/.`;
-  } catch (err) {
-    modelFileStatus.textContent = 'Error al leer el archivo: ' + err.message;
-    console.error(err);
-  }
-});
-
-// ---- Pestaña Decoración: colocar y borrar objetos sueltos, + assets personalizados ----
-let placeMode = null;
-let selectedDecoration = null;
-let decorSelectionBox = null;
-const DECOR_PALETTE = [
-  { key: 'scorch', label: '🔥 Mancha' },
-  { key: 'tape', label: '⚠️ Cinta' },
-  { key: 'debris_0', label: '🧱 Escombro rojo' },
-  { key: 'debris_1', label: '🧱 Escombro celeste' },
-  { key: 'debris_2', label: '⚫ Rueda' },
-  { key: 'debris_3', label: '🔺 Cono' },
-  { key: 'debris_4', label: '🧱 Escombro verde' }
-];
-
-function refreshDecorPalette() {
-  const el = document.getElementById('decorPalette');
-  el.innerHTML = '';
-  const customItems = Object.keys(CUSTOM_ASSETS).map(k => ({ key: k, label: '📦 ' + CUSTOM_ASSETS[k].name }));
-  [...DECOR_PALETTE, ...customItems].forEach(item => {
-    const btn = document.createElement('div');
-    btn.className = 'editorModelItem' + (placeMode === item.key ? ' selected' : '');
-    btn.textContent = item.label;
-    btn.addEventListener('click', () => {
-      placeMode = placeMode === item.key ? null : item.key;
-      selectDecoration(null);
-      refreshDecorPalette();
-    });
-    el.appendChild(btn);
-  });
-}
-
-function selectDecoration(entry) {
-  selectedDecoration = entry;
-  if (decorSelectionBox) { scene.remove(decorSelectionBox); decorSelectionBox = null; }
-  const row = document.getElementById('decorSelectedRow');
-  if (entry) {
-    decorSelectionBox = new THREE.BoxHelper(entry.mesh, 0xff3b30);
-    scene.add(decorSelectionBox);
-    row.classList.remove('hidden');
-    decorRotYEl.value = (entry.mesh.rotation.y * 180 / Math.PI).toFixed(0);
-  } else {
-    row.classList.add('hidden');
-  }
-}
-function removeDecorationEntry(entry) {
-  scene.remove(entry.mesh);
-  if (entry.colliders) {
-    for (const c of entry.colliders) {
-      const i1 = tapePostColliders.indexOf(c);
-      if (i1 !== -1) tapePostColliders.splice(i1, 1);
-    }
-  }
-  const idx = decorationInstances.indexOf(entry);
-  if (idx !== -1) decorationInstances.splice(idx, 1);
-}
-function restoreDecorationEntry(entry) {
-  scene.add(entry.mesh);
-  decorationInstances.push(entry);
-  if (entry.colliders) for (const c of entry.colliders) tapePostColliders.push(c);
-}
-document.getElementById('deleteDecorBtn').addEventListener('click', () => {
-  if (!selectedDecoration) return;
-  const entry = selectedDecoration;
-  removeDecorationEntry(entry);
-  selectDecoration(null);
-  pushHistory({
-    undo: () => restoreDecorationEntry(entry),
-    redo: () => removeDecorationEntry(entry)
-  });
-});
-
-const decorRotYEl = document.getElementById('decorRotY');
-decorRotYEl.addEventListener('input', () => {
-  if (!selectedDecoration) return;
-  selectedDecoration.mesh.rotation.y = (parseFloat(decorRotYEl.value) || 0) * Math.PI / 180;
-  if (decorSelectionBox) decorSelectionBox.update();
-});
-let decorRotBefore = null;
-decorRotYEl.addEventListener('mousedown', () => {
-  if (selectedDecoration) decorRotBefore = selectedDecoration.mesh.rotation.y;
-});
-decorRotYEl.addEventListener('change', () => {
-  if (!selectedDecoration || decorRotBefore === null) return;
-  const entry = selectedDecoration;
-  const before = decorRotBefore;
-  const after = entry.mesh.rotation.y;
-  if (before !== after) {
-    pushHistory({
-      undo: () => { entry.mesh.rotation.y = before; if (selectedDecoration === entry) { decorRotYEl.value = (before * 180 / Math.PI).toFixed(0); if (decorSelectionBox) decorSelectionBox.update(); } },
-      redo: () => { entry.mesh.rotation.y = after; if (selectedDecoration === entry) { decorRotYEl.value = (after * 180 / Math.PI).toFixed(0); if (decorSelectionBox) decorSelectionBox.update(); } }
-    });
-  }
-  decorRotBefore = null;
-});
-
-function placeDecorationAt(kind, x, z) {
-  let mesh = null;
-  if (kind === 'scorch') mesh = makeScorchMark(x, z, 8 + Math.random() * 6, Math.random() * Math.PI * 2);
-  else if (kind === 'tape') mesh = makeCautionTapeBarrier(x, z, 45, Math.random() * Math.PI * 2);
-  else if (kind.startsWith('debris_')) mesh = spawnDebrisPiece(x, z, DEBRIS_KINDS[parseInt(kind.split('_')[1])]);
-  else if (CUSTOM_ASSETS[kind]) mesh = placeCustomAsset(kind, x, z);
-  if (mesh) {
-    const entry = decorationInstances[decorationInstances.length - 1];
-    pushHistory({
-      undo: () => { if (selectedDecoration === entry) selectDecoration(null); removeDecorationEntry(entry); },
-      redo: () => restoreDecorationEntry(entry)
-    });
-  }
-  return mesh;
-}
-
-function refreshCustomAssetsList() {
-  const el = document.getElementById('customAssetsList');
-  el.innerHTML = '';
-  Object.keys(CUSTOM_ASSETS).forEach(key => {
-    const row = document.createElement('div');
-    row.className = 'customAssetRow';
-    const label = document.createElement('span');
-    label.textContent = CUSTOM_ASSETS[key].name;
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = '−';
-    removeBtn.className = 'customAssetRemoveBtn';
-    removeBtn.title = 'Quitar este asset (y todas sus copias colocadas)';
-    removeBtn.addEventListener('click', () => {
-      for (let i = decorationInstances.length - 1; i >= 0; i--) {
-        if (decorationInstances[i].kind === key) {
-          if (selectedDecoration === decorationInstances[i]) selectDecoration(null);
-          scene.remove(decorationInstances[i].mesh);
-          decorationInstances.splice(i, 1);
-        }
-      }
-      delete CUSTOM_ASSETS[key];
-      if (placeMode === key) placeMode = null;
-      refreshCustomAssetsList();
-      refreshDecorPalette();
-    });
-    row.appendChild(label);
-    row.appendChild(removeBtn);
-    el.appendChild(row);
-  });
-}
-
-document.getElementById('customAssetFileInput').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (ext !== 'glb' && ext !== 'stl') { alert('Formato no soportado, usá .glb o .stl'); return; }
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  const base64 = btoa(binary);
-  const name = file.name.replace(/\.(glb|stl)$/i, '').slice(0, 20);
-  const key = 'custom_' + Date.now();
-  const assetData = { base64, type: ext, scale: 1, name };
-  try {
-    if (ext === 'stl') {
-      const stlLoader = new THREE.STLLoader();
-      const geometry = stlLoader.parse(buffer);
-      geometry.rotateX(-Math.PI / 2);
-      geometry.computeBoundingBox();
-      const bb = geometry.boundingBox;
-      geometry.translate(-(bb.max.x + bb.min.x) / 2, -bb.min.y, -(bb.max.z + bb.min.z) / 2);
-      assetData.geometry = geometry;
-    } else {
-      const gltfLoader = new THREE.GLTFLoader();
-      await new Promise((resolve, reject) => {
-        gltfLoader.parse(buffer, '', gltf => { assetData.scene = gltf.scene; resolve(); }, reject);
-      });
-    }
-    CUSTOM_ASSETS[key] = assetData;
-    refreshCustomAssetsList();
-    refreshDecorPalette();
-  } catch (err) {
-    alert('Error al leer el archivo: ' + err.message);
-    console.error(err);
-  }
-  e.target.value = '';
-});
-
-function enterEditor() {
-  editorActive = true;
-  if (pointerLocked) document.exitPointerLock();
-  closeMenu();
-  editorPanel.classList.remove('hidden');
-  camera.position.set(0, 190, 130);
-  editorCamYaw = Math.PI; editorCamPitch = -0.55;
-  camera.fov = BASE_FOV;
-  camera.updateProjectionMatrix();
-  refreshEditorList();
-  updateHistoryButtons();
-  for (const k in editorKeys) editorKeys[k] = false;
-  editorLooking = false;
-  editorDragging = false;
-  currentLockTarget = null;
-  crosshairEl.classList.remove('locked');
-  document.getElementById('mobBar').style.display = 'none';
-  lockBoxEl.style.display = 'none';
-  lockArrowEl.style.display = 'none';
-  lockInRingEl.classList.remove('active');
-}
-function exitEditor() {
-  editorActive = false;
-  editorPanel.classList.add('hidden');
-  selectEditable(null);
-  clearModelPreview();
-  selectedModelKey = null;
-  placeMode = null;
-  selectDecoration(null);
-  for (const k in editorKeys) editorKeys[k] = false;
-  editorLooking = false;
-  editorDragging = false;
-}
-document.getElementById('openEditorBtn').addEventListener('click', enterEditor);
-document.getElementById('undoBtn').addEventListener('click', undoLast);
-document.getElementById('redoBtn').addEventListener('click', redoLast);
-window.addEventListener('keydown', e => {
-  if (!editorActive) return;
-  if (e.ctrlKey && e.code === 'KeyZ') { e.preventDefault(); undoLast(); }
-  if (e.ctrlKey && (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ'))) { e.preventDefault(); redoLast(); }
-});
-document.getElementById('closeEditorBtn').addEventListener('click', exitEditor);
-
-document.getElementById('exportPositionsBtn').addEventListener('click', () => {
-  let code = '';
-  for (const entry of editableObjects) {
-    const v = EDITOR_VAR_NAMES[entry.name] || entry.name;
-    const p = entry.obj.position;
-    code += `${v}.position.set(${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)});\n`;
-    if (Math.abs(entry.obj.rotation.y) > 0.001) code += `${v}.rotation.y = ${entry.obj.rotation.y.toFixed(3)};\n`;
-    if (Math.abs(entry.obj.scale.x - 1) > 0.001) code += `${v}.scale.setScalar(${entry.obj.scale.x.toFixed(3)});\n`;
-  }
-  exportOutputEl.value = code;
-  exportOutputEl.classList.remove('hidden');
-  exportOutputEl.focus();
-  exportOutputEl.select();
-});
-
-renderer.domElement.addEventListener('mousedown', e => {
-  if (!editorActive) return;
-  editorMouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
-  editorMouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  if (e.button === 2) { editorLooking = true; return; }
-  if (e.button !== 0) return;
-  editorRaycaster.setFromCamera(editorMouseNDC, camera);
-
-  // Modo colocar: clic en el piso coloca una instancia nueva del tipo elegido en la paleta
-  if (placeMode) {
-    const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    const hitPoint = new THREE.Vector3();
-    editorRaycaster.ray.intersectPlane(floorPlane, hitPoint);
-    if (hitPoint) placeDecorationAt(placeMode, hitPoint.x, hitPoint.z);
-    return;
-  }
-  // Pestaña Decoración sin modo colocar activo: clic selecciona una instancia existente para poder borrarla
-  if (!document.getElementById('editorDecorTab').classList.contains('hidden')) {
-    const decorHits = editorRaycaster.intersectObjects(decorationInstances.map(d => d.mesh), true);
-    if (decorHits.length > 0) {
-      let obj = decorHits[0].object;
-      while (obj.parent && !decorationInstances.some(d => d.mesh === obj)) obj = obj.parent;
-      const entry = decorationInstances.find(d => d.mesh === obj);
-      selectDecoration(entry || null);
-    } else {
-      selectDecoration(null);
-    }
-    return;
-  }
-
-  const targets = editableObjects.map(en => en.obj);
-  const hits = editorRaycaster.intersectObjects(targets, true);
-  if (hits.length > 0) {
-    let obj = hits[0].object;
-    while (obj.parent && !editableObjects.some(en => en.obj === obj)) obj = obj.parent;
-    const entry = editableObjects.find(en => en.obj === obj);
-    if (entry) {
-      selectEditable(entry);
-      editorDragging = true;
-      editorDragStartPos = entry.obj.position.clone();
-      editorDragPlaneY = entry.obj.position.y;
-      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -editorDragPlaneY);
-      const hitPoint = new THREE.Vector3();
-      editorRaycaster.ray.intersectPlane(plane, hitPoint);
-      if (hitPoint) editorDragOffset.subVectors(entry.obj.position, hitPoint);
-    }
-  } else {
-    selectEditable(null);
-  }
-});
-window.addEventListener('mouseup', e => {
-  if (!editorActive) return;
-  if (e.button === 2) editorLooking = false;
-  if (e.button === 0) {
-    if (editorDragging && selectedEditable && editorDragStartPos) {
-      const before = editorDragStartPos;
-      const after = selectedEditable.obj.position.clone();
-      if (!before.equals(after)) {
-        const entry = selectedEditable;
-        pushHistory({
-          undo: () => { entry.obj.position.copy(before); if (editorSelectionBox) editorSelectionBox.update(); if (selectedEditable === entry) selectEditable(entry); },
-          redo: () => { entry.obj.position.copy(after); if (editorSelectionBox) editorSelectionBox.update(); if (selectedEditable === entry) selectEditable(entry); }
-        });
-      }
-    }
-    editorDragging = false;
-    editorDragStartPos = null;
-  }
-});
-document.addEventListener('mousemove', e => {
-  if (!editorActive) return;
-  if (editorLooking) {
-    editorCamYaw -= e.movementX * 0.003;
-    editorCamPitch -= e.movementY * 0.003;
-    editorCamPitch = Math.max(-1.4, Math.min(1.4, editorCamPitch));
-    return;
-  }
-  if (editorDragging && selectedEditable) {
-    editorMouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
-    editorMouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    editorRaycaster.setFromCamera(editorMouseNDC, camera);
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -editorDragPlaneY);
-    const hitPoint = new THREE.Vector3();
-    if (editorRaycaster.ray.intersectPlane(plane, hitPoint)) {
-      selectedEditable.obj.position.copy(hitPoint.add(editorDragOffset));
-      editXEl.value = selectedEditable.obj.position.x.toFixed(1);
-      editZEl.value = selectedEditable.obj.position.z.toFixed(1);
-    }
-  }
-});
-window.addEventListener('wheel', e => {
-  if (!editorActive || !selectedEditable) return;
-  selectedEditable.obj.position.y -= e.deltaY * 0.05;
-  editYEl.value = selectedEditable.obj.position.y.toFixed(1);
-}, { passive: true });
-window.addEventListener('keydown', e => {
-  if (!editorActive) return;
-  editorKeys[e.code] = true;
-  if (e.code === 'Escape') exitEditor();
-});
-window.addEventListener('keyup', e => { if (editorActive) editorKeys[e.code] = false; });
-
-function updateEditor(dt) {
-  if (editorSelectionBox) editorSelectionBox.update();
-  const camSpeed = (editorKeys['ShiftLeft'] ? 220 : 90) * dt;
-  const euler = new THREE.Euler(editorCamPitch, editorCamYaw, 0, 'YXZ');
-  camera.quaternion.setFromEuler(euler);
-  const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-  if (editorKeys['KeyW']) camera.position.addScaledVector(forward, camSpeed);
-  if (editorKeys['KeyS']) camera.position.addScaledVector(forward, -camSpeed);
-  if (editorKeys['KeyA']) camera.position.addScaledVector(right, -camSpeed);
-  if (editorKeys['KeyD']) camera.position.addScaledVector(right, camSpeed);
-  if (editorKeys['KeyE']) camera.position.y += camSpeed;
-  if (editorKeys['KeyQ']) camera.position.y -= camSpeed;
-}
-
-// ---- Motor de guardado: "parchea" el HTML en vivo con el estado actual, sin usar regex ----
-// (regex sobre strings de decenas de millones de caracteres, como el base64 de los modelos,
-// puede colgar el navegador; por eso todo esto usa indexOf/slice, que es seguro y rápido)
-function findFieldEnd(html, start) {
-  let depth = 0;
-  for (let i = start; i < html.length; i++) {
-    const c = html[i];
-    if (c === '{' || c === '[' || c === '(') depth++;
-    else if (c === '}' || c === ']' || c === ')') { if (depth === 0) return i; depth--; }
-    else if (c === ',' && depth === 0) return i;
-  }
-  return html.length;
-}
-function skipSpaces(html, i) { while (html[i] === ' ') i++; return i; }
-
-function patchModelBlock(html, key) {
-  const cfg = MODEL_LIBRARY[key];
-  const startIdx = html.indexOf(key + ': {');
-  if (startIdx === -1) return html;
-
-  const scaleMarker = 'scale:';
-  let vs2 = skipSpaces(html, html.indexOf(scaleMarker, startIdx) + scaleMarker.length);
-  const scaleEnd = findFieldEnd(html, vs2);
-  const scaleStr = cfg.scale.toFixed(4);
-  html = html.slice(0, vs2) + scaleStr + html.slice(scaleEnd);
-
-  const afterScale = vs2 + scaleStr.length;
-  const rotMarker = 'rotationY:';
-  let vs3 = skipSpaces(html, html.indexOf(rotMarker, afterScale) + rotMarker.length);
-  const rotEnd = findFieldEnd(html, vs3);
-  html = html.slice(0, vs3) + cfg.rotationY.toFixed(5) + html.slice(rotEnd);
-
-  return html;
-}
-
-function injectMarkedBlock(html, startMarker, endMarker, blockContent) {
-  const block = startMarker + '\n' + blockContent + '\n' + endMarker;
-  const startIdx = html.indexOf(startMarker);
-  if (startIdx !== -1) {
-    const endIdx = html.indexOf(endMarker, startIdx) + endMarker.length;
-    return html.slice(0, startIdx) + block + html.slice(endIdx);
-  }
-  const anchor = '/* SAVE' + '_INJECT_ANCHOR */';
-  const anchorIdx = html.indexOf(anchor);
-  return html.slice(0, anchorIdx) + block + '\n' + html.slice(anchorIdx);
-}
-
-function buildObjectPatchBlock() {
-  let code = '';
-  for (const entry of editableObjects) {
-    const v = EDITOR_VAR_NAMES[entry.name] || entry.name;
-    const p = entry.obj.position;
-    code += `${v}.position.set(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)});\n`;
-    code += `${v}.rotation.y = ${entry.obj.rotation.y.toFixed(5)};\n`;
-    code += `${v}.scale.setScalar(${entry.obj.scale.x.toFixed(4)});\n`;
-  }
-  return code;
-}
-
-function buildCustomAssetsPatchBlock() {
-  let code = '';
-  for (const key of Object.keys(CUSTOM_ASSETS)) {
-    const a = CUSTOM_ASSETS[key];
-    code += `CUSTOM_ASSETS['${key}'] = { base64: "${a.base64}", type: '${a.type}', scale: ${a.scale}, name: ${JSON.stringify(a.name)} };\n`;
-  }
-  return code;
-}
-
-function buildDecorationPatchBlock() {
-  let code = 'loadPendingCustomAssets(() => {\n';
-  code += 'for (const d of decorationInstances.slice()) scene.remove(d.mesh);\n';
-  code += 'decorationInstances.length = 0;\n';
-  code += 'tapePostColliders.length = 0;\n';
-  for (const d of decorationInstances) {
-    const p = d.mesh.position;
-    if (d.kind === 'scorch') {
-      code += `makeScorchMark(${p.x.toFixed(2)}, ${p.z.toFixed(2)}, ${d.params.radius.toFixed(2)}, ${d.params.rotation.toFixed(4)});\n`;
-    } else if (d.kind === 'tape') {
-      code += `makeCautionTapeBarrier(${p.x.toFixed(2)}, ${p.z.toFixed(2)}, ${d.params.length.toFixed(2)}, ${d.mesh.rotation.y.toFixed(4)});\n`;
-    } else if (d.kind.startsWith('debris_')) {
-      code += `spawnDebrisPiece(${p.x.toFixed(2)}, ${p.z.toFixed(2)}, DEBRIS_KINDS[${d.params.kindIndex}]);\n`;
-    } else if (CUSTOM_ASSETS[d.kind]) {
-      code += `placeCustomAsset('${d.kind}', ${p.x.toFixed(2)}, ${p.z.toFixed(2)});\n`;
-    }
-  }
-  code += '});';
-  return code;
-}
-
-function getCurrentSourceHTML() {
-  let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  for (const key of Object.keys(MODEL_LIBRARY)) html = patchModelBlock(html, key);
-  html = injectMarkedBlock(html, '/* EDITOR_STATE' + '_PATCH_START */', '/* EDITOR_STATE' + '_PATCH_END */', buildObjectPatchBlock());
-  html = injectMarkedBlock(html, '/* CUSTOM_ASSETS' + '_PATCH_START */', '/* CUSTOM_ASSETS' + '_PATCH_END */', buildCustomAssetsPatchBlock());
-  html = injectMarkedBlock(html, '/* DECORATION' + '_PATCH_START */', '/* DECORATION' + '_PATCH_END */', buildDecorationPatchBlock());
-  return html;
-}
-
-function stripBetweenMarkers(html, startMarker, endMarker) {
-  const s = html.indexOf(startMarker);
-  if (s === -1) return html;
-  const eRel = html.indexOf(endMarker, s);
-  if (eRel === -1) return html;
-  return html.slice(0, s) + html.slice(eRel + endMarker.length);
-}
-function stripEditorCode(html) {
-  html = stripBetweenMarkers(html, '<!-- EDITOR_BTN_START -->', '<!-- EDITOR_BTN_END -->');
-  html = stripBetweenMarkers(html, '<!-- EDITOR_UI_START -->', '<!-- EDITOR_UI_END -->');
-  html = stripBetweenMarkers(html, '/* EDITOR_JS_START */', '/* EDITOR_JS_END */');
-  return html;
-}
-function downloadHTML(html, filename) {
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-let savedFileHandle = null;
-async function saveChangesToFile() {
-  const statusEl = document.getElementById('saveStatusText');
-  statusEl.textContent = 'Generando archivo...';
-  let html;
-  try { html = getCurrentSourceHTML(); }
-  catch (err) { statusEl.textContent = 'Error al generar: ' + err.message; console.error(err); return; }
-  if (window.showSaveFilePicker) {
-    try {
-      if (!savedFileHandle) {
-        savedFileHandle = await window.showSaveFilePicker({
-          suggestedName: 'pato-clone-waves.html',
-          types: [{ description: 'Archivo HTML', accept: { 'text/html': ['.html'] } }]
-        });
-      }
-      const writable = await savedFileHandle.createWritable();
-      await writable.write(html);
-      await writable.close();
-      statusEl.textContent = '✅ Guardado correctamente en el archivo.';
-      return;
-    } catch (err) {
-      if (err.name === 'AbortError') { statusEl.textContent = 'Cancelado.'; return; }
-      console.error(err);
-      statusEl.textContent = 'No se pudo guardar directo, descargando copia...';
-    }
-  }
-  downloadHTML(html, 'pato-clone-waves.html');
-  statusEl.textContent = '✅ Descargado — reemplazá tu archivo viejo con este.';
-}
-document.getElementById('saveChangesBtn').addEventListener('click', saveChangesToFile);
-
-async function exportWithoutEditor() {
-  const statusEl = document.getElementById('saveStatusText');
-  statusEl.textContent = 'Generando versión sin editor...';
-  let html;
-  try {
-    html = getCurrentSourceHTML();
-    html = stripEditorCode(html);
-  } catch (err) { statusEl.textContent = 'Error: ' + err.message; console.error(err); return; }
-  downloadHTML(html, 'pato-clone-release.html');
-  statusEl.textContent = '✅ Versión sin editor descargada, lista para repartir.';
-}
-document.getElementById('exportNoEditorBtn').addEventListener('click', exportWithoutEditor);
-/* EDITOR_JS_END */
 
 // ================= Modelos 3D propios (opcional) =================
 // Para usar un modelo hecho en Meshy.ai (u otro): exportalo como .glb, pasámelo,
@@ -3083,7 +2087,6 @@ function swapDuckModelIfReady() {
 let zoomLevel = 1.6;
 const MIN_ZOOM = 0.8, MAX_ZOOM = 4.2;
 window.addEventListener('wheel', e => {
-  if (editorActive) return;
   zoomLevel += e.deltaY * 0.0025;
   zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel));
 }, { passive: true });
@@ -4114,7 +3117,6 @@ const keys = {};
 // esto es un respaldo extra para casos raros donde el foco se pierde sin cambiar el pointer lock).
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 window.addEventListener('keydown', e => {
-  if (editorActive) return;
   if (awaitingBindFor) {
     if (e.code !== 'Escape') { bindings[awaitingBindFor] = e.code; saveBindings(); renderBindList(); }
     awaitingBindFor = null;
@@ -4130,7 +3132,6 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (!keys[e.code]) {
-    if (e.code === bindings.toggleMode) toggleMode();
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
     if (e.code === 'KeyQ') { activateMovementSkill('q'); }
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
@@ -4158,7 +3159,7 @@ window.addEventListener('keydown', e => {
   }
   keys[e.code] = true;
 });
-window.addEventListener('keyup', e => { if (!editorActive) keys[e.code] = false; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
 
 let pointerLocked = false;
 let firing = false;
@@ -4166,7 +3167,6 @@ let gameRunning = false;
 const mouseButtons = { left: false, right: false, middle: false };
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 renderer.domElement.addEventListener('mousedown', e => {
-  if (editorActive || isMobile) return;
   if (!menuOverlay.classList.contains('hidden')) return;
   if (!controlsOverlay.classList.contains('hidden')) return;
   if (!gameOverOverlay.classList.contains('hidden')) return;
@@ -4179,13 +3179,11 @@ renderer.domElement.addEventListener('mousedown', e => {
   if (e.button === 1) { mouseButtons.middle = true; }
 });
 window.addEventListener('mouseup', e => {
-  if (editorActive) return;
   if (e.button === 0) { mouseButtons.left = false; firing = false; }
   if (e.button === 2) { mouseButtons.right = false; if (mouseButtons.left) firing = true; }
   if (e.button === 1) { mouseButtons.middle = false; }
 });
 document.addEventListener('pointerlockchange', () => {
-  if (editorActive) return;
   pointerLocked = document.pointerLockElement === renderer.domElement;
   if (!pointerLocked) {
     mouseButtons.left = false; mouseButtons.right = false; mouseButtons.middle = false; firing = false;
@@ -4198,7 +3196,6 @@ let lookYaw = 0, lookPitch = 0;
 let pendingYawDelta = 0, pendingPitchDelta = 0;
 let freeLookYaw = 0, freeLookPitch = 0;
 document.addEventListener('mousemove', e => {
-  if (editorActive) return;
   if (!pointerLocked) return;
   const invert = invertY ? -1 : 1;
   if (mouseButtons.left && mouseButtons.right) {
@@ -4309,10 +3306,7 @@ if (isMobile) {
     () => { clearInterval(turnRightInterval); turnRightInterval = null; }
   );
 
-  // ---- Modo (toggle siege - deshabilitado por ahora) ----
-  bindHoldButton('touchModeBtn', () => { toggleMode(); }, null);
-
-  // ---- Skill popup ----
+  // ---- Skills touch: tocar los slots directamente ----
   const skillBtn = document.getElementById('touchSkillBtn');
   let skillBarVisible = false;
   if (skillBtn) {
@@ -4922,22 +3916,11 @@ let bestWaveTime = null;
 let gameOver = false;
 let waveIsBoss = false;
 
-function toggleMode() {
-  // Siege Mode desactivado por ahora — se retoma más adelante.
-  return;
-}
-
 function showHitmarker() {
   const el = document.getElementById('hitmarker');
   el.style.opacity = '1';
   clearTimeout(el._t);
   el._t = setTimeout(() => el.style.opacity = '0', 150);
-}
-function showSiegeWarn() {
-  const el = document.getElementById('siegeWarn');
-  el.style.opacity = '1';
-  clearTimeout(el._t2);
-  el._t2 = setTimeout(() => el.style.opacity = '0', 900);
 }
 function showWaveBanner(text) {
   const el = document.getElementById('waveClearBanner');
@@ -5537,12 +4520,6 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if (editorActive) {
-    updateEditor(dt);
-    renderer.render(scene, camera);
-    return;
-  }
-
   if (!menuOverlay.classList.contains('hidden') || !controlsOverlay.classList.contains('hidden') || !scoreboardOverlay.classList.contains('hidden') || !waveClearOverlay.classList.contains('hidden') || gameOver) { renderer.render(scene, camera); return; }
 
   waveTimer += dt;
@@ -5606,7 +4583,7 @@ function animate() {
 
     if (ship.position.y < 3) ship.position.y = 3;
   } else {
-    if (lookPitch < 0) { lookPitch = 0; showSiegeWarn(); }
+    if (lookPitch < 0) lookPitch = 0;
     const clampedPitch = Math.max(0, Math.min(1.3, lookPitch));
     rollAngle *= 0.9;
     ship.quaternion.setFromEuler(new THREE.Euler(-clampedPitch, lookYaw, 0, 'YXZ'));
@@ -6103,33 +5080,6 @@ function animate() {
 
   renderer.render(scene, camera);
 }
-
-/* EDITOR_STATE_PATCH_START */
-boxSur.position.set(-180, 0, 120);
-boxSur.rotation.y = 0;
-boxSur.scale.setScalar(1);
-boxNE.position.set(200, 0, -150);
-boxNE.rotation.y = 0;
-boxNE.scale.setScalar(1);
-boxOeste.position.set(-250, 0, 0);
-boxOeste.rotation.y = 0;
-boxOeste.scale.setScalar(1);
-boxCentro.position.set(50, 0, -120);
-boxCentro.rotation.y = 0;
-boxCentro.scale.setScalar(1);
-legoWall.position.set(150, 0, 180);
-legoWall.rotation.y = 0.4;
-legoWall.scale.setScalar(1);
-windowGroup.position.set(-1.75, 140.00, 321.39);
-windowGroup.rotation.y = 3.14159;
-windowGroup.scale.setScalar(1.0000);
-lampGroup.position.set(0.00, 280.00, 0.00);
-lampGroup.rotation.y = 0.00000;
-lampGroup.scale.setScalar(1.0000);
-portalGroup.position.set(275.00, 140.00, 275.00);
-portalGroup.rotation.y = -2.35619;
-portalGroup.scale.setScalar(2.5900);
-/* EDITOR_STATE_PATCH_END */
 /* SAVE_INJECT_ANCHOR */
 preloadModels(() => {
   swapDuckModelIfReady();
