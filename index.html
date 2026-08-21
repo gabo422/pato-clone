@@ -4752,8 +4752,9 @@ function animate() {
   }
 
   if (mode === 'FLIGHT') {
-    // ---- AO-Authentic Flight Physics ----
-    // From ShuttleChild.cpp: mouse controls ship direction, keyboard controls speed/strafe
+    // ---- Hybrid Flight: Old responsive mouse + AO brake/boost model ----
+    // Mouse DIRECTLY controls ship orientation (the feel the user liked)
+    // Speed model from AO: W=accel, S/B=brake, Space=boost, auto-cruise
 
     // Landed state: ship sits on ground, no movement
     if (isLanded) {
@@ -4767,119 +4768,104 @@ function animate() {
     const effectiveMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0.2 : getSpeedMultiplier());
     const effectiveMin = speedMin;
 
-    // Determine booster state each frame (from CheckMoveRate)
-    if (isSiegeMode) {
-      boosterType = BOOSTER_TYPE_STOP;
-    } else if (braking && !boosting) {
-      boosterType = BOOSTER_TYPE_STOP;
-    } else if (boosting) {
-      boosterType = BOOSTER_TYPE_MAX;
-    } else {
-      boosterType = BOOSTER_TYPE_MIN;
-    }
+    // Determine booster state each frame
+    if (isSiegeMode) boosterType = BOOSTER_TYPE_STOP;
+    else if (braking && !boosting) boosterType = BOOSTER_TYPE_STOP;
+    else if (boosting) boosterType = BOOSTER_TYPE_MAX;
+    else boosterType = BOOSTER_TYPE_MIN;
 
-    // ---- Mouse X/Y → ship direction (from Move_Air, cpp:7551-7664) ----
-    // In AO: mouse cursor position relative to screen center controls yaw/pitch
-    // We use accumulated lookYaw/lookPitch from mousemove (already done above)
-    // Apply engine turn-rate factor (m_fMouseRate = 0.5 default)
-    const mouseRate = 0.5;
-    // Pitch: mouse Y → rotate velocity around side vector
-    // AIR_UPDOWNRATE_MAX = 0.5f, applied as: fAngle = UPDOWNRATE_MAX * mouseOffsetY / screenH
-    const pitchTarget = lookPitch * 0.5 * mouseRate; // accumulated pitch from mouse
-    const yawTarget = lookYaw * 0.7 * mouseRate;     // accumulated yaw from mouse
+    // ---- Mouse DIRECTLY sets orientation (old feel that worked) ----
+    const pitchClamped = Math.max(-1.2, Math.min(1.2, lookPitch));
+    const euler = new THREE.Euler(-pitchClamped, lookYaw, 0, 'YXZ');
 
-    // Smooth ramp (from Move_Air: m_fCurrentAngle ramps toward target)
-    currentAngle += (pitchTarget - currentAngle) * Math.min(1, 6 * dt);
-    currentSideRate += (yawTarget - currentSideRate) * Math.min(1, 6 * dt);
-
-    // Build orientation from yaw + pitch (Euler YXZ)
-    const euler = new THREE.Euler(-currentAngle, currentSideRate, 0, 'YXZ');
-
-    // ---- Strafe: A/D key effect (from CheckMoveRate, cpp:10369-10394) ----
-    // nSideMove: +1 right, -1 left → lRVelRate ramps at 10/sec, decays at 1/sec
+    // ---- Banking from strafe (A/D) — AO style ----
     let nSideMove = 0;
     if (keys[bindings.rollRight]) nSideMove = 1;
     if (keys[bindings.rollLeft]) nSideMove = -1;
 
     if (nSideMove) {
       lRVelRate += 10.0 * nSideMove * dt;
-      if (lRVelRate < -1.0) lRVelRate = -1.0;
-      else if (lRVelRate > 1.0) lRVelRate = 1.0;
+      lRVelRate = Math.max(-1.0, Math.min(1.0, lRVelRate));
     } else {
       if (lRVelRate > 0) { lRVelRate -= dt; if (lRVelRate < 0) lRVelRate = 0; }
       else if (lRVelRate < 0) { lRVelRate += dt; if (lRVelRate > 0) lRVelRate = 0; }
     }
 
-    // ---- Speed (from CheckMoveRate, cpp:10533-10681) ----
+    // Banking angle from yaw rate (proportional to strafe + mouse turn speed)
+    const BANK_CAP = Math.PI / 2 * 0.8;
+    const targetBank = -lRVelRate * 0.9;
+    if (!barrelRoll.active) {
+      rollAngle += (targetBank - rollAngle) * Math.min(1, 6 * dt);
+    }
+
+    // Barrel roll override
+    if (barrelRoll.active) {
+      barrelRoll.timer += dt;
+      const spinSpeed = (Math.PI * 2) / barrelRoll.duration;
+      rollAngle = barrelRoll.dir * spinSpeed * barrelRoll.timer;
+      if (barrelRoll.timer >= barrelRoll.duration) {
+        barrelRoll.active = false;
+        rollAngle = 0;
+      }
+    }
+
+    const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollAngle);
+    ship.quaternion.setFromEuler(euler).multiply(rollQuat);
+
+    // ---- Speed model: AO-authentic brake/boost + W=accel, S=soft brake ----
     if (isSiegeMode) {
       speed *= 0.85;
     } else if (braking && !boosting) {
-      // S key / B key brake: exponential decel toward min speed (AIR_BREAK = 4.0)
+      // B key / S key held: hard brake — exponential decel (AIR_BREAK = 4.0)
       const AIR_BREAK = 4.0;
-      let fAddSpeed = (speed - effectiveMin) * dt * AIR_BREAK;
+      const fAddSpeed = (speed - effectiveMin) * dt * AIR_BREAK;
       if (Math.abs(fAddSpeed) < 0.005) speed /= 2;
       else speed -= fAddSpeed;
       if (speed < effectiveMin) speed = effectiveMin;
     } else if (boosting) {
-      // SPACE boost: exponential approach to booster speed
-      speed += (effectiveMax - speed) * dt;
+      // SPACE: boost toward booster speed (exponential approach)
+      speed += (effectiveMax - speed) * dt * 3;
+    } else if (keys[bindings.forward]) {
+      // W: accelerate toward max speed
+      speed += accel * dt;
+      speed = Math.min(speed, effectiveMax);
+    } else if (keys[bindings.back]) {
+      // S without B: soft brake
+      const softBrake = (speed - effectiveMin) * dt * 2.0;
+      speed -= Math.max(softBrake, accel * 0.3 * dt);
+      if (speed < effectiveMin) speed = effectiveMin;
     } else {
-      // No key: auto-cruise toward max speed (cpp:10671-10679)
-      if (speed < effectiveMax) speed += (effectiveMax - speed) * dt;
-      else if (speed > effectiveMax) speed -= (speed - effectiveMax) * dt;
-      // S as low-speed (not full brake, just held): slower decel
-      if (keys[bindings.back]) {
-        speed -= (speed - effectiveMin) * dt * 2.0;
-      }
+      // No key: gentle cruise — maintain current speed with light damping
+      if (speed > effectiveMax) speed *= (1 - 0.5 * dt);
+      else if (speed < effectiveMin) speed += (effectiveMin - speed) * dt * 2;
     }
-    // Gravity coupling (cpp:10492-10531): climbing loses speed, diving gains
+
+    // Gravity coupling (AO): climbing loses speed, diving gains
     if (speed > 0) {
       const angleFromUp = Math.acos(Math.max(-1, Math.min(1,
         new THREE.Vector3(0, 1, 0).dot(new THREE.Vector3(0, 0, 1).applyEuler(euler))
       )));
-      const angleNormalized = angleFromUp / Math.PI; // 0=up, 0.5=forward, 1=down
-      const GRAVITY = 98.0;
+      const angleNormalized = angleFromUp / Math.PI;
+      const GRAVITY = 50.0;
       let targetGravity = 0;
       if (angleNormalized > 0 && angleNormalized < 0.5) targetGravity = GRAVITY * (0.5 - angleNormalized) * 2.0;
       else if (angleNormalized > 0.5 && angleNormalized < 1.0) targetGravity = -GRAVITY * (angleNormalized - 0.5) * 2.0;
       tempGravity += (targetGravity - tempGravity) * dt;
       speed -= tempGravity * dt;
-      if (speed < effectiveMin) speed = effectiveMin;
+      if (speed < effectiveMin * 0.3) speed = effectiveMin * 0.3;
     }
-    // Clamp speed
-    speed = Math.max(effectiveMin * 0.5, Math.min(effectiveMax * 1.05, speed));
 
-    // ---- Banking angle (from SetMatrix_Move_Air, cpp:8787-8850) ----
-    // sideCheckRate: 2.0 normally, 0.5 during airbrake
-    if (boosterType === BOOSTER_TYPE_STOP) sideCheckRate = 0.5;
-    else sideCheckRate = 2.0;
-    // Bank = smoothed exponential toward -2 * sideRate * sideCheckRate, capped ±72°
-    const targetBank = -2.0 * currentSideRate * sideCheckRate;
-    let bankAngle = rollAngle + (targetBank - rollAngle) * Math.min(1, 4 * dt);
-    const BANK_CAP = Math.PI / 2 * 0.8; // 72° max
-    bankAngle = Math.max(-BANK_CAP, Math.min(BANK_CAP, bankAngle));
-    // During barrel roll, override bank
-    if (barrelRoll.active) {
-      barrelRoll.timer += dt;
-      const spinSpeed = (Math.PI * 2) / barrelRoll.duration;
-      bankAngle = barrelRoll.dir * spinSpeed * barrelRoll.timer;
-      if (barrelRoll.timer >= barrelRoll.duration) {
-        barrelRoll.active = false;
-        bankAngle = 0;
-      }
-    }
-    rollAngle = bankAngle;
+    // Final clamp
+    speed = Math.max(effectiveMin * 0.3, Math.min(effectiveMax * 1.05, speed));
 
-    // ---- Build final orientation ----
-    const rollQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollAngle);
-    ship.quaternion.setFromEuler(euler).multiply(rollQuat);
-
-    // ---- Forward movement (always, from CheckMoveRate cpp:11029-11045) ----
+    // ---- Forward movement (always) ----
     const forward = new THREE.Vector3(0, 0, 1).applyEuler(euler);
     ship.position.addScaledVector(forward, speed * dt);
-    // Strafe: lRVelRate * side * halfMaxSpeed (cpp:10394)
-    const sideVec = new THREE.Vector3(1, 0, 0).applyEuler(euler);
-    ship.position.addScaledVector(sideVec, lRVelRate * effectiveMax * 0.5 * dt);
+    // Strafe
+    if (nSideMove !== 0) {
+      const sideVec = new THREE.Vector3(1, 0, 0).applyEuler(euler);
+      ship.position.addScaledVector(sideVec, nSideMove * effectiveMax * 0.35 * dt);
+    }
 
     // Floor height
     if (ship.position.y < 3) ship.position.y = 3;
