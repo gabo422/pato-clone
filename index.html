@@ -2020,7 +2020,7 @@ const MODEL_LIBRARY = {
   boss: {
     type: 'glb',
     url: "modelos/boat.glb",
-    scale: 0.37,
+    scale: 0.75,
     rotationY: 0,
     // Puntos locales de los cañones laterales del boss (de acá salen sus misiles)
     cannonPoints: [
@@ -5144,7 +5144,7 @@ function animate() {
     let hit = false;
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
-      const hitRadius = enemy.isBoss ? 13 : 5.5;
+      const hitRadius = enemy.isBoss ? 26 : 5.5;
       if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, p.damage || 10, false); hit = true; break; }
     }
     if (!hit) {
@@ -5176,7 +5176,7 @@ function animate() {
     let hit = false;
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
-      const hitRadius = enemy.isBoss ? 13 : 5.5;
+      const hitRadius = enemy.isBoss ? 26 : 5.5;
       if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
     }
     if (!hit) {
