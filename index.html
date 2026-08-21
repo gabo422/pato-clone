@@ -793,7 +793,7 @@ const GEAR_CONFIGS = {
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
     weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 88, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
                advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
-    stats: { maxSpeed: 110, boostMaxSpeed: 280, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
+    stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 75, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
@@ -816,7 +816,7 @@ const GEAR_CONFIGS = {
     desc: 'Pesado y letal. Siege mode y defensa.',
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 75, pierce: true },
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
-    stats: { maxSpeed: 65, boostMaxSpeed: 160, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
+    stats: { maxSpeed: 65, boostMaxSpeed: 160, speedMin: 45, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
     passives: [
       { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
       { id: 'siegeDefense', name: 'Siege Defense', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
@@ -843,7 +843,7 @@ const GEAR_CONFIGS = {
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
-    stats: { maxSpeed: 85, boostMaxSpeed: 220, accel: 38, boostAccel: 70, defense: 5, evasion: 4, shield: 5, hp: 6 },
+    stats: { maxSpeed: 85, boostMaxSpeed: 195, speedMin: 65, accel: 50, boostAccel: 80, defense: 5, evasion: 4, shield: 5, hp: 6 },
     passives: [
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
     ],
@@ -868,7 +868,7 @@ const GEAR_CONFIGS = {
     desc: 'La columna vertebral del equipo. Curación y buffs.',
     weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
-    stats: { maxSpeed: 80, boostMaxSpeed: 200, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
+    stats: { maxSpeed: 80, boostMaxSpeed: 200, speedMin: 55, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
     passives: [
       { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
       { id: 'smartSP', name: 'Smart SP', desc: '-30% SP cost de todas las skills', stat: 'spCostReduction', value: 0.3 }
@@ -944,7 +944,7 @@ function applyGearSelection(gearKey) {
   boostMaxSpeed = cfg.stats.boostMaxSpeed;
   accel = cfg.stats.accel;
   boostAccel = cfg.stats.boostAccel;
-  speedMin = maxSpeed * 0.15; // AO: m_fRealShuttleSpeedMin ≈ 15% of max when braking
+  speedMin = cfg.stats.speedMin || maxSpeed * 0.6; // AO: idle speed is ~60-77% of max (Eurostar IX: 154/200=77%)
   MAX_LIVES = cfg.stats.hp;
   lives = MAX_LIVES;
   shieldMax = cfg.stats.shield;
