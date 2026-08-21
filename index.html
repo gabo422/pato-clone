@@ -787,53 +787,60 @@ const DIFFICULTY_HINTS = {
 
 // ================= Selección de Juguete =================
 const GEAR_CONFIGS = {
+  // ===== I-GEAR (Idle Sniper) — Velocidad y Daño =====
   rayo: {
-    name: 'Rayo', role: 'Caza Veloz', icon: '⚡',
-    desc: 'El más rápido del campo de batalla.',
+    name: 'Rayo', role: 'Interceptor', icon: '⚡',
+    desc: 'El más rápido del campo de batalla. Daño y evasión.',
     weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 88, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
                advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
-    passives: [
-      { id: 'fireShot', name: 'Fire Shot', desc: '+40% daño arma estándar', stat: 'stdDmgBonus', value: 0.4 },
-      { id: 'frenzy', name: 'Frenzy', desc: '+30% daño arma avanzada, +5° ángulo lock', stat: 'advDmgBonus', value: 0.3 },
-      { id: 'concentration', name: 'Concentration', desc: '+25% accuracy arma estándar', stat: 'stdAccuracyBonus', value: 0.25 },
-      { id: 'evasionUp', name: 'Evasion Up', desc: '+30% evasión', stat: 'evasionBonus', value: 0.3 },
-      { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 },
-      { id: 'hyperMoving', name: 'Hyper Moving', desc: '+10% turning y strafe', stat: 'turnBonus', value: 0.1 }
-    ],
+    passives: [],
     activeSkills: [
-      { id: 'berserker', name: 'Berserker', cat: 'Ataque', spCost: 40, cooldown: 30, duration: 15, desc: '+2x2 misiles, -30% reattack time' },
-      { id: 'overbooster', name: 'Overbooster', cat: 'Aire', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash veloz + invulnerable' }
+      { id: 'frenzy', name: 'Frenzy', cat: 'Ataque', spCost: 35, cooldown: 40, duration: 20, desc: '+Daño, +1 Disparo Continuo, +5° ángulo válido' },
+      { id: 'berserker', name: 'Berserker', cat: 'Ataque', spCost: 40, cooldown: 30, duration: 15, desc: '+2 Disparo Continuo, +2 Misiles, -30% Reattack' },
+      { id: 'overbooster', name: 'OverBooster', cat: 'Aire', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash 600m/s, invulnerable' },
+      { id: 'hyperMoving', name: 'Hyper Moving', cat: 'Atributo', spCost: 30, cooldown: 60, duration: 60, desc: '+10% giro y strafe' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma avanzada' },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 0, duration: 60, desc: '+Accuracy ambas armas' },
+      { id: 'evasionUp', name: 'Evasion Up', cat: 'Defensa', spCost: 10, cooldown: 0, duration: 60, desc: '+Evasión' },
+      { id: 'defenseUp', name: 'Defence Up', cat: 'Defensa', spCost: 10, cooldown: 0, duration: 60, desc: '+Defensa' },
+      { id: 'silence', name: 'Silence', cat: 'Atributo', spCost: 15, cooldown: 20, duration: 10, desc: 'Objetivo no detecta misiles' }
     ],
-    movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Dash rápido hacia atrás', cooldown: 15 } },
+    movement: { q: { id: 'turnaround', name: 'Turn Around', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
     modelKey: 'duck', modelBuilder: null
   },
+  // ===== A-GEAR (Anima Mortar) — Tanque / Asedio =====
   muro: {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
-    desc: 'Pesado y letal.',
+    desc: 'Pesado y letal. Siege mode y defensa.',
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 75, pierce: true },
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 65, boostMaxSpeed: 160, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
     passives: [
-      { id: 'defenseUp', name: 'Defense Up', desc: '+40% defensa', stat: 'defenseBonus', value: 0.4 },
-      { id: 'siegeDefense', name: 'Siege Defense', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
       { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
-      { id: 'snareShotPassive', name: 'Snare Shot', desc: 'Disparos ralentizan enemigos 50%', stat: 'snareEffect', value: 0.5 },
-      { id: 'groundAccelerator', name: 'Ground Accelerator', desc: '+60% velocidad', stat: 'speedBonus', value: 0.6 }
+      { id: 'siegeDefense', name: 'Siege Defence', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
+      { id: 'groundAccelerator', name: 'Ground Acceleration', desc: '+60% velocidad', stat: 'speedBonus', value: 0.6 }
     ],
     activeSkills: [
-      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 15, desc: 'Inmóvil, +100% daño arma, +rango' },
+      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 15, desc: 'Torreta inmóvil, +100% daño, +rango' },
       { id: 'airSiegeMode', name: 'Air Siege Mode', cat: 'Ataque', spCost: 30, cooldown: 22, duration: 12, desc: 'Siege mode en el aire' },
       { id: 'hyperShot', name: 'Hyper Shot', cat: 'Ataque', spCost: 35, cooldown: 30, duration: 0, desc: 'Disparo AoE que ignora defensa' },
+      { id: 'snareShot', name: 'Snare Shot', cat: 'Ataque', spCost: 15, cooldown: 0, duration: 15, desc: 'Disparos ralentizan enemigos 50%' },
       { id: 'barrier', name: 'Barrier', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: '+5 HP de escudo temporal' },
-      { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' }
+      { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' },
+      { id: 'shieldParalyse', name: 'Shield Paralyse', cat: 'Atributo', spCost: 40, cooldown: 45, duration: 0, desc: 'Daño puro ignora escudo y defensa' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma avanzada' },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 0, duration: 60, desc: '+Accuracy ambas armas' }
     ],
     movement: null,
     modelKey: 'teddy', modelBuilder: null
   },
+  // ===== B-GEAR (Brandy Burg) — Bombardero =====
   trueno: {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
-    desc: 'Versátil y destructivo.',
+    desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
     stats: { maxSpeed: 85, boostMaxSpeed: 220, accel: 38, boostAccel: 70, defense: 5, evasion: 4, shield: 5, hp: 6 },
@@ -841,36 +848,42 @@ const GEAR_CONFIGS = {
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
     ],
     activeSkills: [
-      { id: 'groundBombing', name: 'Ground Bombing', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 0, desc: 'AoE circular en el suelo (60m)' },
-      { id: 'airBombing', name: 'Air Bombing', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 0, desc: 'AoE desde arriba (100m)' },
-      { id: 'chargeShot', name: 'Charge Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Disparo cargado 3x daño' },
+      { id: 'groundBombing', name: 'Ground Bombing', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 0, desc: 'Misiles caen como bombas al suelo' },
+      { id: 'airBombing', name: 'Air Bombing', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 0, desc: 'Misiles lanzados como bombas al frente' },
+      { id: 'chargeShot', name: 'Charge Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Arma estándar cargada, alto daño y precisión' },
       { id: 'multiTarget', name: 'Multi-target', cat: 'Ataque', spCost: 25, cooldown: 18, duration: 12, desc: 'Misiles atacan múltiples objetivos' },
-      { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 15, duration: 10, desc: 'Chaffs absorben 3 hits por vos' },
-      { id: 'bigBoom', name: 'Big Boom', cat: 'Ataque', spCost: 50, cooldown: 40, duration: 0, desc: 'Explosión masiva (140m radio)' },
-      { id: 'invisible', name: 'Invisible', cat: 'Atributo', spCost: 25, cooldown: 30, duration: 15, desc: 'Invisible a enemigos' }
+      { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 15, duration: 10, desc: 'Chaffs absorben hits enemigos' },
+      { id: 'bigBoom', name: 'Big Boom', cat: 'Ataque', spCost: 50, cooldown: 1800, duration: 0, desc: 'Explosión masiva = tu Energy de daño' },
+      { id: 'invisible', name: 'Invisible', cat: 'Atributo', spCost: 25, cooldown: 30, duration: 15, desc: 'Invisible a enemigos (excepto Scan)' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma avanzada' },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 0, duration: 60, desc: '+Accuracy ambas armas' }
     ],
-    movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Dash rápido hacia atrás', cooldown: 15 } },
+    movement: { q: { id: 'turnaround', name: 'Turn Around', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
     modelKey: 'duck', modelBuilder: null
   },
+  // ===== M-GEAR (Meadow Burgle) — Soporte =====
   viento: {
     name: 'Viento', role: 'Soporte', icon: '💚',
-    desc: 'La columna vertebral del equipo.',
+    desc: 'La columna vertebral del equipo. Curación y buffs.',
     weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false },
                advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
     stats: { maxSpeed: 80, boostMaxSpeed: 200, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
     passives: [
       { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
-      { id: 'defenseUp', name: 'Defense Up', desc: '+40% defensa', stat: 'defenseBonus', value: 0.4 },
-      { id: 'evasionUp', name: 'Evasion Up', desc: '+30% evasión', stat: 'evasionBonus', value: 0.3 },
       { id: 'smartSP', name: 'Smart SP', desc: '-30% SP cost de todas las skills', stat: 'spCostReduction', value: 0.3 }
     ],
     activeSkills: [
-      { id: 'healingField', name: 'Healing Field', cat: 'Defensa', spCost: 20, cooldown: 18, duration: 15, desc: '+1 HP cada 3s' },
-      { id: 'energizingField', name: 'Energizing Field', cat: 'Atributo', spCost: 15, cooldown: 15, duration: 15, desc: '+200% regen SP' },
+      { id: 'healingField', name: 'Healing Field', cat: 'Defensa', spCost: 20, cooldown: 18, duration: 15, desc: '+1 HP cada 3s (área)' },
+      { id: 'energisingField', name: 'Energising Field', cat: 'Atributo', spCost: 15, cooldown: 15, duration: 15, desc: '+200% regen SP (área)' },
       { id: 'healTarget', name: 'Heal Target', cat: 'Defensa', spCost: 20, cooldown: 12, duration: 0, desc: 'Cura instantánea +3 HP' },
-      { id: 'energizeTarget', name: 'Energize Target', cat: 'Atributo', spCost: 10, cooldown: 10, duration: 0, desc: '+30 SP instantáneo' },
+      { id: 'energiseTarget', name: 'Energise Target', cat: 'Atributo', spCost: 10, cooldown: 10, duration: 0, desc: '+30 SP instantáneo' },
       { id: 'reverseEngine', name: 'Reverse Engine', cat: 'Aire', spCost: 25, cooldown: 20, duration: 0, desc: 'Frena + elimina misiles cercanos' },
-      { id: 'fullRecovery', name: 'Full Recovery', cat: 'Atributo', spCost: 50, cooldown: 60, duration: 0, desc: 'HP + escudo completos' }
+      { id: 'fullRecovery', name: 'Full Recovery', cat: 'Atributo', spCost: 50, cooldown: 60, duration: 0, desc: 'HP + escudo completos' },
+      { id: 'scan', name: 'Scan', cat: 'Atributo', spCost: 15, cooldown: 20, duration: 10, desc: 'Revela enemigos invisibles' },
+      { id: 'ragingFire', name: 'Raging Fire', cat: 'Atributo', spCost: 20, cooldown: 30, duration: 20, desc: '+Ataque a formación' },
+      { id: 'ragingDefence', name: 'Raging Defence', cat: 'Atributo', spCost: 20, cooldown: 30, duration: 20, desc: '+Defensa a formación' },
+      { id: 'ragingEvasion', name: 'Raging Evasion', cat: 'Atributo', spCost: 20, cooldown: 30, duration: 20, desc: '+Evasión a formación' }
     ],
     movement: null,
     modelKey: 'duck', modelBuilder: null
@@ -3480,12 +3493,18 @@ const SKILL_ICON_MAP = {
   overbooster:     '07832030.png',
   turnaround:      '07832040.png',
   backMoveMach:    '07833010.png',
+  frenzy:          '07833040.png',
+  hyperMoving:     '07833030.png',
+  silence:         '07833020.png',
+  chainRolling:    '07833060.png',
   // muro (D-Gear / Tank) — 0782xxxx
   siegeMode:       '07820050.png',
   airSiegeMode:    '07820060.png',
   hyperShot:       '07823060.png',
   barrier:         '07821060.png',
   remedy:          '07821050.png',
+  snareShot:       '07823050.png',
+  shieldParalyse:  '07823040.png',
   // trueno (B-Gear / Bomber) — 0780xxxx
   groundBombing:   '07800040.png',
   airBombing:      '07800070.png',
@@ -3496,11 +3515,27 @@ const SKILL_ICON_MAP = {
   invisible:       '07803030.png',
   // viento (O-Gear / Support) — 0781xxxx
   healingField:    '07811030.png',
-  energizingField: '07811050.png',
+  energisingField: '07811050.png',
   healTarget:      '07811040.png',
-  energizeTarget:  '07811060.png',
+  energiseTarget:  '07811060.png',
   reverseEngine:   '07812020.png',
   fullRecovery:    '07813070.png',
+  scan:            '07813030.png',
+  ragingFire:      '07813040.png',
+  ragingDefence:   '07813050.png',
+  ragingEvasion:   '07813060.png',
+  // general (shared) — 0786xxxx
+  fireShot:        '07863090.png',
+  missileShot:     '07863100.png',
+  concentration:   '07863110.png',
+  evasionUp:       '07863120.png',
+  defenseUp:       '07863130.png',
+  reduceDamage:    '07863140.png',
+  collisionAbsorption: '07863150.png',
+  siegeDefense:    '07863160.png',
+  groundAccelerator: '07863170.png',
+  smartSP:         '07890050.png',
+  elevation:       '07890060.png',
 };
 const SKILL_ICON_DIR = 'icons/skills_ace/';
 
@@ -3818,25 +3853,47 @@ function updateMovementAnimations(dt) {
 
 // ================= Damage/Defense Multipliers from Passives =================
 function getStdDmgMultiplier() {
-  return getLevelDamageBonus() + getPassive('stdDmgBonus') + (isSkillActive('berserker') ? 0.5 : 0);
+  let m = getLevelDamageBonus() + getPassive('stdDmgBonus');
+  if (isSkillActive('berserker')) m += 0.5;
+  if (isSkillActive('fireShot')) m += 0.4;
+  if (isSkillActive('frenzy')) m += 0.3;
+  if (isSkillActive('ragingFire')) m += 0.2;
+  return m;
 }
 function getAdvDmgMultiplier() {
-  return getLevelDamageBonus() + getPassive('advDmgBonus');
+  let m = getLevelDamageBonus() + getPassive('advDmgBonus');
+  if (isSkillActive('berserker')) m += 0.5;
+  if (isSkillActive('missileShot')) m += 0.4;
+  if (isSkillActive('frenzy')) m += 0.3;
+  if (isSkillActive('ragingFire')) m += 0.2;
+  return m;
 }
 function getDefenseMultiplier() {
   let m = getLevelDefenseBonus() + getPassive('defenseBonus');
   if (isSkillActive('siegeMode') && selectedGear === 'muro') m += getPassive('siegeDefenseBonus');
   if (isSkillActive('berserker')) m *= 0.7;
+  if (isSkillActive('defenseUp')) m += 0.4;
+  if (isSkillActive('ragingDefence')) m += 0.2;
   return m;
 }
 function getEvasionBonus() {
-  return getPassive('evasionBonus') * 100;
+  let b = getPassive('evasionBonus') * 100;
+  if (isSkillActive('evasionUp')) b += 30;
+  if (isSkillActive('ragingEvasion')) b += 20;
+  return b;
 }
 function getSpeedMultiplier() {
   return 1 + getPassive('speedBonus');
 }
 function getStdAccuracyBonus() {
-  return getPassive('stdAccuracyBonus') * 100;
+  let b = getPassive('stdAccuracyBonus') * 100;
+  if (isSkillActive('concentration')) b += 30;
+  return b;
+}
+function getAdvAccuracyBonus() {
+  let b = getPassive('advAccuracyBonus') * 100;
+  if (isSkillActive('concentration')) b += 30;
+  return b;
 }
 
 // ================= Render Skill Bar =================
