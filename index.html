@@ -4997,8 +4997,8 @@ function animate() {
 
     // ---- Banking from strafe (A/D) — AO style ----
     let nSideMove = 0;
-    if (keys[bindings.rollRight]) nSideMove = 1;
-    if (keys[bindings.rollLeft]) nSideMove = -1;
+    if (keys[bindings.rollRight]) nSideMove = -1;
+    if (keys[bindings.rollLeft]) nSideMove = 1;
 
     if (nSideMove) {
       lRVelRate += 10.0 * nSideMove * dt;
@@ -5097,8 +5097,8 @@ function animate() {
     const dir = new THREE.Vector3();
     if (keys[bindings.forward]) dir.z += 1;
     if (keys[bindings.back]) dir.z -= 1;
-    if (keys[bindings.rollLeft]) dir.x -= 1;
-    if (keys[bindings.rollRight]) dir.x += 1;
+    if (keys[bindings.rollLeft]) dir.x += 1;
+    if (keys[bindings.rollRight]) dir.x -= 1;
     dir.normalize();
     const flatEuler = new THREE.Euler(0, lookYaw, 0);
     const moveDir = dir.applyEuler(flatEuler);
