@@ -231,6 +231,31 @@
     text-transform: uppercase; letter-spacing: 2px;
   }
 
+  /* ---- Cheat overlay ---- */
+  #cheatOverlay {
+    position: absolute; inset: 0; background: rgba(5,12,25,0.8);
+    display: flex; align-items: center; justify-content: center; z-index: 20;
+  }
+  #cheatOverlay.hidden { display: none; }
+  #cheatBox {
+    background: rgba(10,20,40,0.95); border: 1px solid #00d4ff; border-radius: 8px;
+    padding: 24px 32px; text-align: center; color: #eee; font-family: 'Share Tech Mono', monospace;
+  }
+  #cheatBox label { display: block; margin-bottom: 10px; font-size: 15px; color: #00d4ff; }
+  #cheatInput {
+    background: rgba(0,20,40,0.8); border: 1px solid #00d4ff; color: #fff;
+    font-size: 20px; font-family: 'Share Tech Mono', monospace;
+    padding: 8px 14px; border-radius: 4px; width: 120px; text-align: center;
+    outline: none;
+  }
+  #cheatInput:focus { border-color: #fff; box-shadow: 0 0 10px rgba(0,212,255,0.4); }
+  #cheatBox button {
+    margin-top: 12px; padding: 6px 18px; font-size: 14px; cursor: pointer;
+    background: rgba(0,212,255,0.15); border: 1px solid #00d4ff; color: #00d4ff;
+    border-radius: 4px; font-family: 'Share Tech Mono', monospace;
+  }
+  #cheatBox button:hover { background: rgba(0,212,255,0.3); }
+
   /* ---- Overlays (menus, game over, etc.) ---- */
   #menuOverlay, #gameOverOverlay, #scoreboardOverlay, #waveClearOverlay, #controlsOverlay {
     position: absolute; inset: 0; background: rgba(5,12,25,0.75);
@@ -596,6 +621,15 @@
 <div id="damageFlash"></div>
 <div id="speedLines"></div>
 <div id="waveClearBanner"></div>
+<div id="cheatOverlay" class="hidden">
+  <div id="cheatBox">
+    <label>CHEAT — Nivel (oleada)</label>
+    <input id="cheatInput" type="number" min="1" value="1">
+    <br>
+    <button id="cheatGoBtn">Ir</button>
+    <button id="cheatCancelBtn">Cancelar</button>
+  </div>
+</div>
 <div id="minimapWrap">
   <canvas id="minimap" width="160" height="160"></canvas>
 </div>
@@ -3370,11 +3404,26 @@ function drawMinimap() {
 
 // ================= Cheat Codes (GTA-style typing) =================
 let cheatBuffer = '';
+let cheatTimer = null;
+function appendCheatKey(ch) {
+  clearTimeout(cheatTimer);
+  cheatBuffer += ch;
+  for (const [code, fn] of Object.entries(CHEATS)) {
+    if (cheatBuffer.endsWith(code)) { cheatBuffer = ''; fn(); return; }
+  }
+  cheatTimer = setTimeout(() => { cheatBuffer = ''; }, 4000);
+}
 const CHEATS = {
   'letmeselectlevel': () => {
-    const input = prompt('Nivel (oleada):', waveNumber);
-    if (input !== null && !isNaN(parseInt(input))) {
-      const target = Math.max(1, parseInt(input));
+    document.exitPointerLock();
+    const ov = document.getElementById('cheatOverlay');
+    const inp = document.getElementById('cheatInput');
+    inp.value = waveNumber;
+    ov.classList.remove('hidden');
+    setTimeout(() => inp.focus(), 50);
+    function go() {
+      ov.classList.add('hidden');
+      const target = Math.max(1, parseInt(inp.value) || 1);
       for (const e of enemies) scene.remove(e.mesh);
       enemies.length = 0;
       for (const m of enemyMissiles) { scene.remove(m.mesh); }
@@ -3390,6 +3439,9 @@ const CHEATS = {
       startWave();
       showWaveBanner('CHEAT: Oleada ' + target);
     }
+    document.getElementById('cheatGoBtn').onclick = go;
+    document.getElementById('cheatCancelBtn').onclick = () => { ov.classList.add('hidden'); };
+    inp.onkeydown = (ev) => { if (ev.key === 'Enter') go(); if (ev.key === 'Escape') ov.classList.add('hidden'); ev.stopPropagation(); };
   },
   'godmode': () => {
     window._godMode = !window._godMode;
@@ -3415,7 +3467,6 @@ const CHEATS = {
     showWaveBanner('CHEAT: Escudo máximo');
   },
 };
-setInterval(() => { cheatBuffer = ''; }, 2000);
 
 // ================= Input =================
 const keys = {};
@@ -3424,12 +3475,9 @@ const keys = {};
 // esto es un respaldo extra para casos raros donde el foco se pierde sin cambiar el pointer lock).
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 window.addEventListener('keydown', e => {
-  // Cheat code buffer (GTA-style)
+  // Cheat code buffer (GTA-style) — runs BEFORE any game logic
   if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-    cheatBuffer += e.key.toLowerCase();
-    for (const [code, fn] of Object.entries(CHEATS)) {
-      if (cheatBuffer.endsWith(code)) { cheatBuffer = ''; fn(); break; }
-    }
+    appendCheatKey(e.key.toLowerCase());
   }
   if (awaitingBindFor) {
     if (e.code !== 'Escape') { bindings[awaitingBindFor] = e.code; saveBindings(); renderBindList(); }
@@ -5009,7 +5057,7 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if (!menuOverlay.classList.contains('hidden') || !controlsOverlay.classList.contains('hidden') || !scoreboardOverlay.classList.contains('hidden') || !waveClearOverlay.classList.contains('hidden') || gameOver) { renderer.render(scene, camera); return; }
+  if (!menuOverlay.classList.contains('hidden') || !controlsOverlay.classList.contains('hidden') || !scoreboardOverlay.classList.contains('hidden') || !waveClearOverlay.classList.contains('hidden') || !document.getElementById('cheatOverlay').classList.contains('hidden') || gameOver) { renderer.render(scene, camera); return; }
 
   waveTimer += dt;
   document.getElementById('waveTime').textContent = waveTimer.toFixed(1);
