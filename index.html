@@ -135,7 +135,7 @@
 
   /* ---- Boss Bar ---- */
   #bossBar {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
     width: 280px; background: rgba(5,12,25,0.9); border: 1px solid rgba(255,50,50,0.4);
     border-radius: 3px; padding: 5px 8px; display: none; pointer-events: none;
     box-shadow: 0 0 15px rgba(255,50,50,0.15);
@@ -146,7 +146,7 @@
 
   /* ---- Mob Bar ---- */
   #mobBar {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
     width: 200px; background: rgba(5,12,25,0.9); border: 1px solid rgba(255,170,0,0.3);
     border-radius: 3px; padding: 4px 8px; display: none; pointer-events: none;
   }
@@ -157,7 +157,7 @@
   /* ---- Crosshair ---- */
   #crosshair {
     position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
-    transform: translate(-50%, -50%); pointer-events: none;
+    transform: translate(-50%, -50%); pointer-events: none; z-index: 15;
     border: 1px solid rgba(0,200,255,0.35); border-radius: 50%;
     box-sizing: border-box;
   }
@@ -166,7 +166,7 @@
   /* ---- Lock-On Ring ---- */
   #lockInRing {
     position: absolute; top: 50%; left: 50%; width: 36px; height: 36px;
-    transform: translate(-50%, -50%) scale(0.7); pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.7); pointer-events: none; z-index: 15;
     border: 2px solid #ff4433; border-radius: 50%;
     box-sizing: border-box; opacity: 0;
     transition: opacity 0.12s, transform 0.12s;
@@ -177,11 +177,11 @@
     50% { box-shadow: 0 0 12px rgba(255,68,51,0.7); }
   }
   #lockBox {
-    position: absolute; width: 30px; height: 30px; transform: translate(-50%,-50%);
+    position: absolute; width: 30px; height: 30px; transform: translate(-50%,-50%); z-index: 15;
     border: 2px solid rgba(255,80,60,0.9); border-radius: 4px; pointer-events: none; display: none;
   }
   #lockArrow {
-    position: absolute; width: 0; height: 0; pointer-events: none; display: none;
+    position: absolute; width: 0; height: 0; pointer-events: none; display: none; z-index: 15;
     border-left: 8px solid transparent; border-right: 8px solid transparent;
     border-bottom: 14px solid rgba(255,80,60,0.9);
   }
@@ -201,7 +201,7 @@
 
   /* ---- Hit Marker ---- */
   #hitmarker {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 15;
     color: #ff4433; font-size: 20px; font-weight: 700; opacity: 0; pointer-events: none;
     text-shadow: 0 0 8px rgba(255,50,30,0.6);
   }
@@ -209,7 +209,7 @@
   /* ---- Damage Flash ---- */
   #damageFlash {
     position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(255,30,20,0.3) 0%, rgba(255,30,20,0.1) 60%, transparent 100%);
-    opacity: 0; pointer-events: none; transition: opacity 0.1s;
+    opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 15;
   }
 
   /* ---- Speed Lines ---- */
@@ -218,13 +218,13 @@
     background: repeating-conic-gradient(from 0deg, rgba(0,180,255,0.6) 0deg 0.5deg, transparent 0.5deg 8deg);
     -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 20%, black 50%, black 100%);
             mask-image: radial-gradient(circle at 50% 50%, transparent 0%, transparent 20%, black 50%, black 100%);
-    mix-blend-mode: screen; z-index: 1;
+    mix-blend-mode: screen; z-index: 15;
   }
   #speedLines.active { opacity: 0.5; }
 
   /* ---- Wave Clear Banner ---- */
   #waveClearBanner {
-    position: absolute; top: 28%; left: 50%; transform: translate(-50%,-50%);
+    position: absolute; top: 28%; left: 50%; transform: translate(-50%,-50%); z-index: 15;
     font-size: 24px; font-weight: 700; color: #00d4ff; opacity: 0;
     pointer-events: none; text-align: center;
     text-shadow: 0 0 20px rgba(0,212,255,0.5), 0 2px 0 rgba(0,0,0,0.3);
@@ -316,7 +316,7 @@
   #closeScoreboardBtn:hover { background: rgba(0,180,255,0.15); }
   #minimapWrap {
     position: absolute; bottom: 55px; right: 14px;
-    width: 150px; height: 150px; border-radius: 50%;
+    width: 150px; height: 150px; border-radius: 50%; z-index: 15;
     border: 1px solid rgba(0,180,255,0.25); background: rgba(5,12,25,0.7);
     overflow: hidden; pointer-events: none;
     box-shadow: 0 0 15px rgba(0,100,180,0.1);
@@ -3483,24 +3483,24 @@ const SKILL_ICON_MAP = {
   // muro (D-Gear / Tank) — 0782xxxx
   siegeMode:       '07820050.png',
   airSiegeMode:    '07820060.png',
-  hyperShot:       '07821030.png',
-  barrier:         '07821040.png',
+  hyperShot:       '07823060.png',
+  barrier:         '07821060.png',
   remedy:          '07821050.png',
   // trueno (B-Gear / Bomber) — 0780xxxx
   groundBombing:   '07800040.png',
-  airBombing:      '07800050.png',
+  airBombing:      '07800070.png',
   chargeShot:      '07800060.png',
-  multiTarget:     '07800070.png',
-  deployChaffs:    '07801010.png',
-  bigBoom:         '07801020.png',
+  multiTarget:     '07800050.png',
+  deployChaffs:    '07801040.png',
+  bigBoom:         '07803040.png',
   invisible:       '07803030.png',
   // viento (O-Gear / Support) — 0781xxxx
   healingField:    '07811030.png',
-  energizingField: '07811040.png',
-  healTarget:      '07811050.png',
+  energizingField: '07811050.png',
+  healTarget:      '07811040.png',
   energizeTarget:  '07811060.png',
-  reverseEngine:   '07813010.png',
-  fullRecovery:    '07813020.png',
+  reverseEngine:   '07812020.png',
+  fullRecovery:    '07813070.png',
 };
 const SKILL_ICON_DIR = 'icons/skills_ace/';
 
