@@ -3368,6 +3368,55 @@ function drawMinimap() {
   minimapCtx.stroke();
 }
 
+// ================= Cheat Codes (GTA-style typing) =================
+let cheatBuffer = '';
+const CHEATS = {
+  'letmeselectlevel': () => {
+    const input = prompt('Nivel (oleada):', waveNumber);
+    if (input !== null && !isNaN(parseInt(input))) {
+      const target = Math.max(1, parseInt(input));
+      for (const e of enemies) scene.remove(e.mesh);
+      enemies.length = 0;
+      for (const m of enemyMissiles) { scene.remove(m.mesh); }
+      enemyMissiles.length = 0;
+      for (const p of teddyProjectiles) { scene.remove(p.mesh); }
+      teddyProjectiles.length = 0;
+      currentLockTarget = null;
+      document.getElementById('bossBar').style.display = 'none';
+      waveNumber = target;
+      document.getElementById('waveGauge').textContent = waveNumber;
+      if (isMobile) document.getElementById('mobileWaveNum').textContent = waveNumber;
+      bossEncounters = Math.floor((target - 1) / 5);
+      startWave();
+      showWaveBanner('CHEAT: Oleada ' + target);
+    }
+  },
+  'godmode': () => {
+    window._godMode = !window._godMode;
+    showWaveBanner(window._godMode ? 'CHEAT: God Mode ON' : 'CHEAT: God Mode OFF');
+  },
+  'fullheat': () => {
+    stdHeat = 0; advHeat = 0;
+    stdOverheated = false; advOverheated = false;
+    showWaveBanner('CHEAT: Heat reiniciado');
+  },
+  'fullsp': () => {
+    playerSP = MAX_SP;
+    showWaveBanner('CHEAT: SP completo');
+  },
+  'killall': () => {
+    for (const e of enemies) { if (e.alive) { registerHit(e, 99999, false); } }
+    showWaveBanner('CHEAT: Kill all');
+  },
+  'maxshield': () => {
+    shieldMax = SHIELD_CAP;
+    shield = shieldMax;
+    renderShieldHUD();
+    showWaveBanner('CHEAT: Escudo máximo');
+  },
+};
+setInterval(() => { cheatBuffer = ''; }, 2000);
+
 // ================= Input =================
 const keys = {};
 // Misma red de seguridad que en el editor: si la ventana pierde el foco por cualquier motivo,
@@ -3375,6 +3424,13 @@ const keys = {};
 // esto es un respaldo extra para casos raros donde el foco se pierde sin cambiar el pointer lock).
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 window.addEventListener('keydown', e => {
+  // Cheat code buffer (GTA-style)
+  if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    cheatBuffer += e.key.toLowerCase();
+    for (const [code, fn] of Object.entries(CHEATS)) {
+      if (cheatBuffer.endsWith(code)) { cheatBuffer = ''; fn(); break; }
+    }
+  }
   if (awaitingBindFor) {
     if (e.code !== 'Escape') { bindings[awaitingBindFor] = e.code; saveBindings(); renderBindList(); }
     awaitingBindFor = null;
@@ -4424,6 +4480,7 @@ function registerHit(enemy, dmg, isMissile) {
 }
 
 function registerPlayerHit() {
+  if (window._godMode) return;
   if (invulnTimer > 0) return;
   invulnTimer = 1.2;
   // Camera shake on damage (from AO Camera.cpp ChangeCamCollType)
