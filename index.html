@@ -619,6 +619,8 @@
 <div id="lockArrow"></div>
 <div id="hitmarker">+</div>
 <div id="damageFlash"></div>
+<div id="reverseControlFlash" style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,0,80,0.25) 0%,transparent 70%);opacity:0;pointer-events:none;z-index:14;transition:opacity 0.2s;border:2px solid rgba(255,0,80,0.4);"></div>
+<div id="scanOverlay" style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(100,50,255,0.12) 0%,transparent 70%);opacity:0;pointer-events:none;z-index:14;transition:opacity 0.3s;"></div>
 <div id="speedLines"></div>
 <div id="waveClearBanner"></div>
 <div id="cheatOverlay" class="hidden">
@@ -840,6 +842,8 @@ const GEAR_CONFIGS = {
       { id: 'hyperMoving', name: 'Hyper Moving', cat: 'Atributo', spCost: 30, cooldown: 60, duration: 60, desc: '+10% giro y strafe' },
       { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 0, duration: 60, desc: '+Defensa' },
       { id: 'evasionUp', name: 'Evasion Up', cat: 'Defensa', spCost: 10, cooldown: 0, duration: 60, desc: '+Evasión' },
+      { id: 'drain', name: 'Drain', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 20, desc: '+25% HP robado al dañar' },
+      { id: 'scanning', name: 'Scanning', cat: 'Atributo', spCost: 15, cooldown: 25, duration: 10, desc: 'Revela enemigos invisibles' },
     ],
     movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
     modelKey: 'duck', modelBuilder: null
@@ -866,6 +870,7 @@ const GEAR_CONFIGS = {
       { id: 'snareShot', name: 'Snare Shot', cat: 'Ataque', spCost: 15, cooldown: 0, duration: 15, desc: 'Disparos ralentizan enemigos 50%' },
       { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 0, duration: 60, desc: '+Defensa' },
       { id: 'barrier', name: 'Barrier', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: '+5 HP de escudo temporal' },
+      { id: 'reflect', name: 'Reflect', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: 'Refleja daño al recibir golpe' },
       { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' },
     ],
     movement: null,
@@ -2002,6 +2007,40 @@ for (let i = 0; i < 4; i++) {
   scene.add(page);
 }
 
+// ---- Zona de aterrizaje (helipad de cartón) ----
+const LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomSize + 120);
+const LANDING_PAD_RADIUS = 40;
+const landingPadGroup = new THREE.Group();
+// Base circular (cartón)
+const padBase = new THREE.Mesh(
+  new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32),
+  new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 })
+);
+landingPadGroup.add(padBase);
+// H pintada en el centro
+const hBar = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 20), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+hBar.position.y = 0.1; landingPadGroup.add(hBar);
+const hLeft = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 14), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+hLeft.position.set(-8, 0.1, -3); landingPadGroup.add(hLeft);
+const hRight = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 14), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+hRight.position.set(8, 0.1, -3); landingPadGroup.add(hRight);
+// Círculo exterior (borde amarillo)
+const padRing = new THREE.Mesh(
+  new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32),
+  new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide })
+);
+padRing.rotation.x = -Math.PI / 2;
+padRing.position.y = 1.6;
+landingPadGroup.add(padRing);
+// Glow de aterrizaje (se intensifica cuando estás cerca)
+const landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+const landingGlow = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
+landingGlow.rotation.x = -Math.PI / 2;
+landingGlow.position.y = 0.5;
+landingPadGroup.add(landingGlow);
+landingPadGroup.position.copy(LANDING_PAD_POS);
+scene.add(landingPadGroup);
+
 // ---- Objeto con los que la nave puede chocar ----
 const worldColliders = [
   { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
@@ -2735,7 +2774,7 @@ function fireProjectile() {
         velocity: forward.clone().multiplyScalar(weapon.speed || 200),
         life: BUBBLE_MAX_RANGE / (weapon.speed || 200),
         damage: baseDamage,
-        pierce: weapon.pierce || false
+        pierceCount: weapon.pierce ? 3 : 0
       });
     }, bullets[i].delay * 1000);
   }
@@ -3500,13 +3539,24 @@ window.addEventListener('keydown', e => {
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
     // C key: land/takeoff toggle (from AO ShuttleChild.cpp DIK_C)
     if (e.code === 'KeyC' && mode === 'FLIGHT' && gameRunning && !gameOver) {
-      isLanded = !isLanded;
       if (isLanded) {
-        speed = 0;
-        showWaveBanner('ATERRIZANDO...');
-      } else {
+        // Take off always allowed
+        isLanded = false;
         speed = speedMin;
         showWaveBanner('DESPLEGANDO...');
+      } else {
+        // Land only near the landing pad
+        const distToPad = ship.position.distanceTo(LANDING_PAD_POS);
+        if (distToPad < LANDING_PAD_RADIUS + 30) {
+          isLanded = true;
+          speed = 0;
+          ship.position.x = LANDING_PAD_POS.x;
+          ship.position.z = LANDING_PAD_POS.z;
+          ship.position.y = 3;
+          showWaveBanner('ATERRIZANDO...');
+        } else {
+          showWaveBanner('Buscá la zona de aterrizaje (H verde)');
+        }
       }
     }
     // Enter key: universal confirm (from AO INFGameMainChat.cpp + INFWindow.cpp)
@@ -3586,6 +3636,10 @@ document.addEventListener('pointerlockchange', () => {
 let lookYaw = 0, lookPitch = 0;
 let pendingYawDelta = 0, pendingPitchDelta = 0;
 let freeLookYaw = 0, freeLookPitch = 0;
+
+// ---- Debuff states (AO DES_SKILL_REVERSECONTROL, DES_INVISIBLE) ----
+let reverseControlTimer = 0;   // counts down, >0 = controls flipped
+let scanActiveTimer = 0;       // counts down, >0 = can see invisible enemies
 document.addEventListener('mousemove', e => {
   if (!pointerLocked) return;
   const invert = invertY ? -1 : 1;
@@ -3595,10 +3649,12 @@ document.addEventListener('mousemove', e => {
     freeLookPitch -= e.movementY * 0.0022 * invert;
     freeLookPitch = Math.max(-1.4, Math.min(1.4, freeLookPitch));
   } else {
-    lookYaw -= e.movementX * 0.0022;
-    lookPitch -= e.movementY * 0.0022 * invert;
-    pendingYawDelta -= e.movementX * 0.0022;
-    pendingPitchDelta -= e.movementY * 0.0022 * invert;
+    // AO DES_SKILL_REVERSECONTROL: invert mouse axes
+    const rcFlip = reverseControlTimer > 0 ? -1 : 1;
+    lookYaw -= e.movementX * 0.0022 * rcFlip;
+    lookPitch -= e.movementY * 0.0022 * invert * rcFlip;
+    pendingYawDelta -= e.movementX * 0.0022 * rcFlip;
+    pendingPitchDelta -= e.movementY * 0.0022 * invert * rcFlip;
   }
 });
 
@@ -4097,6 +4153,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- MURO: Remedy ----
   if (skillId === 'remedy') {
+    reverseControlTimer = 0;
     spawnSkillRing(ship.position, 0x44ff88, 2, 25);
     aceSpawnParticles(ACE.remedy.burst, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.remedy.burst, ship.position.clone(), explosions);
@@ -4197,6 +4254,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- VIENTO: Reverse Engine ----
   if (skillId === 'reverseEngine') {
+    reverseControlTimer = 0;
     spawnSkillRing(ship.position, 0x88ccff, 2, 30);
     aceSpawnParticles(ACE.reverseEngine.wave, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.reverseEngine.wave, ship.position.clone(), explosions);
@@ -4206,6 +4264,22 @@ function applySkillEffect(skillId, on) {
     spawnSkillAura(0x4488ff, 3);
     aceSpawnParticles(ACE.snareShot.particles, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.snareShot.particles, ship.position.clone(), explosions);
+  }
+  // ---- VIENTO: Scanning / RAYO: Scanning (AO DES_SKILL_SCANNING) ----
+  if (skillId === 'scan' || skillId === 'scanning') {
+    scanActiveTimer = 10;
+    spawnSkillRing(ship.position, 0x8844ff, 2, 30);
+    aceSpawnParticles(ACE.scanActivate?.burst || ACE.healTarget.burst, ship.position.clone(), explosions);
+  }
+  // ---- RAYO: Drain (AO DES_PAIR_DRAIN) ----
+  if (skillId === 'drain') {
+    spawnSkillRing(ship.position, 0xff44aa, 2, 25);
+    spawnSkillAura(0xff44aa, 3);
+  }
+  // ---- MURO: Reflect (AO DES_PAIR_REFLECTION) ----
+  if (skillId === 'reflect') {
+    spawnSkillRing(ship.position, 0xff66ff, 2, 30);
+    spawnSkillAura(0xff66ff, 3);
   }
 }
 
@@ -4481,26 +4555,50 @@ function spawnMissText(pos) {
 }
 
 function registerHit(enemy, dmg, isMissile) {
-  // Accuracy vs Evasion
+  // If enemy is invisible and no scan active, shots miss entirely
+  if (enemy.invisible && !(isSkillActive('scanning') || isSkillActive('scan') || scanActiveTimer > 0)) {
+    spawnMissText(enemy.mesh.position);
+    return;
+  }
+  // Accuracy vs Evasion (AO AtumSJ.cpp GetDefenseProbabilityC)
   const weaponAccuracy = isMissile ? (getAdvWeapon()?.accuracy || 80) : (getStdWeapon()?.accuracy || 80);
   const accBonus = isMissile ? 0 : getStdAccuracyBonus();
   const enemyEvasion = enemy.isBoss ? 5 : 3;
   const hitChance = Math.max(5, Math.min(95, weaponAccuracy + accBonus + playerPierce + playerEvasion + getEvasionBonus() - enemyEvasion * 2));
   if (Math.random() * 100 > hitChance) {
-    spawnMissText(enemy.mesh.position); // texto "MISS"
+    spawnMissText(enemy.mesh.position);
     return;
   }
-  // Defensa del enemigo reducida por pierce
+  // Defense reduced by pierce (AO: fDefense - fPierceAttackProbability)
   const effectiveDef = Math.max(0, (enemy.isBoss ? 8 : 3) - playerPierce);
-  const finalDmg = Math.max(1, Math.round(dmg * (1 - effectiveDef / 100)));
+  let finalDmg = Math.max(1, Math.round(dmg * (1 - effectiveDef / 100)));
+
+  // ---- CRITICAL HIT (AO DAMAGEKIND_CRITICAL, roll on AttackPart) ----
+  let isCrit = false;
+  const critRate = 8 + (getStdWeapon()?.accuracy || 80) * 0.15; // 8-20% base
+  if (Math.random() * 100 < critRate) {
+    finalDmg = Math.round(finalDmg * 2);
+    isCrit = true;
+  }
+
   enemy.hp -= finalDmg;
   showHitmarker();
+
   // Snare Shot passive: slow enemy on hit
   const snareVal = getPassive('snareEffect');
   if (snareVal > 0 && enemy.chaseSpeed) {
-    enemy.snareTimer = 2; // 2 seconds of slow
+    enemy.snareTimer = 2;
     enemy.snareFactor = 1 - snareVal;
   }
+
+  // ---- DRAIN: heal player based on damage dealt (AO DES_PAIR_DRAIN_1_RATE) ----
+  if (isSkillActive('drain')) {
+    const healPct = 0.25; // 25% of damage dealt
+    const healAmt = Math.max(1, Math.round(finalDmg * healPct));
+    if (shield < shieldMax) { shield = Math.min(shieldMax, shield + healAmt); renderShieldHUD(); }
+    spawnDamageNumber(enemy.mesh.position, '+' + healAmt, 0x44aaff);
+  }
+
   if (enemy.hp <= 0) {
     enemy.alive = false;
     scene.remove(enemy.mesh);
@@ -4512,7 +4610,6 @@ function registerHit(enemy, dmg, isMissile) {
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
     if (Math.random() < 0.35) spawnPowerup(enemy.mesh.position.clone());
-    // Al morir, se desactiva cualquier disparo/misil suyo que siga en el aire (ya no hace daño)
     for (let i = teddyProjectiles.length - 1; i >= 0; i--) {
       if (teddyProjectiles[i].source === enemy) { scene.remove(teddyProjectiles[i].mesh); teddyProjectiles.splice(i, 1); }
     }
@@ -4523,21 +4620,33 @@ function registerHit(enemy, dmg, isMissile) {
     if (enemy.isBoss) document.getElementById('bossFill').style.width = Math.max(0, (enemy.hp / enemy.maxHp) * 100) + '%';
     spawnImpactSpark(enemy.mesh.position.clone());
     flashEnemy(enemy);
-    spawnDamageNumber(enemy.mesh.position, '-' + Math.round(damage), 0xff4444);
+    const numColor = isCrit ? 0xffaa00 : 0xff4444;
+    const numText = isCrit ? 'CRIT -' + Math.round(finalDmg) : '-' + Math.round(finalDmg);
+    spawnDamageNumber(enemy.mesh.position, numText, numColor);
   }
 }
 
 function registerPlayerHit() {
   if (window._godMode) return;
   if (invulnTimer > 0) return;
+  // ---- DODGE / EVASION (AO GetDefenseProbabilityC) ----
+  const gear = getGearConfig();
+  const baseEvasion = gear?.stats?.evasion || 0;
+  const evasionUp = isSkillActive('evasionUp') ? 15 : 0;
+  const totalEvasion = baseEvasion + evasionUp + getEvasionBonus();
+  const dodgeChance = Math.min(45, totalEvasion * 3); // cap at 45%
+  if (Math.random() * 100 < dodgeChance) {
+    spawnMissText(ship.position);
+    invulnTimer = 0.3;
+    return;
+  }
   invulnTimer = 1.2;
-  // Camera shake on damage (from AO Camera.cpp ChangeCamCollType)
   camShakeTimer = 0.3;
   // Deploy Chaffs: absorb hit
   if (isSkillActive('deployChaffs')) {
     if (!window._chaffHits) window._chaffHits = 3;
     window._chaffHits--;
-    if (window._chaffHits > 0) return; // chaff absorbed it
+    if (window._chaffHits > 0) return;
     delete window._chaffHits;
     activeSkillEffects['deployChaffs'] = false;
     delete skillActiveTimers['deployChaffs'];
@@ -4554,6 +4663,21 @@ function registerPlayerHit() {
     aceSpawnParticles(ACE.shieldImpact.flash, ship.position.clone(), explosions);
     shield -= 1;
     renderShieldHUD();
+    // ---- REFLECT: return damage to nearest enemy (AO DES_PAIR_REFLECTION) ----
+    if (isSkillActive('reflect')) {
+      const reflectDmg = 15;
+      const nearEnemy = enemies.find(e => e.alive && e.mesh.position.distanceTo(ship.position) < 100);
+      if (nearEnemy) {
+        nearEnemy.hp -= reflectDmg;
+        spawnDamageNumber(nearEnemy.mesh.position, 'REFL -' + reflectDmg, 0xff66ff);
+        spawnImpactSpark(nearEnemy.mesh.position.clone());
+        if (nearEnemy.hp <= 0) {
+          nearEnemy.alive = false; scene.remove(nearEnemy.mesh);
+          spawnExplosion(nearEnemy.mesh.position, nearEnemy.isBoss);
+          addXP(nearEnemy.isBoss ? 500 : 100);
+        }
+      }
+    }
   } else {
     lives -= 1;
     renderLivesHUD();
@@ -4719,6 +4843,7 @@ function resetGame() {
   boosterType = BOOSTER_TYPE_MIN; sideRate = 0; sideCheckRate = 2.0;
   lRVelRate = 0; currentAngle = 0; currentSideRate = 0; tempGravity = 0;
   braking = false; isLanded = false; camShakeTimer = 0; camCheckSpeedRate = 0;
+  reverseControlTimer = 0; scanActiveTimer = 0;
   document.getElementById('mode').textContent = 'NADANDO';
   camera.fov = BASE_FOV;
   camera.updateProjectionMatrix();
@@ -5062,6 +5187,17 @@ function animate() {
   waveTimer += dt;
   document.getElementById('waveTime').textContent = waveTimer.toFixed(1);
   if (invulnTimer > 0) invulnTimer -= dt;
+  if (reverseControlTimer > 0) { reverseControlTimer -= dt; if (reverseControlTimer <= 0) showWaveBanner('Controles restaurados'); }
+  if (scanActiveTimer > 0) scanActiveTimer -= dt;
+  // Debuff/scan visual overlays
+  document.getElementById('reverseControlFlash').style.opacity = reverseControlTimer > 0 ? (0.5 + Math.sin(Date.now() * 0.008) * 0.3) : 0;
+  document.getElementById('scanOverlay').style.opacity = scanActiveTimer > 0 ? 0.8 : 0;
+
+  // Landing pad proximity glow
+  const distToPad = ship.position.distanceTo(LANDING_PAD_POS);
+  const padProximity = Math.max(0, 1 - distToPad / 200);
+  landingGlowMat.opacity = 0.08 + padProximity * 0.35;
+  landingGlowMat.color.setHex(padProximity > 0.4 ? 0x44ff44 : 0xffaa22);
 
   const boostHeld = keys[bindings.boost];
   const boosting = boostHeld && boostMeter > 0;
@@ -5246,25 +5382,34 @@ function animate() {
     const p = projectiles[i];
     p.mesh.position.addScaledVector(p.velocity, dt);
     p.life -= dt;
-    let hit = false;
+    // Piercing: bullet can pass through multiple enemies (AO FractionResistance)
+    const pierceCount = p.pierce || p.pierceCount || 0;
+    let enemiesHit = p.hitEnemies || (p.hitEnemies = new Set());
+    let consumed = false;
     for (const enemy of enemies) {
-      if (!enemy.alive) continue;
+      if (!enemy.alive || enemiesHit.has(enemy)) continue;
       const hitRadius = enemy.isBoss ? 55 : 5.5;
-      if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, p.damage || 10, false); hit = true; break; }
+      if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) {
+        registerHit(enemy, p.damage || 10, false);
+        enemiesHit.add(enemy);
+        if (pierceCount <= 0) { consumed = true; break; }
+        p.damage = Math.round((p.damage || 10) * 0.85); // 15% damage falloff per pierce
+        p.pierceCount = pierceCount - 1;
+      }
     }
-    if (!hit) {
+    if (!consumed) {
       for (const d of destructibles) {
         if (!d.alive) continue;
-        if (p.mesh.position.distanceTo(d.mesh.position) < 5) { hitDestructible(d, 1); hit = true; break; }
+        if (p.mesh.position.distanceTo(d.mesh.position) < 5) { hitDestructible(d, 1); consumed = true; break; }
       }
     }
-    if (!hit) {
+    if (!consumed) {
       for (const c of worldColliders) {
         if (!c.hp || c.hp <= 0) continue;
-        if (p.mesh.position.distanceTo(c.pos) < c.radius) { hitWorldCollider(c, 1); hit = true; spawnImpactSpark(p.mesh.position.clone()); break; }
+        if (p.mesh.position.distanceTo(c.pos) < c.radius) { hitWorldCollider(c, 1); consumed = true; spawnImpactSpark(p.mesh.position.clone()); break; }
       }
     }
-    if (hit || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
+    if (consumed || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
   }
 
   for (let i = missiles.length - 1; i >= 0; i--) {
@@ -5371,6 +5516,24 @@ function animate() {
     if (!enemy.alive) continue;
 
     if (enemy.isBoss) {
+      // Boss can use Reverse Control debuff every 15s
+      enemy._rcTimer = (enemy._rcTimer || 15) - dt;
+      if (enemy._rcTimer <= 0) {
+        enemy._rcTimer = 15 + Math.random() * 5;
+        reverseControlTimer = 3.5;
+        showWaveBanner('¡Controles invertidos!');
+      }
+      // Boss can go invisible periodically (wave 10+)
+      if (bossEncounters >= 2) {
+        enemy._invisTimer = (enemy._invisTimer || 12) - dt;
+        if (enemy._invisTimer <= 0) {
+          enemy._invisTimer = 12 + Math.random() * 8;
+          enemy.invisible = !enemy.invisible;
+          enemy.mesh.traverse(c => { if (c.material) { c.material.transparent = true; c.material.opacity = enemy.invisible ? 0.08 : 1; } });
+          if (enemy.invisible) showWaveBanner('¡Boss invisible! Usá Scanning');
+        }
+      }
+
       enemy.orbitAngle += enemy.orbitSpeed * dt;
       enemy.mesh.position.x = enemy.center.x + Math.cos(enemy.orbitAngle) * enemy.orbitRadius;
       enemy.mesh.position.z = enemy.center.z + Math.sin(enemy.orbitAngle) * enemy.orbitRadius;
@@ -5420,7 +5583,7 @@ function animate() {
       enemy.center.copy(enemy.mesh.position); // si vuelve a orbitar, que retome cerca de donde quedó
 
       enemy.attackCooldown -= dt;
-      if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !isSkillActive('invisible')) {
+      if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !enemy.invisible) {
         fireTeddyProjectile(enemy);
         enemy.attackCooldown = enemy.attackInterval;
         enemy.lunge = 0.22;
@@ -5443,6 +5606,21 @@ function animate() {
       enemy.mesh.scale.setScalar(s);
     } else if (enemy.mesh.scale.x !== 1) {
       enemy.mesh.scale.setScalar(1);
+    }
+
+    // ---- Teddy invisibility (wave 6+, random cloak 4s on / 8s off) ----
+    if (!enemy.isBoss && clearedCount >= 5) {
+      enemy._invisTimer = (enemy._invisTimer === undefined ? 8 + Math.random() * 6 : enemy._invisTimer) - dt;
+      if (enemy._invisTimer <= 0) {
+        enemy.invisible = !enemy.invisible;
+        enemy._invisTimer = enemy.invisible ? 4 + Math.random() * 3 : 8 + Math.random() * 6;
+        enemy.mesh.traverse(c => { if (c.material) { c.material.transparent = true; c.material.opacity = enemy.invisible ? 0.06 : 1; c.material.emissive = enemy.invisible ? new THREE.Color(0x220044) : new THREE.Color(0); } });
+        if (enemy.invisible) spawnDamageNumber(enemy.mesh.position, 'STEALTH', 0x8844ff);
+      }
+      // Scan reveals invisible teddies with a purple outline
+      if (enemy.invisible && (isSkillActive('scanning') || isSkillActive('scan') || scanActiveTimer > 0)) {
+        enemy.mesh.traverse(c => { if (c.material) { c.material.opacity = 0.3; c.material.emissive = new THREE.Color(0x4400aa); } });
+      }
     }
   }
 
