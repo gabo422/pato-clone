@@ -4123,15 +4123,8 @@ function updateSkills(dt) {
   // Active skill timers + SP-per-second drain
   for (const [id, remaining] of Object.entries(skillActiveTimers)) {
     const sk = skillSlots.find(s => s && s.id === id);
-    // SP-per-second drain for bombing modes
     if (sk && sk.spPerSec) {
-      playerSP -= sk.spPerSec * dt;
-      if (playerSP <= 0) {
-        playerSP = 0;
-        applySkillEffect(id, false);
-        delete skillActiveTimers[id];
-        continue;
-      }
+      playerSP = Math.max(0, playerSP - sk.spPerSec * dt);
     }
     skillActiveTimers[id] = remaining - dt;
     if (skillActiveTimers[id] <= 0) {
