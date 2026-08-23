@@ -1366,7 +1366,7 @@ ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
 // Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
-const roomSize = 500, wallHeight = 400;
+const roomSize = 2000, wallHeight = 800;
 const WALL_TILE_WORLD_SIZE = 32;
 const wallPlaneW = roomSize * 2;
 const wallLowerH = wallHeight * 0.32;
@@ -2686,7 +2686,7 @@ function spawnTeddyWave() {
     const mesh = buildTeddy();
     const orbitRadius = 18 + Math.random() * 22;
     // Aleatorio en todo el cuarto, evitando bañera/inodoro/lavamanos/espejo y amontonarse entre sí
-    const spot = findClearSpawnPoint(80, 420, orbitRadius + 18, placedPoints);
+    const spot = findClearSpawnPoint(roomSize * 0.1, roomSize * 0.8, orbitRadius + 18, placedPoints);
     placedPoints.push(spot);
     mesh.position.set(spot.x, 40 + Math.random() * 60, spot.z);
     scene.add(mesh);
@@ -2698,9 +2698,9 @@ function spawnTeddyWave() {
       alive: true, hp: getTeddyHp(), maxHp: getTeddyHp(), isBoss: false,
       // Persecución y ataque a distancia (tiran proyectiles, no dañan por contacto)
       state: 'orbit',
-      detectRadius: 160,
-      chaseSpeed: 16 + Math.random() * 7,
-      fireRange: 35,
+      detectRadius: 350,
+      chaseSpeed: 35 + Math.random() * 15,
+      fireRange: 60,
       attackCooldown: 0.8 + Math.random() * 0.8,
       attackInterval: 1.8 + Math.random() * 0.6,
       lunge: 0
@@ -2717,7 +2717,7 @@ function spawnBossWave() {
   const hp = getBossHp();
   enemies.push({
     mesh, center: mesh.position.clone(),
-    orbitRadius: 50 + bossEncounters * 5,
+    orbitRadius: 150 + bossEncounters * 20,
     orbitSpeed: 0.18 + bossEncounters * 0.03,
     orbitAngle: 0,
     alive: true, hp, maxHp: hp, isBoss: true,
@@ -2735,7 +2735,7 @@ function spawnBomb(position, velocity, damage, aoeRadius) {
   const mesh = new THREE.Mesh(bombGeo, bombMat);
   mesh.position.copy(position);
   scene.add(mesh);
-  bombs.push({ mesh, velocity: velocity.clone(), gravity: 35, life: 4, damage, aoeRadius, trailTimer: 0 });
+  bombs.push({ mesh, velocity: velocity.clone(), gravity: 98, life: 4, damage, aoeRadius, trailTimer: 0 });
 }
 
 // ---- Burbujas de jabón (jugador) ----
@@ -3416,7 +3416,7 @@ function updateLockOn(dt) {
 // ================= Minimapa / radar =================
 const minimapCanvas = document.getElementById('minimap');
 const minimapCtx = minimapCanvas.getContext('2d');
-const RADAR_RANGE = 420;
+const RADAR_RANGE = 900;
 function drawMinimap() {
   const w = minimapCanvas.width, h = minimapCanvas.height;
   const cx = w / 2, cy = h / 2;
@@ -4724,7 +4724,7 @@ function registerPlayerHit() {
 // ---- Límites de la habitación: chocar contra las paredes empuja y hace daño ----
 const SHIP_COLLISION_RADIUS = 3;
 const WALL_MARGIN = 8;
-const BOUNDARY_WARNING_ZONE = 70; // a partir de acá empiezan a verse las rayas en la pared correspondiente
+const BOUNDARY_WARNING_ZONE = 200; // a partir de acá empiezan a verse las rayas en la pared correspondiente
 function warnOpacity(margin) {
   const t = THREE.MathUtils.clamp(1 - margin / BOUNDARY_WARNING_ZONE, 0, 1);
   return t * t * 0.85;
@@ -5342,7 +5342,7 @@ function animate() {
         new THREE.Vector3(0, 1, 0).dot(new THREE.Vector3(0, 0, 1).applyEuler(euler))
       )));
       const angleNormalized = angleFromUp / Math.PI;
-      const GRAVITY = 50.0;
+      const GRAVITY = 98.0;
       let targetGravity = 0;
       if (angleNormalized > 0 && angleNormalized < 0.5) targetGravity = GRAVITY * (0.5 - angleNormalized) * 2.0;
       else if (angleNormalized > 0.5 && angleNormalized < 1.0) targetGravity = -GRAVITY * (angleNormalized - 0.5) * 2.0;
