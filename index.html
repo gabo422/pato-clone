@@ -904,8 +904,8 @@ const GEAR_CONFIGS = {
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
       { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma avanzada' },
       { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 0, duration: 60, desc: '+Accuracy ambas armas' },
-      { id: 'groundBombing', name: 'Ground Bombing Mode', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 0, desc: 'Misiles caen como bombas al suelo' },
-      { id: 'airBombing', name: 'Air Bombing Mode', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 0, desc: 'Misiles lanzados como bombas al frente' },
+      { id: 'groundBombing', name: 'Ground Bombing Mode', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 15, desc: 'Arma avanzada cae al suelo con gravedad' },
+      { id: 'airBombing', name: 'Air Bombing Mode', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 15, desc: 'Arma avanzada se lanza hacia adelante y cae' },
       { id: 'chargeShot', name: 'Charging Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Arma estándar cargada, alto daño y precisión' },
       { id: 'multiTarget', name: 'Multi-Target Mode', cat: 'Ataque', spCost: 25, cooldown: 18, duration: 12, desc: 'Misiles atacan múltiples objetivos' },
       { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 15, duration: 10, desc: 'Chaffs absorben hits enemigos' },
@@ -2845,6 +2845,23 @@ function fireMissile() {
     advOverheated = true;
     advOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
+  const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier());
+  // ---- Bombing modes: adv weapon drops bombs instead of homing missiles ----
+  if (groundBombingActive) {
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const pos = ship.position.clone().addScaledVector(fwd, 3);
+    const vel = new THREE.Vector3((Math.random() - 0.5) * 8, -25 - Math.random() * 15, 0).applyQuaternion(ship.quaternion);
+    spawnBomb(pos, vel, damage, 55);
+    return;
+  }
+  if (airBombingActive) {
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const pos = ship.position.clone().addScaledVector(fwd, 5);
+    const vel = fwd.clone().multiplyScalar(weapon.speed || 120).add(new THREE.Vector3(0, -40 - Math.random() * 20, 0));
+    spawnBomb(pos, vel, damage, 60);
+    return;
+  }
+  // ---- Normal homing missiles ----
   const wingPoints = ship.userData.wingMissilePoints;
   const tubeIdx = missileTubeIndex % 3;
   missileTubeIndex++;
@@ -4125,6 +4142,8 @@ function applySkillEffect(skillId, on) {
     if (skillId === 'energizingField') { removeEnergizingFieldVisual(); }
     if (skillId === 'berserker') { removeSkillAura(); }
     if (skillId === 'chargeShot') { chargeShotActive = false; removeChargeShotGlow(); }
+    if (skillId === 'groundBombing') { groundBombingActive = false; }
+    if (skillId === 'airBombing') { airBombingActive = false; }
     if (skillId === 'snareShot') { removeSkillAura(); }
     if (skillId === 'invisible') { ship.traverse(c => { if (c.isMesh && c.material) { c.material.transparent = c.userData._aceOrigTransparent || false; c.material.opacity = c.userData._aceOrigOpacity || 1; } }); }
     return;
@@ -4198,28 +4217,17 @@ function applySkillEffect(skillId, on) {
   }
   // ---- TRUENO: Ground Bombing ----
   if (skillId === 'groundBombing') {
+    groundBombingActive = true;
+    airBombingActive = false;
     spawnSkillRing(ship.position.clone().setY(1), 0xff6600, 5, 40);
     spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -5, 0)), false);
-    // Spawn 5 bombs that drop straight down with slight spread
-    for (let i = 0; i < 5; i++) {
-      const offset = new THREE.Vector3((Math.random() - 0.5) * 20, 0, (Math.random() - 0.5) * 20);
-      const pos = ship.position.clone().add(offset);
-      const vel = new THREE.Vector3((Math.random() - 0.5) * 10, -30 - Math.random() * 20, (Math.random() - 0.5) * 10);
-      spawnBomb(pos, vel, 45, 55);
-    }
   }
   // ---- TRUENO: Air Bombing ----
   if (skillId === 'airBombing') {
+    airBombingActive = true;
+    groundBombingActive = false;
     spawnSkillRing(ship.position, 0xff8800, 3, 50);
     spawnExplosion(ship.position.clone(), false);
-    // Spawn 5 bombs launched forward + downward
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    for (let i = 0; i < 5; i++) {
-      const delay = i * 0.15;
-      const pos = ship.position.clone().addScaledVector(fwd, 8 + i * 10);
-      const vel = fwd.clone().multiplyScalar(80 + Math.random() * 30).add(new THREE.Vector3(0, -35 - Math.random() * 15, 0));
-      setTimeout(() => { if (gameRunning) spawnBomb(pos, vel, 50, 60); }, delay * 1000);
-    }
   }
   // ---- TRUENO: Charge Shot ----
   if (skillId === 'chargeShot') {
@@ -4484,6 +4492,8 @@ function onSkillKey(slot) {
 // State
 let isSiegeMode = false;
 let chargeShotActive = false;
+let groundBombingActive = false;
+let airBombingActive = false;
 
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
