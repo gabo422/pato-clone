@@ -824,12 +824,14 @@ const DIFFICULTY_HINTS = {
 // ================= Selección de Juguete =================
 const GEAR_CONFIGS = {
   // ===== I-GEAR (Rayo / Interceptor) — BaseNums 783xxxx =====
+  // AO real: Vulcan 4x1 low dmg, 0.60s reattack, 65% accuracy, 15s overheat, 520m range
+  // AO real: Fastest gear (560m/s boost), highest evasion, glass cannon
   rayo: {
     name: 'Rayo', role: 'Interceptor', icon: '⚡',
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
-    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 88, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
-               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 35, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
-    stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 75, accel: 50, boostAccel: 85, defense: 2, evasion: 8, shield: 2, hp: 4 },
+    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 32, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
+               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 120, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
+    stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 80, accel: 55, boostAccel: 90, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
@@ -849,12 +851,14 @@ const GEAR_CONFIGS = {
     modelKey: 'duck', modelBuilder: null
   },
   // ===== A-GEAR (Muro / Tank) — BaseNums 782xxxx =====
+  // AO real: Cannon 1x1, 157-197 dmg, 0.45s reattack, 85% accuracy, 28-50s overheat, 1200m range
+  // AO real: Siege mode = massive stationary DPS. Slowest gear, highest defense/shield
   muro: {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal. Siege mode y defensa.',
-    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 80, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 75, pierce: true },
-               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 45, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
-    stats: { maxSpeed: 65, boostMaxSpeed: 160, speedMin: 45, accel: 25, boostAccel: 50, defense: 8, evasion: 2, shield: 8, hp: 8 },
+    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 175, speed: 180, reattackTime: 0.45, overheatTime: 30, accuracy: 85, pierce: true },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 130, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 100, pierce: true } },
+    stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10 },
     passives: [
       { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
       { id: 'siegeDefense', name: 'Siege Defense', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
@@ -877,12 +881,14 @@ const GEAR_CONFIGS = {
     modelKey: 'teddy', modelBuilder: null
   },
   // ===== B-GEAR (Trueno / Bomber) — BaseNums 780xxxx =====
+  // AO real: Gatling 3x1, lower base dmg, fast fire, 11s overheat
+  // AO real: Missiles 2x2, slow, AoE bombing. Balanced speed between I and A
   trueno: {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
-    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 18, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 25, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
-    stats: { maxSpeed: 85, boostMaxSpeed: 195, speedMin: 65, accel: 50, boostAccel: 80, defense: 5, evasion: 4, shield: 5, hp: 6 },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 22, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 55, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
+    stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7 },
     passives: [
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
     ],
@@ -902,12 +908,14 @@ const GEAR_CONFIGS = {
     modelKey: 'duck', modelBuilder: null
   },
   // ===== M-GEAR (Meadow Burgle) — Soporte =====
+  // AO real: 0-speed hover engine, Rifle 1x1 high accuracy low damage
+  // AO real: Support class - healing fields, buffs, scan, reverse engine
   viento: {
     name: 'Viento', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo. Curación y buffs.',
-    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 15, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 12, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
-    stats: { maxSpeed: 80, boostMaxSpeed: 200, speedMin: 55, accel: 35, boostAccel: 65, defense: 5, evasion: 5, shield: 6, hp: 6 },
+    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 45, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 90, pierce: false },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 35, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
+    stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7 },
     passives: [
       { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
       { id: 'smartSP', name: 'Smart SP', desc: '-30% SP cost de todas las skills', stat: 'spCostReduction', value: 0.3 }
@@ -2711,6 +2719,18 @@ function spawnBossWave() {
   document.getElementById('bossBar').style.display = 'block';
 }
 
+// ---- Bombas de Trueno (bawoos) ----
+const bombs = [];
+const bombGeo = new THREE.SphereGeometry(1.2, 8, 6);
+const bombMat = new THREE.MeshStandardMaterial({ color: 0x444444, emissive: 0x111111, roughness: 0.4 });
+const bombTrailMat = new THREE.SpriteMaterial({ color: 0xff8800, transparent: true, opacity: 0.7, depthWrite: false });
+function spawnBomb(position, velocity, damage, aoeRadius) {
+  const mesh = new THREE.Mesh(bombGeo, bombMat);
+  mesh.position.copy(position);
+  scene.add(mesh);
+  bombs.push({ mesh, velocity: velocity.clone(), gravity: 90, life: 4, damage, aoeRadius, trailTimer: 0 });
+}
+
 // ---- Burbujas de jabón (jugador) ----
 const projectiles = [];
 // Textura de la burbuja: círculo con degradé celeste (centro) a blanco transparente (borde),
@@ -4171,19 +4191,26 @@ function applySkillEffect(skillId, on) {
   }
   // ---- TRUENO: Ground Bombing ----
   if (skillId === 'groundBombing') {
-    spawnExplosion(ship.position.clone(), true);
     spawnSkillRing(ship.position.clone().setY(1), 0xff6600, 5, 40);
-    aceSpawnParticles(ACE.groundBombing.wave, ship.position.clone(), explosions);
-    aceSpawnParticles(ACE.groundBombing.wave, ship.position.clone(), explosions);
-    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 95) registerHit(e, 40, false); }
+    // Spawn 5 bombs that drop straight down with slight spread
+    for (let i = 0; i < 5; i++) {
+      const offset = new THREE.Vector3((Math.random() - 0.5) * 12, 0, (Math.random() - 0.5) * 12);
+      const pos = ship.position.clone().add(offset);
+      const vel = new THREE.Vector3((Math.random() - 0.5) * 15, -60 - Math.random() * 40, (Math.random() - 0.5) * 15);
+      spawnBomb(pos, vel, 45, 55);
+    }
   }
   // ---- TRUENO: Air Bombing ----
   if (skillId === 'airBombing') {
-    spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -20, 0)), true);
     spawnSkillRing(ship.position, 0xff8800, 3, 50);
-    aceSpawnParticles(ACE.airBombing.rain, ship.position.clone().add(new THREE.Vector3(0, -10, 0)), explosions);
-    aceSpawnParticles(ACE.airBombing.rain, ship.position.clone().add(new THREE.Vector3(0, -10, 0)), explosions);
-    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 155) registerHit(e, 55, false); }
+    // Spawn 5 bombs launched forward + downward
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    for (let i = 0; i < 5; i++) {
+      const delay = i * 0.12;
+      const pos = ship.position.clone().addScaledVector(fwd, 5 + i * 8);
+      const vel = fwd.clone().multiplyScalar(120 + Math.random() * 40).add(new THREE.Vector3(0, -70 - Math.random() * 30, 0));
+      setTimeout(() => { if (gameRunning) spawnBomb(pos, vel, 50, 60); }, delay * 1000);
+    }
   }
   // ---- TRUENO: Charge Shot ----
   if (skillId === 'chargeShot') {
@@ -4853,6 +4880,8 @@ function resetGame() {
   projectiles.length = 0;
   for (const m of missiles) scene.remove(m.mesh);
   missiles.length = 0;
+  for (const b of bombs) scene.remove(b.mesh);
+  bombs.length = 0;
   for (const m of enemyMissiles) scene.remove(m.mesh);
   enemyMissiles.length = 0;
   for (const p of teddyProjectiles) scene.remove(p.mesh);
@@ -5410,6 +5439,67 @@ function animate() {
       }
     }
     if (consumed || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
+  }
+
+  // ---- Bombas de Trueno (bawoos) ----
+  function explodeBomb(b) {
+    spawnExplosion(b.mesh.position.clone(), true);
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (e.mesh.position.distanceTo(b.mesh.position) < b.aoeRadius) registerHit(e, b.damage, false);
+    }
+    for (const d of destructibles) {
+      if (!d.alive) continue;
+      if (d.mesh.position.distanceTo(b.mesh.position) < b.aoeRadius) hitDestructible(d, 3);
+    }
+  }
+  for (let i = bombs.length - 1; i >= 0; i--) {
+    const b = bombs[i];
+    b.velocity.y -= b.gravity * dt;
+    b.mesh.position.addScaledVector(b.velocity, dt);
+    b.life -= dt;
+    b.mesh.rotation.x += 3 * dt;
+    b.mesh.rotation.z += 2 * dt;
+    // Trail spark
+    b.trailTimer -= dt;
+    if (b.trailTimer <= 0) {
+      b.trailTimer = 0.06;
+      const sp = new THREE.Sprite(bombTrailMat);
+      sp.scale.set(0.8, 0.8, 1);
+      sp.position.copy(b.mesh.position);
+      scene.add(sp);
+      trailBubbles.push({ points: sp, velocities: [new THREE.Vector3(0, 2, 0)], life: 0.3, maxLife: 0.3, startSize: 0.8, endSize: 0.1, gravity: 0 });
+    }
+    // Hit floor (y <= 0)
+    if (b.mesh.position.y <= 1) {
+      b.mesh.position.y = 1;
+      explodeBomb(b);
+      scene.remove(b.mesh);
+      bombs.splice(i, 1);
+      continue;
+    }
+    // Hit enemy
+    let hitEnemy = false;
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const hr = e.isBoss ? 55 : 5.5;
+      if (b.mesh.position.distanceTo(e.mesh.position) < hr) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
+    }
+    if (hitEnemy) continue;
+    // Hit destructible
+    for (const d of destructibles) {
+      if (!d.alive) continue;
+      if (b.mesh.position.distanceTo(d.mesh.position) < 5) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
+    }
+    if (hitEnemy) continue;
+    // Hit world collider
+    for (const c of worldColliders) {
+      if (!c.hp || c.hp <= 0) continue;
+      if (b.mesh.position.distanceTo(c.pos) < c.radius) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
+    }
+    if (hitEnemy) continue;
+    // Expired
+    if (b.life <= 0) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); }
   }
 
   for (let i = missiles.length - 1; i >= 0; i--) {
