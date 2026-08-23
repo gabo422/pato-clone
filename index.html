@@ -4937,11 +4937,6 @@ function resetGame() {
   for (const p of powerups) scene.remove(p.mesh);
   powerups.length = 0;
   resetDestructibles();
-  catTimer = 25 + Math.random() * 20;
-  catWarnTimer = 0;
-  catSweeping = false;
-  catPaw.visible = false;
-  catShadow.visible = false;
 
   document.getElementById('score').textContent = 0;
   renderLivesHUD();
@@ -5137,83 +5132,6 @@ function hitWorldCollider(c, dmg) {
   return false;
 }
 
-// ================= El gato: evento ambiental aleatorio =================
-let catTimer = 25 + Math.random() * 20;
-let catWarnTimer = 0;
-let catSweeping = false;
-let catSweepT = 0;
-let catAxis = 'x'; // por qué eje del mapa barre la pata
-let catDir = 1;
-const catPaw = new THREE.Group();
-const catPawMesh = new THREE.Mesh(
-  new THREE.SphereGeometry(38, 12, 10),
-  new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, transparent: true, opacity: 1 })
-);
-catPawMesh.scale.set(1, 0.5, 1.3);
-catPaw.add(catPawMesh);
-for (const side of [-1, 1]) {
-  const toe = new THREE.Mesh(new THREE.SphereGeometry(12, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2a2a2a }));
-  toe.position.set(side * 22, 4, 32);
-  catPaw.add(toe);
-}
-catPaw.visible = false;
-scene.add(catPaw);
-// Sombra de aviso: plana, apoyada de verdad en el piso (con polygonOffset, no se entierra ni titila)
-const catShadow = new THREE.Mesh(
-  new THREE.CircleGeometry(40, 24),
-  new THREE.MeshStandardMaterial({ color: 0x000000, transparent: true, opacity: 0.4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })
-);
-catShadow.rotation.x = -Math.PI / 2;
-catShadow.position.y = 2;
-catShadow.visible = false;
-scene.add(catShadow);
-function updateCatEvent(dt) {
-  if (catSweeping) {
-    catSweepT += dt;
-    const dur = 1.4;
-    const t = Math.min(1, catSweepT / dur);
-    const span = roomSize * 2.3;
-    const pos = -span / 2 + span * t;
-    if (catAxis === 'x') catPaw.position.set(pos * catDir, 35, (Math.random() - 0.5) * 40 + catSweepOffset);
-    else catPaw.position.set((Math.random() - 0.5) * 40 + catSweepOffset, 35, pos * catDir);
-    if (!catHasHitThisSweep && catPaw.position.distanceTo(ship.position) < 70) {
-      catHasHitThisSweep = true;
-      registerPlayerHit();
-      showWaveBanner('¡La pata del gato!');
-    }
-    if (t >= 1) { catSweeping = false; catPaw.visible = false; catTimer = 35 + Math.random() * 25; }
-    return;
-  }
-  if (catWarnTimer > 0) {
-    catWarnTimer -= dt;
-    catShadow.visible = true;
-    catShadow.position.x = catAxis === 'x' ? 0 : catSweepOffset;
-    catShadow.position.z = catAxis === 'x' ? catSweepOffset : 0;
-    const shadowScale = 0.4 + (1 - catWarnTimer / 1.3) * 0.8;
-    catShadow.scale.set(shadowScale, shadowScale, 1);
-    if (catWarnTimer <= 0) {
-      catShadow.visible = false;
-      catSweeping = true;
-      catSweepT = 0;
-      catHasHitThisSweep = false;
-      catPaw.visible = true;
-      catPaw.scale.set(1, 1, 1);
-      catPawMesh.material.opacity = 1;
-    }
-    return;
-  }
-  catTimer -= dt;
-  if (catTimer <= 0) {
-    catWarnTimer = 1.3;
-    catAxis = Math.random() < 0.5 ? 'x' : 'z';
-    catDir = Math.random() < 0.5 ? -1 : 1;
-    catSweepOffset = (Math.random() - 0.5) * roomSize;
-    showWaveBanner('¿Qué fue ese ruido?');
-  }
-}
-let catHasHitThisSweep = false;
-let catSweepOffset = 0;
-
 const clock = new THREE.Clock();
 
 function animate() {
@@ -5393,7 +5311,6 @@ function animate() {
   portalInnerSwirl.rotation.z += dt * 0.6;
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
-  updateCatEvent(dt);
 
   // Overheat: cooldowns
   stdFireCooldown -= dt;
