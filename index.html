@@ -904,8 +904,8 @@ const GEAR_CONFIGS = {
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma estándar' },
       { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 0, duration: 60, desc: '+Daño arma avanzada' },
       { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 0, duration: 60, desc: '+Accuracy ambas armas' },
-      { id: 'groundBombing', name: 'Ground Bombing Mode', cat: 'Ataque', spCost: 25, cooldown: 15, duration: 15, desc: 'Arma avanzada cae al suelo con gravedad' },
-      { id: 'airBombing', name: 'Air Bombing Mode', cat: 'Ataque', spCost: 30, cooldown: 18, duration: 15, desc: 'Arma avanzada se lanza hacia adelante y cae' },
+      { id: 'groundBombing', name: 'Ground Bombing Mode', cat: 'Ataque', spCost: 0, cooldown: 0, duration: 999, spPerSec: 3, desc: 'Arma avanzada cae al suelo con gravedad' },
+      { id: 'airBombing', name: 'Air Bombing Mode', cat: 'Ataque', spCost: 0, cooldown: 0, duration: 999, spPerSec: 3, desc: 'Arma avanzada se lanza hacia adelante y cae' },
       { id: 'chargeShot', name: 'Charging Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Arma estándar cargada, alto daño y precisión' },
       { id: 'multiTarget', name: 'Multi-Target Mode', cat: 'Ataque', spCost: 25, cooldown: 18, duration: 12, desc: 'Misiles atacan múltiples objetivos' },
       { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 15, duration: 10, desc: 'Chaffs absorben hits enemigos' },
@@ -4061,14 +4061,25 @@ function canUseSkillSlot(slot) {
 }
 
 function activateSkillSlot(slot) {
-  if (!canUseSkillSlot(slot)) return false;
+  if (slot < 0 || slot >= 10) return false;
   const sk = skillSlots[slot];
+  if (!sk) return false;
+  // Toggle off if already active (for bombing modes)
+  if (activeSkillEffects[sk.id] && sk.spPerSec) {
+    applySkillEffect(sk.id, false);
+    delete skillActiveTimers[sk.id];
+    return true;
+  }
   const costReduction = getPassive('spCostReduction');
   const actualCost = Math.round(sk.spCost * (1 - costReduction));
+  if (playerSP < actualCost || skillCooldowns[slot] > 0) return false;
   playerSP -= actualCost;
   skillCooldowns[slot] = sk.cooldown;
-  if (sk.duration > 0) {
+  if (sk.duration > 0 && !sk.spPerSec) {
     skillActiveTimers[sk.id] = sk.duration;
+  }
+  if (sk.spPerSec) {
+    skillActiveTimers[sk.id] = 999;
   }
   applySkillEffect(sk.id, true);
   return true;
@@ -4109,8 +4120,19 @@ function updateSkills(dt) {
   // Movement cooldowns
   if (movementCooldowns.q > 0) movementCooldowns.q = Math.max(0, movementCooldowns.q - dt);
   if (movementCooldowns.e > 0) movementCooldowns.e = Math.max(0, movementCooldowns.e - dt);
-  // Active skill timers
+  // Active skill timers + SP-per-second drain
   for (const [id, remaining] of Object.entries(skillActiveTimers)) {
+    const sk = skillSlots.find(s => s && s.id === id);
+    // SP-per-second drain for bombing modes
+    if (sk && sk.spPerSec) {
+      playerSP -= sk.spPerSec * dt;
+      if (playerSP <= 0) {
+        playerSP = 0;
+        applySkillEffect(id, false);
+        delete skillActiveTimers[id];
+        continue;
+      }
+    }
     skillActiveTimers[id] = remaining - dt;
     if (skillActiveTimers[id] <= 0) {
       delete skillActiveTimers[id];
