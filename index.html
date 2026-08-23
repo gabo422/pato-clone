@@ -2729,14 +2729,13 @@ function spawnBossWave() {
 
 // ---- Bombas de Trueno (bawoos) ----
 const bombs = [];
-const bombGeo = new THREE.SphereGeometry(1.2, 8, 6);
-const bombMat = new THREE.MeshStandardMaterial({ color: 0x444444, emissive: 0x111111, roughness: 0.4 });
-const bombTrailMat = new THREE.SpriteMaterial({ color: 0xff8800, transparent: true, opacity: 0.7, depthWrite: false });
+const bombGeo = new THREE.SphereGeometry(2.2, 10, 8);
+const bombMat = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.5 });
 function spawnBomb(position, velocity, damage, aoeRadius) {
   const mesh = new THREE.Mesh(bombGeo, bombMat);
   mesh.position.copy(position);
   scene.add(mesh);
-  bombs.push({ mesh, velocity: velocity.clone(), gravity: 90, life: 4, damage, aoeRadius, trailTimer: 0 });
+  bombs.push({ mesh, velocity: velocity.clone(), gravity: 35, life: 4, damage, aoeRadius, trailTimer: 0 });
 }
 
 // ---- Burbujas de jabón (jugador) ----
@@ -4200,23 +4199,25 @@ function applySkillEffect(skillId, on) {
   // ---- TRUENO: Ground Bombing ----
   if (skillId === 'groundBombing') {
     spawnSkillRing(ship.position.clone().setY(1), 0xff6600, 5, 40);
+    spawnExplosion(ship.position.clone().add(new THREE.Vector3(0, -5, 0)), false);
     // Spawn 5 bombs that drop straight down with slight spread
     for (let i = 0; i < 5; i++) {
-      const offset = new THREE.Vector3((Math.random() - 0.5) * 12, 0, (Math.random() - 0.5) * 12);
+      const offset = new THREE.Vector3((Math.random() - 0.5) * 20, 0, (Math.random() - 0.5) * 20);
       const pos = ship.position.clone().add(offset);
-      const vel = new THREE.Vector3((Math.random() - 0.5) * 15, -60 - Math.random() * 40, (Math.random() - 0.5) * 15);
+      const vel = new THREE.Vector3((Math.random() - 0.5) * 10, -30 - Math.random() * 20, (Math.random() - 0.5) * 10);
       spawnBomb(pos, vel, 45, 55);
     }
   }
   // ---- TRUENO: Air Bombing ----
   if (skillId === 'airBombing') {
     spawnSkillRing(ship.position, 0xff8800, 3, 50);
+    spawnExplosion(ship.position.clone(), false);
     // Spawn 5 bombs launched forward + downward
     const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     for (let i = 0; i < 5; i++) {
-      const delay = i * 0.12;
-      const pos = ship.position.clone().addScaledVector(fwd, 5 + i * 8);
-      const vel = fwd.clone().multiplyScalar(120 + Math.random() * 40).add(new THREE.Vector3(0, -70 - Math.random() * 30, 0));
+      const delay = i * 0.15;
+      const pos = ship.position.clone().addScaledVector(fwd, 8 + i * 10);
+      const vel = fwd.clone().multiplyScalar(80 + Math.random() * 30).add(new THREE.Vector3(0, -35 - Math.random() * 15, 0));
       setTimeout(() => { if (gameRunning) spawnBomb(pos, vel, 50, 60); }, delay * 1000);
     }
   }
@@ -5468,15 +5469,11 @@ function animate() {
     b.life -= dt;
     b.mesh.rotation.x += 3 * dt;
     b.mesh.rotation.z += 2 * dt;
-    // Trail spark
+    // Fire trail particles
     b.trailTimer -= dt;
     if (b.trailTimer <= 0) {
-      b.trailTimer = 0.06;
-      const sp = new THREE.Sprite(bombTrailMat);
-      sp.scale.set(0.8, 0.8, 1);
-      sp.position.copy(b.mesh.position);
-      scene.add(sp);
-      trailBubbles.push({ points: sp, velocities: [new THREE.Vector3(0, 2, 0)], life: 0.3, maxLife: 0.3, startSize: 0.8, endSize: 0.1, gravity: 0 });
+      b.trailTimer = 0.1;
+      aceSpawnParticles({ count: 1, speed: 4, life: 0.4, size: 1.5, endSize: 0.3, color: 0xff8800, endColor: 0xff2200, spread: 0.3, gravity: 2 }, b.mesh.position.clone(), explosions);
     }
     // Hit floor (y <= 0)
     if (b.mesh.position.y <= 1) {
