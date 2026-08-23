@@ -479,7 +479,14 @@
   .mobileBarFill { height: 100%; width: 100%; border-radius: 3px; transition: width 0.15s linear; }
   .mobileBarLife { background: linear-gradient(90deg, #ff5566, #ff2233); box-shadow: 0 0 4px rgba(255,50,50,0.3); }
   .mobileBarShield { background: linear-gradient(90deg, #44ccee, #00aacc); box-shadow: 0 0 4px rgba(0,180,230,0.3); }
-  #skillBar { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
+  #skillBar {
+    display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap;
+    position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.25);
+    border-radius: 6px; padding: 6px 8px; z-index: 11;
+    pointer-events: auto;
+    box-shadow: 0 0 20px rgba(0,100,180,0.15);
+  }
   .skillSlot {
     width: 46px; height: 46px; border-radius: 4px; flex: none;
     background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.2);
@@ -592,20 +599,21 @@
     Tiempo: <b id="waveTime">0.0</b>s · Mejor: <b id="bestTime">—</b>
   </div>
 
-  <div id="skillBar">
-    <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><img class="skillIcon" id="skillIconQ"><div class="skillCooldown" id="skillCDQ"></div></div>
-    <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><img class="skillIcon" id="skillIconE"><div class="skillCooldown" id="skillCDE"></div></div>
-    <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><img class="skillIcon" id="skillIcon0"><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
-    <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><img class="skillIcon" id="skillIcon1"><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
-    <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><img class="skillIcon" id="skillIcon2"><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
-    <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><img class="skillIcon" id="skillIcon3"><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
-    <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><img class="skillIcon" id="skillIcon4"><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
-    <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><img class="skillIcon" id="skillIcon5"><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
-    <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><img class="skillIcon" id="skillIcon6"><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
-    <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><img class="skillIcon" id="skillIcon7"><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
-    <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><img class="skillIcon" id="skillIcon8"><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
-    <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><img class="skillIcon" id="skillIcon9"><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
   </div>
+</div>
+<div id="skillBar">
+  <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><img class="skillIcon" id="skillIconQ"><div class="skillCooldown" id="skillCDQ"></div></div>
+  <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><img class="skillIcon" id="skillIconE"><div class="skillCooldown" id="skillCDE"></div></div>
+  <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><img class="skillIcon" id="skillIcon0"><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
+  <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><img class="skillIcon" id="skillIcon1"><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
+  <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><img class="skillIcon" id="skillIcon2"><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
+  <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><img class="skillIcon" id="skillIcon3"><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
+  <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><img class="skillIcon" id="skillIcon4"><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
+  <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><img class="skillIcon" id="skillIcon5"><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
+  <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><img class="skillIcon" id="skillIcon6"><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
+  <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><img class="skillIcon" id="skillIcon7"><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
+  <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><img class="skillIcon" id="skillIcon8"><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
+  <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><img class="skillIcon" id="skillIcon9"><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
 </div>
 <button id="restartBtn">↻ Reiniciar</button>
 <button id="resetBotsBtn">🐻 Reiniciar bots</button>
