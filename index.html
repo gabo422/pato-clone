@@ -2731,11 +2731,13 @@ function spawnBossWave() {
 const bombs = [];
 const bombGeo = new THREE.SphereGeometry(2.2, 10, 8);
 const bombMat = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.5 });
-function spawnBomb(position, velocity, damage, aoeRadius) {
+function spawnBomb(position, velocity, damage, aoeRadius, targetPos) {
   const mesh = new THREE.Mesh(bombGeo, bombMat);
   mesh.position.copy(position);
   scene.add(mesh);
-  bombs.push({ mesh, velocity: velocity.clone(), gravity: 98, life: 4, damage, aoeRadius, trailTimer: 0 });
+  const speed = velocity.length() || 100;
+  const dir = velocity.clone().normalize();
+  bombs.push({ mesh, velocity: dir.clone().multiplyScalar(speed), direction: dir.clone(), targetPos: targetPos ? targetPos.clone() : null, speed, curvature: 1.0, life: 5, damage, aoeRadius, trailTimer: 0 });
 }
 
 // ---- Burbujas de jabón (jugador) ----
@@ -2848,16 +2850,23 @@ function fireMissile() {
   const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier());
   // ---- Bombing modes: adv weapon drops bombs instead of homing missiles ----
   if (groundBombingActive) {
-    const pos = ship.position.clone().add(new THREE.Vector3(0, -2, 0));
-    const vel = new THREE.Vector3((Math.random() - 0.5) * 10, -20, (Math.random() - 0.5) * 10);
-    spawnBomb(pos, vel, damage, 55);
+    const weaponRange = weapon.range || 300;
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
+    const target = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
+    target.y = Math.max(1, target.y);
+    const spawnPos = ship.position.clone().addScaledVector(fwd, 3);
+    const vel = target.clone().sub(spawnPos).normalize().multiplyScalar(100);
+    spawnBomb(spawnPos, vel, damage, 55, target);
     return;
   }
   if (airBombingActive) {
+    const radarRange = 400;
     const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    const pos = ship.position.clone().addScaledVector(fwd, 3);
-    const vel = fwd.clone().multiplyScalar(60).add(new THREE.Vector3(0, -30, 0));
-    spawnBomb(pos, vel, damage, 60);
+    const target = ship.position.clone().addScaledVector(fwd, radarRange);
+    const spawnPos = ship.position.clone().addScaledVector(fwd, 3);
+    const vel = target.clone().sub(spawnPos).normalize().multiplyScalar(100);
+    spawnBomb(spawnPos, vel, damage, 60, target);
     return;
   }
   // ---- Normal homing missiles ----
@@ -4509,6 +4518,40 @@ let chargeShotActive = false;
 let groundBombingActive = false;
 let airBombingActive = false;
 
+// Reticle de bombardeo (AO: 100×100 quad proyectado en el suelo)
+const reticleSize = 40;
+const reticleTexture = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.strokeStyle = 'rgba(255,100,0,0.9)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(64, 64, 50, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(64, 10); ctx.lineTo(64, 30);
+  ctx.moveTo(64, 98); ctx.lineTo(64, 118);
+  ctx.moveTo(10, 64); ctx.lineTo(30, 64);
+  ctx.moveTo(98, 64); ctx.lineTo(118, 64);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,60,0,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(64, 64, 30, 0, Math.PI * 2);
+  ctx.stroke();
+  return new THREE.CanvasTexture(c);
+})();
+const bombReticle = new THREE.Mesh(
+  new THREE.PlaneGeometry(reticleSize, reticleSize),
+  new THREE.MeshBasicMaterial({ map: reticleTexture, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })
+);
+bombReticle.rotation.x = -Math.PI / 2;
+bombReticle.position.y = 2;
+bombReticle.visible = false;
+scene.add(bombReticle);
+
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
 const SHIELD_CAP = 8;
@@ -5336,6 +5379,32 @@ function animate() {
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
 
+  // Reticle de bombardeo: actualizar posición en cada frame
+  if (groundBombingActive || airBombingActive) {
+    bombReticle.visible = true;
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    let targetPos;
+    if (groundBombingActive) {
+      const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
+      const weapon = getAdvWeapon();
+      const weaponRange = weapon ? (weapon.range || 300) : 300;
+      targetPos = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
+      targetPos.y = Math.max(1, targetPos.y);
+    } else {
+      const radarRange = 400;
+      targetPos = ship.position.clone().addScaledVector(fwd, radarRange);
+      targetPos.y = Math.max(1, targetPos.y);
+    }
+    bombReticle.position.x = targetPos.x;
+    bombReticle.position.z = targetPos.z;
+    bombReticle.position.y = 2;
+    // Pulse animation
+    const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.15;
+    bombReticle.scale.set(pulse, pulse, pulse);
+  } else {
+    bombReticle.visible = false;
+  }
+
   // Overheat: cooldowns
   stdFireCooldown -= dt;
   advFireCooldown -= dt;
@@ -5405,8 +5474,27 @@ function animate() {
   }
   for (let i = bombs.length - 1; i >= 0; i--) {
     const b = bombs[i];
-    b.velocity.y -= b.gravity * dt;
-    b.mesh.position.addScaledVector(b.velocity, dt);
+    if (b.targetPos) {
+      // Curvature steering toward target (AO cinema system)
+      const toTarget = b.targetPos.clone().sub(b.mesh.position);
+      const distToTarget = toTarget.length();
+      if (distToTarget < 8) {
+        explodeBomb(b);
+        scene.remove(b.mesh);
+        bombs.splice(i, 1);
+        continue;
+      }
+      const desiredDir = toTarget.normalize();
+      const diff = desiredDir.clone().sub(b.direction);
+      b.direction.addScaledVector(diff, b.curvature * dt * 3);
+      b.direction.normalize();
+      b.mesh.position.addScaledVector(b.direction, b.speed * dt);
+      b.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), b.direction);
+    } else {
+      // Legacy ballistic bombs (old Trueno bombs if any)
+      b.velocity.y -= 98 * dt;
+      b.mesh.position.addScaledVector(b.velocity, dt);
+    }
     b.life -= dt;
     b.mesh.rotation.x += 3 * dt;
     b.mesh.rotation.z += 2 * dt;
