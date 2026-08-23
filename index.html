@@ -2848,16 +2848,15 @@ function fireMissile() {
   const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier());
   // ---- Bombing modes: adv weapon drops bombs instead of homing missiles ----
   if (groundBombingActive) {
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    const pos = ship.position.clone().addScaledVector(fwd, 3);
-    const vel = new THREE.Vector3((Math.random() - 0.5) * 8, -25 - Math.random() * 15, 0).applyQuaternion(ship.quaternion);
+    const pos = ship.position.clone().add(new THREE.Vector3(0, -2, 0));
+    const vel = new THREE.Vector3((Math.random() - 0.5) * 10, -20, (Math.random() - 0.5) * 10);
     spawnBomb(pos, vel, damage, 55);
     return;
   }
   if (airBombingActive) {
     const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    const pos = ship.position.clone().addScaledVector(fwd, 5);
-    const vel = fwd.clone().multiplyScalar(weapon.speed || 120).add(new THREE.Vector3(0, -40 - Math.random() * 20, 0));
+    const pos = ship.position.clone().addScaledVector(fwd, 3);
+    const vel = fwd.clone().multiplyScalar(60).add(new THREE.Vector3(0, -30, 0));
     spawnBomb(pos, vel, damage, 60);
     return;
   }
