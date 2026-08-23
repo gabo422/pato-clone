@@ -526,6 +526,40 @@
   .skillSPCost {
     position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 3;
   }
+  /* ===== Skill Panel (AO-style drag-to-slot) ===== */
+  #skillPanel {
+    position: fixed; right: 20px; bottom: 70px; width: 260px;
+    background: rgba(10,18,30,0.92); border: 1px solid rgba(80,160,220,0.35);
+    border-radius: 8px; padding: 10px; z-index: 50;
+    display: none; max-height: 320px; overflow-y: auto;
+    backdrop-filter: blur(4px); box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  }
+  #skillPanel.open { display: block; }
+  #skillPanel h3 {
+    margin: 0 0 8px; font-size: 12px; color: #80bbdd;
+    border-bottom: 1px solid rgba(80,160,220,0.25); padding-bottom: 4px;
+  }
+  .skillPanelItem {
+    display: inline-flex; flex-direction: column; align-items: center;
+    width: 52px; height: 56px; margin: 3px; cursor: grab;
+    background: rgba(40,70,100,0.3); border: 1px solid rgba(80,160,220,0.2);
+    border-radius: 4px; padding: 3px 2px 2px; position: relative;
+    transition: border-color 0.15s, background 0.15s;
+    vertical-align: top;
+  }
+  .skillPanelItem:hover { border-color: rgba(100,200,255,0.5); background: rgba(60,100,140,0.4); }
+  .skillPanelItem:active { cursor: grabbing; }
+  .skillPanelItem .spiIcon { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; pointer-events: none; }
+  .skillPanelItem .spiName { font-size: 7px; color: #aaccee; text-align: center; line-height: 1.1; margin-top: 2px; pointer-events: none; }
+  .skillPanelItem.dragging { opacity: 0.3; }
+  /* Ghost icon while dragging */
+  #dragGhost {
+    position: fixed; pointer-events: none; z-index: 9999;
+    width: 36px; height: 36px; image-rendering: pixelated;
+    display: none; opacity: 0.85; filter: drop-shadow(0 0 6px rgba(100,200,255,0.6));
+  }
+  /* Drop zone highlight */
+  .skillSlot.dropTarget { border-color: rgba(100,255,200,0.7) !important; box-shadow: 0 0 10px rgba(100,255,200,0.3); }
 </style>
 </head>
 <body>
@@ -615,6 +649,11 @@
   <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><img class="skillIcon" id="skillIcon8"><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
   <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><img class="skillIcon" id="skillIcon9"><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
 </div>
+<img id="dragGhost">
+<div id="skillPanel">
+  <h3>Habilidades (para arrastrar a la barra)</h3>
+  <div id="skillPanelGrid"></div>
+</div>
 <button id="restartBtn">↻ Reiniciar</button>
 <button id="resetBotsBtn">🐻 Reiniciar bots</button>
 <button id="scoreboardBtn">🏆 Puntajes</button>
@@ -661,7 +700,7 @@
 </div>
 
 <div id="menuOverlay" class="hidden">
-  <div id="hint">Izq: disparo · Der: misil · W: acelerar · S: freno suave · B: freno aéreo · Espacio: boost · A/D: strafe · Shift: soltar mira · C: aterrizar · Enter: confirmar · ESC: menú</div>
+  <div id="hint">Izq: disparo · Der: misil · W: acelerar · S: freno suave · B: freno aéreo · Espacio: boost · A/D: strafe · Shift: soltar mira · C: aterrizar · K: habilidades · Enter: confirmar · ESC: menú</div>
   <div id="menuPanel">
     <h2>Menú</h2>
     <button id="openControlsBtn" class="menuSelectBtn">⌨ Controles y sensibilidad</button>
@@ -3580,6 +3619,7 @@ window.addEventListener('keydown', e => {
     if (!gameOverOverlay.classList.contains('hidden')) return;
     if (!waveClearOverlay.classList.contains('hidden')) return;
     if (!scoreboardOverlay.classList.contains('hidden')) { closeScoreboard(); return; }
+    if (skillPanelOpen) { closeSkillPanel(); return; }
     if (menuOverlay.classList.contains('hidden')) openMenu(); else closeMenu();
     if (pointerLocked) document.exitPointerLock();
     return;
@@ -3587,6 +3627,7 @@ window.addEventListener('keydown', e => {
   if (!keys[e.code]) {
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
     if (e.code === bindings.brake) { braking = true; } // B key: hard brake
+    if (e.code === 'KeyK') { toggleSkillPanel(); }
     if (e.code === 'KeyQ') { activateMovementSkill('q'); }
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
     // C key: land/takeoff toggle (from AO ShuttleChild.cpp DIK_C)
@@ -4052,11 +4093,11 @@ function initSkillSlots() {
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
   if (!gear) return;
-  // Auto-assign active skills to slots 0-9 in order
   const skills = gear.activeSkills || [];
   for (let i = 0; i < Math.min(skills.length, 10); i++) {
     skillSlots[i] = skills[i];
   }
+  if (skillPanelOpen) renderSkillPanel();
 }
 
 function canUseSkillSlot(slot) {
@@ -4504,6 +4545,150 @@ function renderSkillBar() {
   const spNum = document.getElementById('spNum');
   if (spFill) spFill.style.width = (playerSP / MAX_SP * 100) + '%';
   if (spNum) spNum.textContent = Math.floor(playerSP);
+}
+
+// ================= Skill Panel + Drag & Drop (AO-style) =================
+let skillPanelOpen = false;
+const dragGhost = document.getElementById('dragGhost');
+const skillPanel = document.getElementById('skillPanel');
+const skillPanelGrid = document.getElementById('skillPanelGrid');
+let dragData = null; // { skillId, sourceSlot }
+
+function openSkillPanel() {
+  skillPanelOpen = true;
+  skillPanel.classList.add('open');
+  renderSkillPanel();
+}
+function closeSkillPanel() {
+  skillPanelOpen = false;
+  skillPanel.classList.remove('open');
+}
+function toggleSkillPanel() {
+  if (skillPanelOpen) closeSkillPanel(); else openSkillPanel();
+}
+
+function renderSkillPanel() {
+  const gear = getGearConfig();
+  skillPanelGrid.innerHTML = '';
+  if (!gear) return;
+  const allSkills = [...(gear.activeSkills || [])];
+  for (const sk of allSkills) {
+    const div = document.createElement('div');
+    div.className = 'skillPanelItem';
+    div.dataset.skillId = sk.id;
+    const iconFile = SKILL_ICON_MAP[sk.id];
+    div.innerHTML = `<img class="spiIcon" src="${iconFile ? SKILL_ICON_DIR + iconFile : ''}" alt="${sk.name}"><div class="spiName">${sk.name}</div>`;
+    div.title = sk.name + ': ' + sk.desc + ' (SP: ' + sk.spCost + ', CD: ' + sk.cooldown + 's)';
+    // Drag from panel
+    div.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragData = { skillId: sk.id, sourceSlot: -1 };
+      dragGhost.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+      dragGhost.style.display = 'block';
+      dragGhost.style.left = (e.clientX - 18) + 'px';
+      dragGhost.style.top = (e.clientY - 18) + 'px';
+      div.classList.add('dragging');
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+    });
+    // Click to first empty slot
+    div.addEventListener('dblclick', (e) => {
+      for (let i = 0; i < 10; i++) {
+        if (!skillSlots[i]) {
+          skillSlots[i] = allSkills.find(s => s.id === sk.id);
+          renderSkillBar();
+          return;
+        }
+      }
+    });
+    skillPanelGrid.appendChild(div);
+  }
+}
+
+function onDragMove(e) {
+  dragGhost.style.left = (e.clientX - 18) + 'px';
+  dragGhost.style.top = (e.clientY - 18) + 'px';
+  // Highlight drop target
+  for (let i = 0; i < 10; i++) {
+    const el = document.getElementById('skillSlot' + i);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    const isOver = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    el.classList.toggle('dropTarget', isOver);
+  }
+}
+
+function onDragEnd(e) {
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  dragGhost.style.display = 'none';
+  // Remove highlights
+  for (let i = 0; i < 10; i++) {
+    const el = document.getElementById('skillSlot' + i);
+    if (el) el.classList.remove('dropTarget');
+  }
+  // Remove dragging class from panel
+  document.querySelectorAll('.skillPanelItem.dragging').forEach(el => el.classList.remove('dragging'));
+
+  if (!dragData) return;
+  // Find which slot was dropped on
+  const allSkills = getGearConfig() ? (getGearConfig().activeSkills || []) : [];
+  const droppedSkill = allSkills.find(s => s.id === dragData.skillId);
+  for (let i = 0; i < 10; i++) {
+    const el = document.getElementById('skillSlot' + i);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+      if (dragData.sourceSlot >= 0) {
+        // Swap: slot→slot
+        const temp = skillSlots[i];
+        skillSlots[i] = skillSlots[dragData.sourceSlot];
+        skillSlots[dragData.sourceSlot] = temp;
+      } else {
+        // Panel→slot: swap if occupied
+        const existing = skillSlots[i];
+        skillSlots[i] = droppedSkill;
+        // Put displaced skill in first empty slot or back to panel (just remove)
+        if (existing && existing.id !== dragData.skillId) {
+          const emptySlot = skillSlots.indexOf(null);
+          if (emptySlot >= 0) skillSlots[emptySlot] = existing;
+        }
+      }
+      renderSkillBar();
+      dragData = null;
+      return;
+    }
+  }
+  dragData = null;
+}
+
+// Add drag-from-slot support to existing skill slots
+for (let i = 0; i < 10; i++) {
+  const el = document.getElementById('skillSlot' + i);
+  if (!el) continue;
+  el.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (!skillSlots[i]) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const iconFile = SKILL_ICON_MAP[skillSlots[i].id];
+    dragData = { skillId: skillSlots[i].id, sourceSlot: i };
+    dragGhost.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+    dragGhost.style.display = 'block';
+    dragGhost.style.left = (e.clientX - 18) + 'px';
+    dragGhost.style.top = (e.clientY - 18) + 'px';
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragEnd);
+  });
+  // Right-click to remove skill from slot
+  el.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (skillSlots[i]) {
+      skillSlots[i] = null;
+      renderSkillBar();
+    }
+  });
 }
 
 // ================= Skill Key Handlers =================
