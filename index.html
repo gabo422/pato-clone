@@ -5379,27 +5379,25 @@ function animate() {
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
 
-  // Reticle de bombardeo: actualizar posición en cada frame
+  // Reticle de bombardeo: fijo al frente del gear en el suelo
   if (groundBombingActive || airBombingActive) {
     bombReticle.visible = true;
     const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    let targetPos;
-    if (groundBombingActive) {
-      const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
-      const weapon = getAdvWeapon();
-      const weaponRange = weapon ? (weapon.range || 300) : 300;
-      targetPos = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
-      targetPos.y = Math.max(1, targetPos.y);
-    } else {
-      const radarRange = 400;
-      targetPos = ship.position.clone().addScaledVector(fwd, radarRange);
-      targetPos.y = Math.max(1, targetPos.y);
-    }
-    bombReticle.position.x = targetPos.x;
-    bombReticle.position.z = targetPos.z;
+    const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
+    // AO: reticle siempre al frente, 80m adelante en el suelo
+    const reticleDist = 80;
+    bombReticle.position.copy(ship.position).addScaledVector(horizFwd, reticleDist);
     bombReticle.position.y = 2;
+    bombReticle.rotation.x = -Math.PI / 2;
+    // AO: ABM quad rotado -90° X (INFSkill.cpp:888)
+    if (airBombingActive) {
+      const toShip = ship.position.clone().sub(bombReticle.position).normalize();
+      const tiltQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+      const lookQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), toShip);
+      bombReticle.quaternion.copy(tiltQ).multiply(lookQ);
+    }
     // Pulse animation
-    const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.15;
+    const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.12;
     bombReticle.scale.set(pulse, pulse, pulse);
   } else {
     bombReticle.visible = false;
