@@ -2101,12 +2101,12 @@ const MODEL_LIBRARY = {
   boss: {
     type: 'glb',
     url: "modelos/boat.glb",
-    scale: 2.9,
+    scale: 8.7,
     rotationY: 0,
     // Puntos locales de los cañones laterales del boss (de acá salen sus misiles)
     cannonPoints: [
-      new THREE.Vector3(-20, 18, 0),
-      new THREE.Vector3(20, 18, 0)
+      new THREE.Vector3(-60, 54, 0),
+      new THREE.Vector3(60, 54, 0)
     ]
   }
 };
@@ -5417,7 +5417,7 @@ function animate() {
     let consumed = false;
     for (const enemy of enemies) {
       if (!enemy.alive || enemiesHit.has(enemy)) continue;
-      const hitRadius = enemy.isBoss ? 55 : 5.5;
+      const hitRadius = enemy.isBoss ? 165 : 5.5;
       if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) {
         registerHit(enemy, p.damage || 10, false);
         enemiesHit.add(enemy);
@@ -5482,7 +5482,7 @@ function animate() {
     let hitEnemy = false;
     for (const e of enemies) {
       if (!e.alive) continue;
-      const hr = e.isBoss ? 55 : 5.5;
+      const hr = e.isBoss ? 165 : 5.5;
       if (b.mesh.position.distanceTo(e.mesh.position) < hr) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
     }
     if (hitEnemy) continue;
@@ -5516,7 +5516,7 @@ function animate() {
     let hit = false;
     for (const enemy of enemies) {
       if (!enemy.alive) continue;
-      const hitRadius = enemy.isBoss ? 55 : 5.5;
+      const hitRadius = enemy.isBoss ? 165 : 5.5;
       if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
     }
     if (!hit) {
