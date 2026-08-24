@@ -2766,19 +2766,6 @@ function spawnBossWave() {
   document.getElementById('bossBar').style.display = 'block';
 }
 
-// ---- Bombas de Trueno (bawoos) ----
-const bombs = [];
-const bombGeo = new THREE.SphereGeometry(2.2, 10, 8);
-const bombMat = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.5 });
-function spawnBomb(position, velocity, damage, aoeRadius, targetPos) {
-  const mesh = new THREE.Mesh(bombGeo, bombMat);
-  mesh.position.copy(position);
-  scene.add(mesh);
-  const speed = velocity.length() || 100;
-  const dir = velocity.clone().normalize();
-  bombs.push({ mesh, velocity: dir.clone().multiplyScalar(speed), direction: dir.clone(), targetPos: targetPos ? targetPos.clone() : null, speed, curvature: 1.0, life: 5, damage, aoeRadius, trailTimer: 0 });
-}
-
 // ---- Burbujas de jabón (jugador) ----
 const projectiles = [];
 // Textura de la burbuja: círculo con degradé celeste (centro) a blanco transparente (borde),
@@ -2887,33 +2874,26 @@ function fireMissile() {
     advOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
   const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier());
-  // ---- Bombing modes: adv weapon drops bombs instead of homing missiles ----
-  if (groundBombingActive) {
-    const weaponRange = weapon.range || 300;
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
-    const target = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
-    target.y = Math.max(1, target.y);
-    const spawnPos = ship.position.clone().addScaledVector(fwd, 3);
-    const vel = target.clone().sub(spawnPos).normalize().multiplyScalar(100);
-    spawnBomb(spawnPos, vel, damage, 55, target);
-    return;
-  }
-  if (airBombingActive) {
-    const radarRange = 400;
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    const target = ship.position.clone().addScaledVector(fwd, radarRange);
-    const spawnPos = ship.position.clone().addScaledVector(fwd, 3);
-    const vel = target.clone().sub(spawnPos).normalize().multiplyScalar(100);
-    spawnBomb(spawnPos, vel, damage, 60, target);
-    return;
-  }
-  // ---- Normal homing missiles ----
   const wingPoints = ship.userData.wingMissilePoints;
   const tubeIdx = missileTubeIndex % 3;
   missileTubeIndex++;
   const pattern = weapon.pattern || [1, 1];
   const missilesPerVolley = pattern[0];
+
+  // GBM/ABM: same bawoo missiles, but target changes (AO: ATT_TYPE_GROUND/AIR_BOMBING_SEC)
+  let groundTarget = null;
+  if (groundBombingActive) {
+    const weaponRange = weapon.range || 300;
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
+    groundTarget = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
+    groundTarget.y = Math.max(1, groundTarget.y);
+  } else if (airBombingActive) {
+    const radarRange = 400;
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    groundTarget = ship.position.clone().addScaledVector(fwd, radarRange);
+  }
+
   for (let i = 0; i < missilesPerVolley; i++) {
     setTimeout(() => {
       if (!gameRunning) return;
@@ -2925,14 +2905,26 @@ function fireMissile() {
       mesh.quaternion.copy(ship.quaternion);
       scene.add(mesh);
       aceMuzzleFlash(spawnPos.clone());
+      let target = null;
+      let bombTarget = null;
+      if (groundTarget) {
+        // AO scatter: GBM ±50 X/Z, ABM ±50 X/Y/Z
+        bombTarget = groundTarget.clone();
+        bombTarget.x += (Math.random() - 0.5) * 100;
+        bombTarget.z += (Math.random() - 0.5) * 100;
+        if (airBombingActive) bombTarget.y += (Math.random() - 0.5) * 100;
+      } else {
+        target = targetIsAimable(currentLockTarget) ? currentLockTarget : null;
+      }
       missiles.push({
         mesh,
         velocity: forward.clone().multiplyScalar(weapon.speed || 120),
-        target: targetIsAimable(currentLockTarget) ? currentLockTarget : null,
+        target,
+        bombTarget,
         life: 6,
         speed: weapon.speed || 120,
         trailTimer: 0,
-        damage: Math.round(weapon.baseDamage * getAdvDmgMultiplier()),
+        damage,
         pierce: weapon.pierce || false
       });
     }, i * 0.12 * 1000);
@@ -4623,43 +4615,51 @@ function onDragEnd(e) {
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
   dragGhost.style.display = 'none';
-  // Remove highlights
   for (let i = 0; i < 10; i++) {
     const el = document.getElementById('skillSlot' + i);
     if (el) el.classList.remove('dropTarget');
   }
-  // Remove dragging class from panel
   document.querySelectorAll('.skillPanelItem.dragging').forEach(el => el.classList.remove('dragging'));
 
   if (!dragData) return;
   // Find which slot was dropped on
   const allSkills = getGearConfig() ? (getGearConfig().activeSkills || []) : [];
   const droppedSkill = allSkills.find(s => s.id === dragData.skillId);
+  let droppedOnSlot = -1;
   for (let i = 0; i < 10; i++) {
     const el = document.getElementById('skillSlot' + i);
     if (!el) continue;
     const r = el.getBoundingClientRect();
     if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-      if (dragData.sourceSlot >= 0) {
-        // Swap: slot→slot
-        const temp = skillSlots[i];
-        skillSlots[i] = skillSlots[dragData.sourceSlot];
-        skillSlots[dragData.sourceSlot] = temp;
-      } else {
-        // Panel→slot: swap if occupied
-        const existing = skillSlots[i];
-        skillSlots[i] = droppedSkill;
-        // Put displaced skill in first empty slot or back to panel (just remove)
-        if (existing && existing.id !== dragData.skillId) {
-          const emptySlot = skillSlots.indexOf(null);
-          if (emptySlot >= 0) skillSlots[emptySlot] = existing;
-        }
-      }
-      renderSkillBar();
-      dragData = null;
-      return;
+      droppedOnSlot = i;
+      break;
     }
   }
+  if (droppedOnSlot < 0) {
+    // Dropped outside any slot: empty the source slot if it was a slot drag
+    if (dragData.sourceSlot >= 0) {
+      skillSlots[dragData.sourceSlot] = null;
+      renderSkillBar();
+    }
+    dragData = null;
+    return;
+  }
+  // No duplicate check
+  if (droppedSkill && skillSlots.some((s, idx) => s && s.id === droppedSkill.id && idx !== droppedOnSlot)) {
+    dragData = null;
+    return;
+  }
+  if (dragData.sourceSlot >= 0) {
+    // Slot→slot swap
+    if (dragData.sourceSlot === droppedOnSlot) { dragData = null; return; }
+    const temp = skillSlots[droppedOnSlot];
+    skillSlots[droppedOnSlot] = skillSlots[dragData.sourceSlot];
+    skillSlots[dragData.sourceSlot] = temp;
+  } else {
+    // Panel→slot: overwrite (existing skill displaced to first empty or removed if duplicate)
+    skillSlots[droppedOnSlot] = droppedSkill;
+  }
+  renderSkillBar();
   dragData = null;
 }
 
@@ -5141,8 +5141,7 @@ function resetGame() {
   projectiles.length = 0;
   for (const m of missiles) scene.remove(m.mesh);
   missiles.length = 0;
-  for (const b of bombs) scene.remove(b.mesh);
-  bombs.length = 0;
+
   for (const m of enemyMissiles) scene.remove(m.mesh);
   enemyMissiles.length = 0;
   for (const p of teddyProjectiles) scene.remove(p.mesh);
@@ -5643,98 +5642,49 @@ function animate() {
     if (consumed || p.life <= 0) { scene.remove(p.mesh); projectiles.splice(i, 1); }
   }
 
-  // ---- Bombas de Trueno (bawoos) ----
-  function explodeBomb(b) {
-    spawnExplosion(b.mesh.position.clone(), true);
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (e.mesh.position.distanceTo(b.mesh.position) < b.aoeRadius) registerHit(e, b.damage, false);
-    }
-    for (const d of destructibles) {
-      if (!d.alive) continue;
-      if (d.mesh.position.distanceTo(b.mesh.position) < b.aoeRadius) hitDestructible(d, 3);
-    }
-  }
-  for (let i = bombs.length - 1; i >= 0; i--) {
-    const b = bombs[i];
-    if (b.targetPos) {
-      // Curvature steering toward target (AO cinema system)
-      const toTarget = b.targetPos.clone().sub(b.mesh.position);
-      const distToTarget = toTarget.length();
-      if (distToTarget < 8) {
-        explodeBomb(b);
-        scene.remove(b.mesh);
-        bombs.splice(i, 1);
+  for (let i = missiles.length - 1; i >= 0; i--) {
+    const m = missiles[i];
+    if (m.bombTarget) {
+      // GBM/ABM: steer toward fixed target position (AO curvature steering)
+      const toTarget = m.bombTarget.clone().sub(m.mesh.position);
+      const dist = toTarget.length();
+      if (dist < 12 || m.mesh.position.y <= 2) {
+        // Explode at target (AoE)
+        spawnExplosion(m.mesh.position.clone(), true);
+        for (const e of enemies) {
+          if (!e.alive) continue;
+          if (e.mesh.position.distanceTo(m.mesh.position) < 55) registerHit(e, m.damage, false);
+        }
+        for (const d of destructibles) {
+          if (!d.alive) continue;
+          if (d.mesh.position.distanceTo(m.mesh.position) < 55) hitDestructible(d, 3);
+        }
+        scene.remove(m.mesh);
+        missiles.splice(i, 1);
         continue;
       }
       const desiredDir = toTarget.normalize();
-      const diff = desiredDir.clone().sub(b.direction);
-      b.direction.addScaledVector(diff, b.curvature * dt * 3);
-      b.direction.normalize();
-      b.mesh.position.addScaledVector(b.direction, b.speed * dt);
-      b.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), b.direction);
-    } else {
-      // Legacy ballistic bombs (old Trueno bombs if any)
-      b.velocity.y -= 98 * dt;
-      b.mesh.position.addScaledVector(b.velocity, dt);
-    }
-    b.life -= dt;
-    b.mesh.rotation.x += 3 * dt;
-    b.mesh.rotation.z += 2 * dt;
-    // Fire trail particles
-    b.trailTimer -= dt;
-    if (b.trailTimer <= 0) {
-      b.trailTimer = 0.1;
-      aceSpawnParticles({ count: 1, speed: 4, life: 0.4, size: 1.5, endSize: 0.3, color: 0xff8800, endColor: 0xff2200, spread: 0.3, gravity: 2 }, b.mesh.position.clone(), explosions);
-    }
-    // Hit floor (y <= 0)
-    if (b.mesh.position.y <= 1) {
-      b.mesh.position.y = 1;
-      explodeBomb(b);
-      scene.remove(b.mesh);
-      bombs.splice(i, 1);
-      continue;
-    }
-    // Hit enemy
-    let hitEnemy = false;
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      const hr = e.isBoss ? 165 : 5.5;
-      if (b.mesh.position.distanceTo(e.mesh.position) < hr) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
-    }
-    if (hitEnemy) continue;
-    // Hit destructible
-    for (const d of destructibles) {
-      if (!d.alive) continue;
-      if (b.mesh.position.distanceTo(d.mesh.position) < 5) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
-    }
-    if (hitEnemy) continue;
-    // Hit world collider
-    for (const c of worldColliders) {
-      if (!c.hp || c.hp <= 0) continue;
-      if (b.mesh.position.distanceTo(c.pos) < c.radius) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); hitEnemy = true; break; }
-    }
-    if (hitEnemy) continue;
-    // Expired
-    if (b.life <= 0) { explodeBomb(b); scene.remove(b.mesh); bombs.splice(i, 1); }
-  }
-
-  for (let i = missiles.length - 1; i >= 0; i--) {
-    const m = missiles[i];
-    if (m.target && !targetStillOnScreen(m.target)) m.target = null; // se perdió de pantalla: deja de perseguir
-    if (m.target && m.target.alive) {
-      const toTarget = m.target.mesh.position.clone().sub(m.mesh.position).normalize();
-      m.velocity.lerp(toTarget.multiplyScalar(m.speed), Math.min(1, 4.2 * dt));
+      m.velocity.lerp(desiredDir.multiplyScalar(m.speed), Math.min(1, 3.5 * dt));
       m.mesh.lookAt(m.mesh.position.clone().add(m.velocity));
+    } else {
+      // Normal homing
+      if (m.target && !targetStillOnScreen(m.target)) m.target = null;
+      if (m.target && m.target.alive) {
+        const toTarget = m.target.mesh.position.clone().sub(m.mesh.position).normalize();
+        m.velocity.lerp(toTarget.multiplyScalar(m.speed), Math.min(1, 4.2 * dt));
+        m.mesh.lookAt(m.mesh.position.clone().add(m.velocity));
+      }
     }
     m.mesh.position.addScaledVector(m.velocity, dt);
     m.life -= dt;
     updateMissileTrail(m, dt);
     let hit = false;
-    for (const enemy of enemies) {
-      if (!enemy.alive) continue;
-      const hitRadius = enemy.isBoss ? 165 : 5.5;
-      if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
+    if (!m.bombTarget) {
+      for (const enemy of enemies) {
+        if (!enemy.alive) continue;
+        const hitRadius = enemy.isBoss ? 165 : 5.5;
+        if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
+      }
     }
     if (!hit) {
       for (const d of destructibles) {
