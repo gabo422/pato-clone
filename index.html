@@ -2918,9 +2918,8 @@ function fireMissile() {
     groundTarget = ship.position.clone().addScaledVector(horizFwd, weaponRange).add(new THREE.Vector3(0, -weaponRange * 0.5, 0));
     groundTarget.y = Math.max(1, groundTarget.y);
   } else if (airBombingActive) {
-    const radarRange = 400;
-    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
-    groundTarget = ship.position.clone().addScaledVector(fwd, radarRange);
+    // AO: ABM uses the current 3D target (updated every frame in SetAirGroundTargetPos)
+    groundTarget = abmTarget3D.clone();
   }
 
   for (let i = 0; i < missilesPerVolley; i++) {
@@ -4732,6 +4731,7 @@ let isSiegeMode = false;
 let chargeShotActive = false;
 let groundBombingActive = false;
 let airBombingActive = false;
+let abmTarget3D = new THREE.Vector3(); // AO: ABM target in 3D space (updates every frame)
 
 // Reticle de bombardeo (AO: 100×100 quad proyectado en el suelo)
 const reticleSize = 40;
@@ -5593,26 +5593,35 @@ function animate() {
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
 
-  // Reticle de bombardeo: fijo al frente del gear en el suelo
+  // AO: ABM target 3D — cada frame se actualiza la posición en el espacio 3D
+  // SetAirGroundTargetPos: target = pos + vel * radarRange (3D, NO proyectado al suelo)
+  if (airBombingActive) {
+    const fwd3d = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
+    const radarRange = 400;
+    abmTarget3D.copy(ship.position).addScaledVector(fwd3d, radarRange);
+  }
+
+  // Reticle de bombardeo: fijo al frente del gear
   if (groundBombingActive || airBombingActive) {
     bombReticle.visible = true;
     const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
     const horizFwd = fwd.clone(); horizFwd.y = 0; horizFwd.normalize();
-    // AO: reticle siempre al frente, 80m adelante en el suelo
-    const reticleDist = 80;
-    bombReticle.position.copy(ship.position).addScaledVector(horizFwd, reticleDist);
-    bombReticle.position.y = 2;
-    bombReticle.rotation.x = -Math.PI / 2;
-    // AO: ABM quad rotado -90° X (INFSkill.cpp:888)
     if (airBombingActive) {
-      const toShip = ship.position.clone().sub(bombReticle.position).normalize();
-      const tiltQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-      const lookQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), toShip);
-      bombReticle.quaternion.copy(tiltQ).multiply(lookQ);
+      // AO: ABM reticle is at the 3D target position (can be in mid-air), billboards toward player
+      bombReticle.position.copy(abmTarget3D);
+      bombReticle.rotation.set(0, 0, 0);
+      bombReticle.lookAt(ship.position);
+      const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.12;
+      bombReticle.scale.set(pulse, pulse, pulse);
+    } else {
+      // AO: GBM reticle always on the ground, 80m ahead, flat
+      const reticleDist = 80;
+      bombReticle.position.copy(ship.position).addScaledVector(horizFwd, reticleDist);
+      bombReticle.position.y = 2;
+      bombReticle.rotation.x = -Math.PI / 2;
+      const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.12;
+      bombReticle.scale.set(pulse, pulse, pulse);
     }
-    // Pulse animation
-    const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.12;
-    bombReticle.scale.set(pulse, pulse, pulse);
   } else {
     bombReticle.visible = false;
   }
@@ -5678,7 +5687,10 @@ function animate() {
       // GBM/ABM: steer toward fixed target position (AO curvature steering)
       const toTarget = m.bombTarget.clone().sub(m.mesh.position);
       const dist = toTarget.length();
-      if (dist < 12 || m.mesh.position.y <= 2) {
+      const reachedTarget = dist < 12;
+      const hitGround = m.mesh.position.y <= 2;
+      // AO: GBM explodes at ground or target, ABM only at target (3D)
+      if (reachedTarget || (hitGround && groundBombingActive)) {
         // Explode at target (AoE) — GBM increases explosion radius (AO: skill bonus)
         const aoeR = groundBombingActive ? 55 : (m.aoeRadius || 30);
         spawnExplosion(m.mesh.position.clone(), true);
