@@ -895,7 +895,7 @@ const GEAR_CONFIGS = {
       { id: 'scanning', name: 'Scanning', cat: 'Atributo', spCost: 15, cooldown: 25, duration: 10, desc: 'Revela enemigos invisibles' },
     ],
     movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
-    modelKey: 'duck', modelBuilder: null
+    modelKey: 'crimson', modelBuilder: null
   },
   // ===== A-GEAR (Muro / Tank) — BaseNums 782xxxx =====
   // AO real: Cannon 1x1, 157-197 dmg, 0.45s reattack, 85% accuracy, 28-50s overheat, 1200m range
@@ -925,7 +925,7 @@ const GEAR_CONFIGS = {
       { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' },
     ],
     movement: null,
-    modelKey: 'teddy', modelBuilder: null
+    modelKey: 'mecano', modelBuilder: null
   },
   // ===== B-GEAR (Trueno / Bomber) — BaseNums 780xxxx =====
   // AO real: Gatling 3x1, lower base dmg, fast fire, 11s overheat
@@ -1062,7 +1062,7 @@ function applyGearSelection(gearKey) {
   ship.add(flameGroup);
   if (newModel.userData.wingMissilePoints) ship.userData.wingMissilePoints = newModel.userData.wingMissilePoints;
   // Re-aplicar el modelo custom si existe (el .glb precargado)
-  if (cfg.modelKey === 'duck') swapDuckModelIfReady();
+  swapModelIfReady();
 
   renderLivesHUD();
   renderShieldHUD();
@@ -2118,13 +2118,10 @@ const worldColliders = [
 // que vea cómo entra cada modelo en el juego.
 const MODEL_LIBRARY = {
   duck: {
-    url: "modelos/pato.glb",              // pegar acá el .glb en base64 (sin el prefijo "data:...")
-    scale: 2.9,               // el modelo mide ~1.9 unidades de largo nativo; con esto queda ~5.5 (similar al pato anterior)
-    rotationY: Math.PI / 2,  // ajuste de prueba #2: -90° dio "para atrás", probamos el opuesto
+    url: "modelos/pato.glb",
+    scale: 2.9,
+    rotationY: Math.PI / 2,
     offset: { x: 0, y: 0, z: 0 },
-    // Puntos locales desde donde salen los misiles: 3 tubos por lado (izq/der), para
-    // alternar entre ellos y que no salgan siempre del mismo lugar. Recalculados a partir
-    // de la foto del modelo real: a los costados, altura media (no en el fondo del todo).
     wingMissilePoints: {
       left: [
         new THREE.Vector3(-2.6, 0.05, 0.9),
@@ -2137,11 +2134,36 @@ const MODEL_LIBRARY = {
         new THREE.Vector3(2.6, -0.35, 0.9)
       ]
     },
-    beakTip: new THREE.Vector3(0, 0.25, 3.95) // punto de cámara POV (Siege Mode, hoy desactivado)
+    beakTip: new THREE.Vector3(0, 0.25, 3.95)
+  },
+  crimson: {
+    url: "modelos/Crimson.glb",
+    scale: 2.9,
+    rotationY: Math.PI / 2,
+    offset: { x: 0, y: 0, z: 0 },
+    wingMissilePoints: {
+      left: [
+        new THREE.Vector3(-2.6, 0.05, 0.9),
+        new THREE.Vector3(-2.6, -0.15, 0.9),
+        new THREE.Vector3(-2.6, -0.35, 0.9)
+      ],
+      right: [
+        new THREE.Vector3(2.6, 0.05, 0.9),
+        new THREE.Vector3(2.6, -0.15, 0.9),
+        new THREE.Vector3(2.6, -0.35, 0.9)
+      ]
+    },
+    beakTip: new THREE.Vector3(0, 0.25, 3.95)
   },
   teddy: {
     url: "modelos/oso.glb",
-    scale: 3.2,               // el modelo mide ~1.16 de alto nativo; con esto queda ~3.7 (similar al osito anterior)
+    scale: 3.2,
+    rotationY: 0,
+    offset: { x: 0, y: 0, z: 0 }
+  },
+  mecano: {
+    url: "modelos/Mecano.glb",
+    scale: 3.2,
     rotationY: 0,
     offset: { x: 0, y: 0, z: 0 }
   },
@@ -2150,7 +2172,6 @@ const MODEL_LIBRARY = {
     url: "modelos/boat.glb",
     scale: 8.7,
     rotationY: 0,
-    // Puntos locales de los cañones laterales del boss (de acá salen sus misiles)
     cannonPoints: [
       new THREE.Vector3(-60, 54, 0),
       new THREE.Vector3(60, 54, 0)
@@ -2158,7 +2179,7 @@ const MODEL_LIBRARY = {
   }
 };
 
-const MODEL_CACHE = { duck: null, teddy: null, boss: null };
+const MODEL_CACHE = { duck: null, crimson: null, teddy: null, mecano: null, boss: null };
 
 function base64ToArrayBuffer(base64) {
   const binary = atob(base64);
@@ -2442,18 +2463,21 @@ const playerTargetRef = { mesh: ship, alive: true };
 // Si el modelo propio del pato terminó de cargar DESPUÉS de que "ship" ya se creó
 // (caso normal: la carga es async), esto reemplaza el contenido visual sin romper
 // ninguna referencia existente a "ship" (posición, colisiones, HUD, etc. siguen igual).
-function swapDuckModelIfReady() {
-  if (!MODEL_CACHE.duck) return;
+function swapModelIfReady() {
+  const cfg = getGearConfig();
+  if (!cfg) return;
+  const key = cfg.modelKey;
+  if (!MODEL_CACHE[key]) return;
   while (ship.children.length) ship.remove(ship.children[0]);
-  const cfg = MODEL_LIBRARY.duck;
-  const instance = MODEL_CACHE.duck.clone(true);
-  instance.scale.setScalar(cfg.scale);
-  instance.rotation.y = cfg.rotationY;
-  instance.position.set(cfg.offset.x, cfg.offset.y, cfg.offset.z);
+  const lib = MODEL_LIBRARY[key];
+  const instance = MODEL_CACHE[key].clone(true);
+  instance.scale.setScalar(lib.scale);
+  instance.rotation.y = lib.rotationY;
+  instance.position.set(lib.offset.x, lib.offset.y, lib.offset.z);
   ship.add(instance);
-  ship.add(flameGroup); // se pierde al limpiar los hijos de arriba, hay que re-agregarla
-  ship.userData.wingMissilePoints = cfg.wingMissilePoints;
-  if (cfg.beakTip) beakTipLocal = cfg.beakTip.clone();
+  ship.add(flameGroup);
+  if (lib.wingMissilePoints) ship.userData.wingMissilePoints = lib.wingMissilePoints;
+  if (lib.beakTip) beakTipLocal = lib.beakTip.clone();
 }
 
 let zoomLevel = 1.6;
@@ -6179,7 +6203,7 @@ function animate() {
 }
 /* SAVE_INJECT_ANCHOR */
 preloadModels(() => {
-  swapDuckModelIfReady();
+  swapModelIfReady();
   const gearOverlay = document.getElementById('gearSelectOverlay');
   const gearOverlayVisible = gearOverlay && !gearOverlay.classList.contains('hidden');
   // Si el usuario ya eligió un gear o el overlay está visible, no sobreescribir
