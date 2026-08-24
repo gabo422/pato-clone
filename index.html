@@ -934,7 +934,7 @@ const GEAR_CONFIGS = {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 22, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [2,2], baseDamage: 55, speed: 130, reattackTime: 1.2, overheatTime: 18, accuracy: 70, pierce: false } },
+               advanced: { name: 'Bawoos', type: 'bawoo', pattern: [2,3], baseDamage: 85, speed: 80, reattackTime: 1.8, overheatTime: 20, accuracy: 70, pierce: false, aoeRadius: 30 } },
     stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7 },
     passives: [
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
@@ -2873,12 +2873,17 @@ function fireMissile() {
     advOverheated = true;
     advOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
-  const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier());
+  const pattern = weapon.pattern || [1, 1];
+  // AO: GBM skill adds pfp_MULTINUM_02 to MultiNum — more missiles per volley
+  const baseMultiNum = pattern[0];
+  const multiNumBonus = groundBombingActive ? Math.ceil(baseMultiNum * 0.6) : 0;
+  const missilesPerVolley = baseMultiNum + multiNumBonus;
+  // AO: GBM also adds damage bonus (skill ArrParameterValue)
+  const gbmDmgMul = groundBombingActive ? 1.25 : 1;
+  const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier() * gbmDmgMul);
   const wingPoints = ship.userData.wingMissilePoints;
   const tubeIdx = missileTubeIndex % 3;
   missileTubeIndex++;
-  const pattern = weapon.pattern || [1, 1];
-  const missilesPerVolley = pattern[0];
 
   // GBM/ABM: same bawoo missiles, but target changes (AO: ATT_TYPE_GROUND/AIR_BOMBING_SEC)
   let groundTarget = null;
@@ -2925,6 +2930,7 @@ function fireMissile() {
         speed: weapon.speed || 120,
         trailTimer: 0,
         damage,
+        aoeRadius: weapon.aoeRadius || 25,
         pierce: weapon.pierce || false
       });
     }, i * 0.12 * 1000);
@@ -5649,15 +5655,16 @@ function animate() {
       const toTarget = m.bombTarget.clone().sub(m.mesh.position);
       const dist = toTarget.length();
       if (dist < 12 || m.mesh.position.y <= 2) {
-        // Explode at target (AoE)
+        // Explode at target (AoE) — GBM increases explosion radius (AO: skill bonus)
+        const aoeR = groundBombingActive ? 55 : (m.aoeRadius || 30);
         spawnExplosion(m.mesh.position.clone(), true);
         for (const e of enemies) {
           if (!e.alive) continue;
-          if (e.mesh.position.distanceTo(m.mesh.position) < 55) registerHit(e, m.damage, false);
+          if (e.mesh.position.distanceTo(m.mesh.position) < aoeR) registerHit(e, m.damage, false);
         }
         for (const d of destructibles) {
           if (!d.alive) continue;
-          if (d.mesh.position.distanceTo(m.mesh.position) < 55) hitDestructible(d, 3);
+          if (d.mesh.position.distanceTo(m.mesh.position) < aoeR) hitDestructible(d, 3);
         }
         scene.remove(m.mesh);
         missiles.splice(i, 1);
