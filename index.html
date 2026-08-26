@@ -4026,7 +4026,6 @@ let skillSlots = [];           // array de { id, ... } o null, longitud 10
 let skillCooldowns = new Array(10).fill(0);
 let skillActiveTimers = {};    // { skillId: remainingTime }
 let activeSkillEffects = {};   // { gearId_skillId: true }
-let buffStartTimes = {};       // { skillId: performance.now() } — cooldown = elapsed * 1.5
 
 // Movement skills cooldowns
 let movementCooldowns = { q: 0, e: 0 };
@@ -4116,7 +4115,6 @@ function initSkillSlots() {
   skillSlots = new Array(10).fill(null);
   skillCooldowns = new Array(10).fill(0);
   skillActiveTimers = {};
-  buffStartTimes = {};
   movementCooldowns = { q: 0, e: 0 };
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
@@ -4145,10 +4143,6 @@ function activateSkillSlot(slot) {
   if (activeSkillEffects[sk.id] && sk.spPerSec) {
     applySkillEffect(sk.id, false);
     delete skillActiveTimers[sk.id];
-    // Buff cooldown: elapsed * 1.5
-    const elapsed = (performance.now() - (buffStartTimes[sk.id] || performance.now())) / 1000;
-    delete buffStartTimes[sk.id];
-    skillCooldowns[slot] = Math.max(elapsed * 1.5, 5);
     return true;
   }
   const costReduction = getPassive('spCostReduction');
@@ -4161,7 +4155,6 @@ function activateSkillSlot(slot) {
   }
   if (sk.spPerSec) {
     skillActiveTimers[sk.id] = 999;
-    buffStartTimes[sk.id] = performance.now();
   }
   applySkillEffect(sk.id, true);
   return true;
@@ -4207,26 +4200,15 @@ function updateSkills(dt) {
     const sk = skillSlots.find(s => s && s.id === id);
     if (sk && sk.spPerSec) {
       playerSP = Math.max(0, playerSP - sk.spPerSec * dt);
-      // SP agotado: desactivar buff y poner cooldown
-      if (playerSP <= 0) {
-        const slotIdx = skillSlots.findIndex(s => s && s.id === id);
-        const elapsed = (performance.now() - (buffStartTimes[id] || performance.now())) / 1000;
-        delete skillActiveTimers[id];
-        delete buffStartTimes[id];
-        applySkillEffect(id, false);
-        if (slotIdx >= 0) skillCooldowns[slotIdx] = Math.max(elapsed * 1.5, 5);
-        continue;
-      }
     }
     skillActiveTimers[id] = remaining - dt;
     if (skillActiveTimers[id] <= 0) {
-      const elapsed = (performance.now() - (buffStartTimes[id] || performance.now())) / 1000;
       delete skillActiveTimers[id];
-      delete buffStartTimes[id];
       applySkillEffect(id, false);
-      if (sk && sk.spPerSec) {
+      // Buff skills (duration > 0, no inherent cooldown): put on cooldown = duration * 1.5
+      if (sk && sk.cooldown === 0 && sk.duration > 0 && !sk.spPerSec) {
         const slotIdx = skillSlots.findIndex(s => s && s.id === id);
-        if (slotIdx >= 0) skillCooldowns[slotIdx] = Math.max(elapsed * 1.5, 5);
+        if (slotIdx >= 0) skillCooldowns[slotIdx] = sk.duration * 1.5;
       }
     }
   }
@@ -5111,7 +5093,6 @@ function startWave() {
   skillCooldowns = new Array(10).fill(0);
   skillActiveTimers = {};
   activeSkillEffects = {};
-  buffStartTimes = {};
   movementCooldowns = { q: 0, e: 0 };
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
