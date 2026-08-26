@@ -560,6 +560,149 @@
   }
   /* Drop zone highlight */
   .skillSlot.dropTarget { border-color: rgba(100,255,200,0.7) !important; box-shadow: 0 0 10px rgba(100,255,200,0.3); }
+  #seedDisplay {
+    position: fixed; top: 10px; left: 10px;
+    background: rgba(0,0,0,0.7); color: #ff0;
+    padding: 5px 10px; border-radius: 5px;
+    font-family: monospace; font-size: 14px;
+    z-index: 100; pointer-events: none;
+  }
+  #cardPickupNotif {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.85); padding: 20px 30px;
+    border-radius: 10px; text-align: center;
+    z-index: 200; pointer-events: none;
+    border: 2px solid #555;
+    animation: cardPickupAnim 2s forwards;
+  }
+  #cardPickupNotif.hidden { display: none; }
+  @keyframes cardPickupAnim {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    25% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-20px); }
+  }
+  #cardPickupIcon { font-size: 28px; display: block; margin-bottom: 4px; }
+  #cardPickupName { font-size: 14px; font-weight: bold; display: block; }
+  #cardPickupRarity { font-size: 12px; display: block; margin-top: 2px; }
+  #inventoryOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  #inventoryOverlay.hidden { display: none; }
+  #inventoryOverlay .panel {
+    background: #1a1a2e; border: 2px solid #444;
+    border-radius: 10px; padding: 20px;
+    max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto;
+  }
+  #inventoryOverlay h2 { margin: 0 0 10px; color: #ff0; font-size: 18px; text-align: center; }
+  #inventoryCards {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin: 12px 0;
+  }
+  .inv-card {
+    background: #2a2a4a; border: 2px solid #555;
+    border-radius: 8px; padding: 10px 8px;
+    text-align: center; cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .inv-card:hover { transform: scale(1.05); }
+  .inv-card.common { border-color: #aaa; }
+  .inv-card.rare { border-color: #4488ff; }
+  .inv-card.epic { border-color: #aa44ff; }
+  .inv-card.legendary { border-color: #ffaa00; }
+  .inv-card-icon { font-size: 22px; }
+  .inv-card-name { font-size: 11px; font-weight: bold; margin: 3px 0 1px; color: #ddd; }
+  .inv-card-stat { font-size: 10px; color: #aaa; }
+  .inv-card-level { font-size: 10px; color: #888; margin-top: 2px; }
+  .inv-card-actions { margin-top: 5px; }
+  .inv-card-actions button {
+    background: #4488ff; color: #fff; border: none;
+    border-radius: 4px; padding: 3px 8px; font-size: 10px;
+    cursor: pointer;
+  }
+  .inv-card-actions button:hover { background: #5599ff; }
+  .inv-card-actions button:disabled { background: #333; color: #666; cursor: default; }
+  #inventoryEnergy {
+    background: #333; padding: 8px 12px;
+    border-radius: 5px; margin-top: 10px;
+    font-size: 12px; color: #ff0; text-align: center;
+  }
+  #inventoryClose {
+    display: block; margin: 12px auto 0;
+    background: #555; color: #fff; border: none;
+    border-radius: 5px; padding: 8px 20px; cursor: pointer;
+    font-size: 13px;
+  }
+  #inventoryClose:hover { background: #777; }
+  #equipModal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 350;
+  }
+  #equipModal.hidden { display: none; }
+  #equipModal .panel {
+    background: #1a1a2e; border: 2px solid #444;
+    border-radius: 10px; padding: 20px;
+    max-width: 400px; width: 90%;
+  }
+  #equipModalInfo { text-align: center; margin-bottom: 15px; }
+  #equipModalInfo div { margin: 2px 0; }
+  #equipModalSlots { display: flex; flex-direction: column; gap: 8px; }
+  .equip-slot-btn {
+    background: #2a2a4a; border: 2px solid #555;
+    border-radius: 6px; padding: 10px; color: #ddd;
+    cursor: pointer; font-size: 12px; text-align: left;
+  }
+  .equip-slot-btn:hover { background: #3a3a5a; }
+  #equipModalClose {
+    display: block; margin: 12px auto 0;
+    background: #555; color: #fff; border: none;
+    border-radius: 5px; padding: 8px 20px; cursor: pointer;
+    font-size: 13px;
+  }
+  #radarChart {
+    position: fixed; bottom: 10px; right: 10px;
+    border-radius: 50%; z-index: 50;
+    pointer-events: none; opacity: 0.8;
+  }
+  #enchantPanel {
+    position: fixed; bottom: 10px; left: 10px;
+    background: rgba(0,0,0,0.7); border-radius: 8px;
+    padding: 8px 12px; z-index: 50; min-width: 140px;
+    pointer-events: auto;
+  }
+  #enchantPanel .title { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .enchant-slot {
+    background: #1a1a2e; border: 1px solid #444;
+    border-radius: 5px; padding: 5px 8px; margin: 4px 0;
+    font-size: 11px; color: #ddd; position: relative;
+  }
+  .ench-icon { font-size: 14px; }
+  .ench-name { font-weight: bold; font-size: 10px; }
+  .ench-stat { font-size: 9px; color: #aaa; }
+  .ench-empty { color: #555; font-style: italic; font-size: 10px; text-align: center; padding: 4px; }
+  .ench-remove {
+    position: absolute; top: 2px; right: 4px;
+    background: none; border: none; color: #f44;
+    cursor: pointer; font-size: 12px; padding: 0 3px;
+  }
+  .ench-remove:hover { color: #ff6; }
+  #openInventoryBtn {
+    position: fixed; bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7); color: #ff0;
+    border: 1px solid #ff0; border-radius: 5px;
+    padding: 5px 15px; font-size: 12px;
+    cursor: pointer; z-index: 50;
+    font-family: monospace;
+  }
+  #openInventoryBtn:hover { background: rgba(255,255,0,0.15); }
 </style>
 </head>
 <body>
@@ -659,6 +802,33 @@
 <button id="scoreboardBtn">🏆 Puntajes</button>
 <button id="fullscreenBtn">⛶ Pantalla completa</button>
 <div id="bossBar"><div class="label">BOSS: Barco de Guerra</div><div class="track"><div class="fill" id="bossFill"></div></div></div>
+<div id="seedDisplay">SEED: <b id="seedValue">----</b></div>
+<div id="cardPickupNotif" class="hidden">
+  <span id="cardPickupIcon"></span>
+  <span id="cardPickupName"></span>
+  <span id="cardPickupRarity"></span>
+</div>
+<div id="inventoryOverlay" class="hidden">
+  <div class="panel">
+    <h2>INVENTARIO</h2>
+    <div id="inventoryCards"></div>
+    <div id="inventoryEnergy">Energía: <span id="energyValue">100</span>/<span id="energyMax">100</span></div>
+    <button id="inventoryClose">CERRAR</button>
+  </div>
+</div>
+<div id="equipModal" class="hidden">
+  <div class="panel">
+    <div id="equipModalInfo"></div>
+    <div id="equipModalSlots"></div>
+    <button id="equipModalClose">CANCELAR</button>
+  </div>
+</div>
+<canvas id="radarChart" width="160" height="160"></canvas>
+<div id="enchantPanel">
+  <div class="title">Enchants</div>
+  <div id="enchantSlotsList"></div>
+</div>
+<button id="openInventoryBtn">📦 Inventario (I)</button>
 <div id="mobBar"><div class="label" id="mobBarLabel">Osito</div><div class="track"><div class="fill" id="mobFill"></div></div></div>
 <div id="crosshair"></div>
 <div id="lockInRing"></div>
@@ -830,6 +1000,7 @@
   </div>
 </div>
 
+<script src="enchants.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
@@ -1034,6 +1205,12 @@ function openGearSelect() {
     gearSelectStartBtn.disabled = false;
     gearSelectStartBtn.textContent = 'JUGAR CON ' + GEAR_CONFIGS[saved].name.toUpperCase();
   }
+  if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+    if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+  }
+  var seedEl = document.getElementById('seedValue');
+  if (seedEl) seedEl.textContent = currentRunSeed || '----';
+  if (typeof renderEnchantSlots === 'function') renderEnchantSlots();
 }
 
 function applyGearSelection(gearKey) {
@@ -3658,6 +3835,7 @@ window.addEventListener('keydown', e => {
     if (e.code === bindings.breakLock) { currentLockTarget = null; lockBreakCooldown = 0.5; }
     if (e.code === bindings.brake) { braking = true; } // B key: hard brake
     if (e.code === 'KeyK') { toggleSkillPanel(); }
+    if (e.code === 'KeyI') { toggleInventory(); }
     if (e.code === 'KeyQ') { activateMovementSkill('q'); }
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
     // C key: land/takeoff toggle (from AO ShuttleChild.cpp DIK_C)
@@ -4481,6 +4659,7 @@ function updateMovementAnimations(dt) {
 // ================= Damage/Defense Multipliers from Passives =================
 function getStdDmgMultiplier() {
   let m = getLevelDamageBonus() + getPassive('stdDmgBonus');
+  if (typeof getEnchantBonus === 'function') m += getEnchantBonus('stdDmgBonus');
   if (isSkillActive('berserker')) m += 0.5;
   if (isSkillActive('fireShot')) m += 0.4;
   if (isSkillActive('frenzy')) m += 0.3;
@@ -4490,6 +4669,7 @@ function getStdDmgMultiplier() {
 }
 function getAdvDmgMultiplier() {
   let m = getLevelDamageBonus() + getPassive('advDmgBonus');
+  if (typeof getEnchantBonus === 'function') m += getEnchantBonus('advDmgBonus');
   if (isSkillActive('berserker')) m += 0.5;
   if (isSkillActive('missileShot')) m += 0.4;
   if (isSkillActive('frenzy')) m += 0.3;
@@ -4963,6 +5143,7 @@ function registerHit(enemy, dmg, isMissile) {
     if (enemy.isBoss) document.getElementById('bossBar').style.display = 'none';
     if (currentLockTarget === enemy) currentLockTarget = null;
     if (Math.random() < 0.35) spawnPowerup(enemy.mesh.position.clone());
+    if (typeof tryDropCard === 'function') tryDropCard(enemy, waveNumber, selectedGear, bossEncounters);
     for (let i = teddyProjectiles.length - 1; i >= 0; i--) {
       if (teddyProjectiles[i].source === enemy) { scene.remove(teddyProjectiles[i].mesh); teddyProjectiles.splice(i, 1); }
     }
@@ -5258,6 +5439,12 @@ function resetGame() {
   berserkerAuraTimer = 0; siegeAuraTimer = 0; chargeShotGlowTimer = 0; invisibleShimmerTimer = 0; overboosterTrailTimer = 0; healingFieldSpawnTimer = 0; energizingFieldSpawnTimer = 0;
   for (const p of powerups) scene.remove(p.mesh);
   powerups.length = 0;
+  for (const d of droppedCards) scene.remove(d.mesh);
+  droppedCards.length = 0;
+  if (typeof playerInventory !== 'undefined') {
+    playerInventory.energy = Math.min(playerInventory.maxEnergy, playerInventory.energy + 20);
+    if (typeof saveInventory === 'function') saveInventory();
+  }
   resetDestructibles();
 
   document.getElementById('score').textContent = 0;
@@ -5641,6 +5828,7 @@ function animate() {
   portalInnerSwirl.rotation.z += dt * 0.6;
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
+  if (typeof updateCardDrops === 'function') updateCardDrops(dt);
 
   // AO: ABM target 3D — cada frame se actualiza la posición en el espacio 3D
   // SetAirGroundTargetPos: target = pos + vel * radarRange (3D, NO proyectado al suelo)
@@ -6301,6 +6489,36 @@ preloadModels(() => {
     openGearSelect();
   }
 });
+
+// ================= Inventario UI =================
+function toggleInventory() {
+  var overlay = document.getElementById('inventoryOverlay');
+  if (!overlay) return;
+  if (overlay.classList.contains('hidden')) {
+    overlay.classList.remove('hidden');
+    if (typeof renderInventoryUI === 'function') renderInventoryUI();
+  } else {
+    overlay.classList.add('hidden');
+  }
+}
+
+var inventoryCloseBtn = document.getElementById('inventoryClose');
+if (inventoryCloseBtn) inventoryCloseBtn.addEventListener('click', function() {
+  document.getElementById('inventoryOverlay').classList.add('hidden');
+});
+
+var equipModalCloseBtn = document.getElementById('equipModalClose');
+if (equipModalCloseBtn) equipModalCloseBtn.addEventListener('click', function() {
+  if (typeof closeEquipModal === 'function') closeEquipModal();
+});
+
+var openInvBtn = document.getElementById('openInventoryBtn');
+if (openInvBtn) openInvBtn.addEventListener('click', function() { toggleInventory(); });
+
+// Radar chart update timer
+setInterval(function() {
+  if (typeof drawRadarChart === 'function' && gameRunning && !gameOver) drawRadarChart();
+}, 500);
 </script>
 </body>
 </html>
