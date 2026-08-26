@@ -2953,6 +2953,7 @@ function fireMissile() {
         velocity: forward.clone().multiplyScalar(weapon.speed || 120),
         target,
         bombTarget,
+        prevDist: undefined,
         life: 6,
         speed: weapon.speed || 120,
         trailTimer: 0,
@@ -5690,10 +5691,13 @@ function animate() {
     if (m.bombTarget) {
       const toTarget = m.bombTarget.clone().sub(m.mesh.position);
       const dist = toTarget.length();
-      // AO: GBM explodes at ground or target, ABM only at target (3D)
-      const reachedTarget = dist < 25;
+      const reachedTarget = dist < 30;
       const hitGround = m.mesh.position.y <= 2;
-      if (reachedTarget || (hitGround && groundBombingActive)) {
+      // Passed target: velocity is now moving AWAY from target (dot < 0)
+      const dot = m.velocity.dot(toTarget);
+      const passedTarget = m.prevDist !== undefined && dist > m.prevDist && dot < 0;
+      m.prevDist = dist;
+      if (reachedTarget || passedTarget || (hitGround && groundBombingActive)) {
         const aoeR = groundBombingActive ? 55 : (m.aoeRadius || 30);
         spawnExplosion(m.mesh.position.clone(), true);
         for (const e of enemies) {
@@ -5708,17 +5712,11 @@ function animate() {
         missiles.splice(i, 1);
         continue;
       }
-      // AO: GBM uses gravity arcing toward ground, ABM goes straight to 3D target
-      const desiredDir = toTarget.normalize();
+      // AO: GBM bawoos fly forward with gravity (steep arc), ABM fly straight — NO steering
       if (groundBombingActive) {
-        // GBM: aggressive steering + gravity pull downward for steep arc
-        m.velocity.lerp(desiredDir.multiplyScalar(m.speed), Math.min(1, 12 * dt));
         m.velocity.y -= 180 * dt;
         const curSpeed = m.velocity.length();
         if (curSpeed > 0) m.velocity.multiplyScalar(m.speed / curSpeed);
-      } else {
-        // ABM: direct straight-line to 3D target, no gravity
-        m.velocity.lerp(desiredDir.multiplyScalar(m.speed), Math.min(1, 12 * dt));
       }
       m.mesh.lookAt(m.mesh.position.clone().add(m.velocity));
     } else {
