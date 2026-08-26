@@ -872,13 +872,14 @@ const DIFFICULTY_HINTS = {
 // ================= Selección de Juguete =================
 const GEAR_CONFIGS = {
   // ===== I-GEAR (Rayo / Interceptor) — BaseNums 783xxxx =====
-  // AO real: Vulcan 4x1 low dmg, 0.60s reattack, 65% accuracy, 15s overheat, 520m range
+  // AO real: Vulcan 4x1, 30-68 dmg (avg 49), 0.60s reattack, 65% accuracy, 15s overheat, 520m range
+  // AO real: Rifle 1x1, 123-165 dmg (avg 144), 0.70s reattack, 85% accuracy, 24s overheat, 520m range
   // AO real: Fastest gear (560m/s boost), highest evasion, glass cannon
   rayo: {
     name: 'Rayo', role: 'Interceptor', icon: '⚡',
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
-    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 32, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
-               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 120, speed: 260, reattackTime: 0.55, overheatTime: 24, accuracy: 85, pierce: false } },
+    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 49, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
+               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 144, speed: 260, reattackTime: 0.70, overheatTime: 24, accuracy: 85, pierce: false } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 80, accel: 55, boostAccel: 90, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
@@ -899,13 +900,14 @@ const GEAR_CONFIGS = {
     modelKey: 'crimson', modelBuilder: null
   },
   // ===== A-GEAR (Muro / Tank) — BaseNums 782xxxx =====
-  // AO real: Cannon 1x1, 157-197 dmg, 0.45s reattack, 85% accuracy, 28-50s overheat, 1200m range
+  // AO real: Cannon 1x1, 149-194 dmg (avg 172), 0.45s reattack, 85% accuracy, 28s overheat, 1100m range
+  // AO real: MassDrive 1x1, 124-165 dmg (avg 145), 0.43s reattack, 95% accuracy, 28s overheat, 1000m range
   // AO real: Siege mode = massive stationary DPS. Slowest gear, highest defense/shield
   muro: {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal. Siege mode y defensa.',
-    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 175, speed: 180, reattackTime: 0.45, overheatTime: 30, accuracy: 85, pierce: true },
-               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 130, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 100, pierce: true } },
+    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 172, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 85, pierce: true },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 145, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10 },
     passives: [
       { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
@@ -929,13 +931,14 @@ const GEAR_CONFIGS = {
     modelKey: 'mecano', modelBuilder: null
   },
   // ===== B-GEAR (Trueno / Bomber) — BaseNums 780xxxx =====
-  // AO real: Gatling 3x1, lower base dmg, fast fire, 11s overheat
-  // AO real: Missiles 2x2, slow, AoE bombing. Balanced speed between I and A
+  // AO real: Gatling 4x1, 24-43 dmg (avg 33), 0.50s reattack, 80% accuracy, 11s overheat, 520m range
+  // AO real: Missiles 1x4, 159-210 dmg (avg 185), 1.80s reattack, 100% accuracy, 20s overheat, 4000m range
+  // AO real: Balanced speed between I and A
   trueno: {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
-    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [3,1], baseDamage: 22, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Bawoos', type: 'bawoo', pattern: [2,3], baseDamage: 85, speed: 80, reattackTime: 1.8, overheatTime: 20, accuracy: 70, pierce: false, aoeRadius: 30 } },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 33, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
+               advanced: { name: 'Bawoos', type: 'bawoo', pattern: [1,4], baseDamage: 185, speed: 80, reattackTime: 1.8, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
     stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7 },
     passives: [
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
@@ -956,13 +959,14 @@ const GEAR_CONFIGS = {
     modelKey: 'teddy', modelBuilder: null
   },
   // ===== M-GEAR (Meadow Burgle) — Soporte =====
-  // AO real: 0-speed hover engine, Rifle 1x1 high accuracy low damage
+  // AO real: Rifle 1x1, 123-165 dmg (avg 144), 0.70s reattack, 85% accuracy, 24s overheat, 520m range
+  // AO real: Missiles 1x4, 159-210 dmg (avg 185), 1.80s reattack, 100% accuracy, 20s overheat, 4000m range
   // AO real: Support class - healing fields, buffs, scan, reverse engine
   viento: {
     name: 'Viento', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo. Curación y buffs.',
-    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 45, speed: 230, reattackTime: 0.55, overheatTime: 24, accuracy: 90, pierce: false },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,2], baseDamage: 35, speed: 130, reattackTime: 1.9, overheatTime: 16, accuracy: 80, pierce: false } },
+    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 144, speed: 230, reattackTime: 0.70, overheatTime: 24, accuracy: 85, pierce: false },
+               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,4], baseDamage: 185, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 100, pierce: false } },
     stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7 },
     passives: [
       { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
@@ -3705,13 +3709,14 @@ window.addEventListener('keydown', e => {
     if (e.code === 'Digit8') onSkillKey(7);
     if (e.code === 'Digit9') onSkillKey(8);
     if (e.code === 'Digit0') onSkillKey(9);
-    if (mode === 'FLIGHT' && !barrelRoll.active && (e.code === bindings.rollLeft || e.code === bindings.rollRight)) {
+    if (mode === 'FLIGHT' && (chainRollingBuff || !barrelRoll.active) && (e.code === bindings.rollLeft || e.code === bindings.rollRight)) {
       const key = e.code === bindings.rollLeft ? 'rollLeft' : 'rollRight';
       const now = clock.elapsedTime;
       if (now - lastTapTime[key] < DOUBLE_TAP_WINDOW) {
         barrelRoll.active = true;
         barrelRoll.dir = key === 'rollLeft' ? 1 : -1;
         barrelRoll.timer = 0;
+        barrelRoll.duration = chainRollingBuff ? 2.0 : 0.5;
         invulnTimer = Math.max(invulnTimer, barrelRoll.duration + 0.15);
       }
       lastTapTime[key] = now;
@@ -3770,8 +3775,10 @@ document.addEventListener('mousemove', e => {
   } else {
     // AO DES_SKILL_REVERSECONTROL: invert mouse axes
     const rcFlip = reverseControlTimer > 0 ? -1 : 1;
-    lookYaw -= e.movementX * 0.0022 * rcFlip;
-    lookPitch -= e.movementY * 0.0022 * invert * rcFlip;
+    if (!turnaroundLocked) {
+      lookYaw -= e.movementX * 0.0022 * rcFlip * turnMultiplier;
+      lookPitch -= e.movementY * 0.0022 * invert * rcFlip * turnMultiplier;
+    }
     pendingYawDelta -= e.movementX * 0.0022 * rcFlip;
     pendingPitchDelta -= e.movementY * 0.0022 * invert * rcFlip;
   }
@@ -4029,7 +4036,7 @@ let activeSkillEffects = {};   // { gearId_skillId: true }
 
 // Movement skills cooldowns
 let movementCooldowns = { q: 0, e: 0 };
-const movementAnim = { turnaround: { active: false, remaining: 0, total: 0.35, startYaw: 0, delta: 0 }, backMove: { active: false, remaining: 0, total: 0.3, startPos: null, delta: null } };
+const movementAnim = { turnaround: { active: false, remaining: 0, total: 0.35, startYaw: 0, delta: 0, locked: false }, backMove: { active: false, remaining: 0, total: 0.3, startPos: null, delta: null } };
 
 function getGearConfig() {
   if (!selectedGear || !GEAR_CONFIGS[selectedGear]) return null;
@@ -4231,6 +4238,8 @@ function applySkillEffect(skillId, on) {
     if (skillId === 'healingField') { removeHealingFieldVisual(); }
     if (skillId === 'energizingField') { removeEnergizingFieldVisual(); }
     if (skillId === 'berserker') { removeSkillAura(); }
+    if (skillId === 'chainRolling') { chainRollingBuff = false; }
+    if (skillId === 'hyperMoving') { hyperMovingBuff = false; }
     if (skillId === 'chargeShot') { chargeShotActive = false; removeChargeShotGlow(); }
     if (skillId === 'groundBombing') { groundBombingActive = false; }
     if (skillId === 'airBombing') { airBombingActive = false; }
@@ -4248,9 +4257,10 @@ function applySkillEffect(skillId, on) {
     aceSpawnParticles(ACE.berserker.activate, ship.position.clone(), explosions);
     berserkerAuraTimer = 0;
   }
-  // ---- RAYO: Overbooster ----
+  // ---- RAYO: Overbooster (AO: HYPER_BOOSTER_MAX, dash 600m/s, invulnerable 3s) ----
   if (skillId === 'overbooster') {
     invulnTimer = Math.max(invulnTimer, 3);
+    speed = Math.max(speed, boostMaxSpeed * 1.5);
     spawnSkillRing(ship.position, 0x4488ff, 3, 40);
     aceSpawnParticles(ACE.overbooster.activate, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.overbooster.activate, ship.position.clone(), explosions);
@@ -4410,6 +4420,18 @@ function applySkillEffect(skillId, on) {
     spawnSkillRing(ship.position, 0xff44aa, 2, 25);
     spawnSkillAura(0xff44aa, 3);
   }
+  // ---- RAYO: Chain Rolling (AO: 8s buff, enables chained barrel rolls on double-tap A/D) ----
+  if (skillId === 'chainRolling') {
+    chainRollingBuff = true;
+    spawnSkillRing(ship.position, 0x44aaff, 2, 30);
+    aceSpawnParticles(ACE.chargeShot.activate, ship.position.clone(), explosions);
+  }
+  // ---- RAYO: Hyper Moving (AO: +10° turn rate, +10% strafe, 60s duration) ----
+  if (skillId === 'hyperMoving') {
+    hyperMovingBuff = true;
+    spawnSkillRing(ship.position, 0x88ff44, 2, 30);
+    aceSpawnParticles(ACE.chargeShot.activate, ship.position.clone(), explosions);
+  }
   // ---- MURO: Reflect (AO DES_PAIR_REFLECTION) ----
   if (skillId === 'reflect') {
     spawnSkillRing(ship.position, 0xff66ff, 2, 30);
@@ -4421,12 +4443,14 @@ function applyMovementEffect(skillId, key) {
   if (skillId === 'turnaround') {
     const a = movementAnim.turnaround;
     a.active = true; a.remaining = a.total; a.startYaw = lookYaw; a.delta = Math.PI;
+    turnaroundLocked = true;
   }
   if (skillId === 'backMoveMach') {
     const a = movementAnim.backMove;
     const backward = new THREE.Vector3(0, 0, -1).applyQuaternion(ship.quaternion);
     a.active = true; a.remaining = a.total;
-    a.startPos = ship.position.clone(); a.delta = backward.multiplyScalar(40);
+    a.startPos = ship.position.clone(); a.delta = backward.multiplyScalar(200);
+    speed = Math.max(-speedMin, -speed * 0.5);
   }
   if (skillId === 'reverseEngine') {
     speed = 0;
@@ -4443,7 +4467,7 @@ function updateMovementAnimations(dt) {
   const ta = movementAnim.turnaround;
   if (ta.active) {
     ta.remaining -= dt;
-    if (ta.remaining <= 0) { lookYaw = ta.startYaw + ta.delta; ta.active = false; }
+    if (ta.remaining <= 0) { lookYaw = ta.startYaw + ta.delta; ta.active = false; turnaroundLocked = false; }
     else { const t = 1 - ta.remaining / ta.total; lookYaw = ta.startYaw + ta.delta * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2); }
   }
   const bm = movementAnim.backMove;
@@ -4461,6 +4485,7 @@ function getStdDmgMultiplier() {
   if (isSkillActive('fireShot')) m += 0.4;
   if (isSkillActive('frenzy')) m += 0.3;
   if (isSkillActive('ragingFire')) m += 0.2;
+  if (isSkillActive('siegeMode') || isSkillActive('airSiegeMode')) m += 1.0;
   return m;
 }
 function getAdvDmgMultiplier() {
@@ -4469,6 +4494,7 @@ function getAdvDmgMultiplier() {
   if (isSkillActive('missileShot')) m += 0.4;
   if (isSkillActive('frenzy')) m += 0.3;
   if (isSkillActive('ragingFire')) m += 0.2;
+  if (isSkillActive('siegeMode') || isSkillActive('airSiegeMode')) m += 1.0;
   return m;
 }
 function getDefenseMultiplier() {
@@ -4736,7 +4762,11 @@ let isSiegeMode = false;
 let chargeShotActive = false;
 let groundBombingActive = false;
 let airBombingActive = false;
-let abmTarget3D = new THREE.Vector3(); // AO: ABM target in 3D space (updates every frame)
+let abmTarget3D = new THREE.Vector3();
+let chainRollingBuff = false;
+let hyperMovingBuff = false;
+let turnaroundLocked = false;
+let turnMultiplier = 1.0; // AO: ABM target in 3D space (updates every frame)
 
 // Reticle de bombardeo (AO: 100×100 quad proyectado en el suelo)
 const reticleSize = 40;
@@ -5093,6 +5123,10 @@ function startWave() {
   movementAnim.backMove.active = false;
   isSiegeMode = false;
   chargeShotActive = false;
+  chainRollingBuff = false;
+  hyperMovingBuff = false;
+  turnaroundLocked = false;
+  turnMultiplier = 1.0;
   delete window._chaffHits;
   window._healTimer = 0;
   updateAmmoHUD();
@@ -5167,6 +5201,8 @@ function resetGame() {
   lRVelRate = 0; currentAngle = 0; currentSideRate = 0; tempGravity = 0;
   braking = false; isLanded = false; camShakeTimer = 0; camCheckSpeedRate = 0;
   reverseControlTimer = 0; scanActiveTimer = 0;
+  chainRollingBuff = false; hyperMovingBuff = false; turnaroundLocked = false;
+  turnMultiplier = 1.0;
   document.getElementById('mode').textContent = 'NADANDO';
   camera.fov = BASE_FOV;
   camera.updateProjectionMatrix();
@@ -5465,8 +5501,11 @@ function animate() {
       rollAngle *= 0.9;
     } else {
 
-    const effectiveMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0.2 : getSpeedMultiplier());
+    const effectiveMax = (boosting ? boostMaxSpeed : maxSpeed) * (isSiegeMode ? 0 : getSpeedMultiplier());
     const effectiveMin = speedMin;
+    const strafeMultiplier = hyperMovingBuff ? 1.1 : 1.0;
+    turnMultiplier = hyperMovingBuff ? 1.1 : 1.0;
+    const overboosterActive = isSkillActive('overbooster');
 
     // Determine booster state each frame
     if (isSiegeMode) boosterType = BOOSTER_TYPE_STOP;
@@ -5513,8 +5552,12 @@ function animate() {
     ship.quaternion.setFromEuler(euler).multiply(rollQuat);
 
     // ---- Speed model: AO-authentic brake/boost + W=accel, S=soft brake ----
-    if (isSiegeMode) {
-      speed *= 0.85;
+    if (overboosterActive) {
+      // Overbooster: maintain high speed, auto-accelerate to max
+      speed += (effectiveMax * 1.5 - speed) * dt * 5;
+    } else if (isSiegeMode) {
+      speed *= 0.5;
+      if (speed < 1) speed = 0;
     } else if (braking && !boosting) {
       // B key / S key held: hard brake — exponential decel (AIR_BREAK = 4.0)
       const AIR_BREAK = 4.0;
@@ -5556,7 +5599,8 @@ function animate() {
     }
 
     // Final clamp
-    speed = Math.max(effectiveMin * 0.3, Math.min(effectiveMax * 1.05, speed));
+    const maxClamp = overboosterActive ? effectiveMax * 2.0 : effectiveMax * 1.05;
+    speed = Math.max(effectiveMin * 0.3, Math.min(maxClamp, speed));
 
     // ---- Forward movement (always) ----
     const forward = new THREE.Vector3(0, 0, 1).applyEuler(euler);
@@ -5564,7 +5608,7 @@ function animate() {
     // Strafe
     if (nSideMove !== 0) {
       const sideVec = new THREE.Vector3(1, 0, 0).applyEuler(euler);
-      ship.position.addScaledVector(sideVec, nSideMove * effectiveMax * 0.35 * dt);
+      ship.position.addScaledVector(sideVec, nSideMove * effectiveMax * 0.35 * strafeMultiplier * dt);
     }
 
     // Floor height
