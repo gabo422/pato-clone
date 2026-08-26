@@ -878,8 +878,8 @@ const GEAR_CONFIGS = {
   rayo: {
     name: 'Rayo', role: 'Interceptor', icon: '⚡',
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
-    weapons: { standard: { name: 'Vulcan', type: 'vulcan', pattern: [4,1], baseDamage: 49, speed: 220, reattackTime: 0.6, overheatTime: 15, accuracy: 65, pierce: false },
-               advanced: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 144, speed: 260, reattackTime: 0.70, overheatTime: 24, accuracy: 85, pierce: false } },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 220, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
+               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 80, accel: 55, boostAccel: 90, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
@@ -906,8 +906,8 @@ const GEAR_CONFIGS = {
   muro: {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal. Siege mode y defensa.',
-    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 172, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 85, pierce: true },
-               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 145, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
+    weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 180, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 90, pierce: true },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10 },
     passives: [
       { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
@@ -937,8 +937,8 @@ const GEAR_CONFIGS = {
   trueno: {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
-    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 33, speed: 210, reattackTime: 0.5, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Bawoos', type: 'bawoo', pattern: [1,4], baseDamage: 185, speed: 80, reattackTime: 1.8, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 210, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
+               advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
     stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7 },
     passives: [
       { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
@@ -965,8 +965,8 @@ const GEAR_CONFIGS = {
   viento: {
     name: 'Viento', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo. Curación y buffs.',
-    weapons: { standard: { name: 'Rifle', type: 'rifle', pattern: [1,1], baseDamage: 144, speed: 230, reattackTime: 0.70, overheatTime: 24, accuracy: 85, pierce: false },
-               advanced: { name: 'Misiles', type: 'missiles', pattern: [1,4], baseDamage: 185, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 100, pierce: false } },
+    weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 52, speed: 220, reattackTime: 0.60, overheatTime: 15, accuracy: 95, pierce: false },
+               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false } },
     stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7 },
     passives: [
       { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
