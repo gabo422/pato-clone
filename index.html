@@ -1711,7 +1711,7 @@ function makeCardboardWallTexture(baseColor, corrugColor) {
   return tex;
 }
 // Director de niveles: dimensiones globales (recalculadas por nivel)
-let roomSize = 2000, wallHeight = 800;
+let roomW = 525, roomD = 525, roomSize = 525, wallHeight = 800;
 const floorTex = makeWoodPlankTexture('#8B6914', '#6B5210', '#2a1e12');
 const WALL_TILE_WORLD_SIZE = 32;
 const wallLowerTex = makeCardboardWallTexture('#8B6914', '#5a4510');
@@ -2033,7 +2033,9 @@ const crayonColors = [0xcc2222, 0x2244cc, 0x22aa44, 0xddcc22, 0xff6622, 0x8844aa
 let currentPortal = null;
 let currentLevel = 1;
 const MAX_LEVEL = 5;
-const LEVEL_ROOM_SIZE = { 1: 525, 2: 900, 3: 2000, 4: 1600, 5: 3200 };
+// Guartos pueden ser cuadrados (roomW == roomD) o rectangulares: el nivel 2 es el pasillo alargado
+const LEVEL_ROOM_W = { 1: 525, 2: 450, 3: 2000, 4: 1600, 5: 3200 };
+const LEVEL_ROOM_D = { 1: 525, 2: 1200, 3: 2000, 4: 1600, 5: 3200 };
 const LEVEL_WALL_HEIGHT = { 1: 800, 2: 500, 3: 800, 4: 700, 5: 900 };
 let ground;
 let ceiling;
@@ -2057,28 +2059,29 @@ let rubberBall;
 let rubberBallStripe;
 let notebookGroup;
 let fork;
+let levelExtra = [];
 function buildLevel1() {
   // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
   
   floorTex.repeat.set(30, 30);
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomSize * 2, roomSize * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   
   // Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
-  const wallPlaneW = roomSize * 2;
+  const wallPlaneW = roomW * 2;
   const wallLowerH = wallHeight * 0.32;
   const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
   wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
   wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
-  makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, -roomSize, 0);
-  makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, roomSize, Math.PI);
-  makeWall(roomSize * 2, wallHeight, -roomSize, wallHeight / 2, 0, Math.PI / 2);
-  makeWall(roomSize * 2, wallHeight, roomSize, wallHeight / 2, 0, -Math.PI / 2);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, -roomD, 0);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, roomD, Math.PI);
+  makeWall(roomD * 2, wallHeight, -roomW, wallHeight / 2, 0, Math.PI / 2);
+  makeWall(roomD * 2, wallHeight, roomW, wallHeight / 2, 0, -Math.PI / 2);
   
   // ---- Techo (antes no existía: se podía volar hacia arriba sin límite y salir del cuarto) ----
   ceiling = new THREE.Mesh(
-    new THREE.PlaneGeometry(roomSize * 2, roomSize * 2),
+    new THREE.PlaneGeometry(roomW * 2, roomD * 2),
     new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
   );
   ceiling.rotation.x = Math.PI / 2;
@@ -2099,10 +2102,10 @@ function buildLevel1() {
   // ---- Paneles de advertencia en las paredes (no en pantalla): se iluminan al acercarte a cada una ----
   hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   boundaryStripes = {
-    zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomSize, 0),
-    zPos: makeBoundaryStripe(0, wallHeight / 2, roomSize, Math.PI),
-    xNeg: makeBoundaryStripe(-roomSize, wallHeight / 2, 0, Math.PI / 2),
-    xPos: makeBoundaryStripe(roomSize, wallHeight / 2, 0, -Math.PI / 2)
+    zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomD, 0),
+    zPos: makeBoundaryStripe(0, wallHeight / 2, roomD, Math.PI),
+    xNeg: makeBoundaryStripe(-roomW, wallHeight / 2, 0, Math.PI / 2),
+    xPos: makeBoundaryStripe(roomW, wallHeight / 2, 0, -Math.PI / 2)
   };
   
   // ---- Ventana en la pared del fondo ----
@@ -2110,7 +2113,7 @@ function buildLevel1() {
     new THREE.PlaneGeometry(330, 270),
     new THREE.MeshBasicMaterial({ map: makeOutsideViewTexture() })
   );
-  outsideView.position.set(0, 180, roomSize - 4.5);
+  outsideView.position.set(0, 180, roomD - 4.5);
   outsideView.rotation.y = Math.PI;
   scene.add(outsideView);
   
@@ -2130,7 +2133,7 @@ function buildLevel1() {
   const sill = new THREE.Mesh(new THREE.BoxGeometry(370, 14, 24), new THREE.MeshStandardMaterial({ color: 0xffffff }));
   sill.position.set(0, -145, 8);
   windowGroup.add(sill);
-  windowGroup.position.set(0, 180, roomSize - 3);
+  windowGroup.position.set(0, 180, roomD - 3);
   windowGroup.rotation.y = Math.PI;
   scene.add(windowGroup);
   
@@ -2238,7 +2241,7 @@ function buildLevel1() {
   // Portal swirl dentro de la hendidura (para la transición de oleada)
   portalInnerSwirl = doorGlowInner;
   portalInnerSwirl2 = doorGlow;
-  doorGroup.position.set(0, 0, -roomSize + 5);
+  doorGroup.position.set(0, 0, -roomD + 5);
   scene.add(doorGroup);
   
   // ---- Cama de niño (lado -X de la habitación) ----
@@ -2291,7 +2294,7 @@ function buildLevel1() {
   plushArm.position.set(38, 44, -18);
   plushArm.rotation.z = -0.8;
   bedGroup.add(plushArm);
-  bedGroup.position.set(-roomSize + 90, 0, 0);
+  bedGroup.position.set(-roomW + 90, 0, 0);
   bedGroup.rotation.y = Math.PI / 2;
   scene.add(bedGroup);
   
@@ -2408,7 +2411,7 @@ function buildLevel1() {
   }
   
   // ---- Zona de aterrizaje (helipad de cartón) ----
-  LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomSize + 120);
+  LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomD + 120);
   LANDING_PAD_RADIUS = 40;
   landingPadGroup = new THREE.Group();
   // Base circular (cartón)
@@ -2463,15 +2466,325 @@ function teardownLevel() {
   if (tapePostColliders) tapePostColliders.length = 0;
   const known = [ground, ceiling, lampGroup, outsideView, windowGroup, landingPadGroup, bedGroup, dinoGroup, doorGroup, rubberBall, rubberBallStripe, notebookGroup, fork];
   for (const obj of known) { if (obj && obj.parent) { while (obj.children.length) obj.remove(obj.children[0]); obj.parent.remove(obj); } }
+  // Decoración específica de niveles (pasillo y otros), acumulada en levelExtra
+  for (const obj of levelExtra || []) { if (obj && obj.parent) { while (obj.children.length) obj.remove(obj.children[0]); obj.parent.remove(obj); } }
+  if (levelExtra) levelExtra.length = 0;
   if (boundaryStripes) { for (const k in boundaryStripes) { if (boundaryStripes[k] && boundaryStripes[k].parent) boundaryStripes[k].parent.remove(boundaryStripes[k]); } }
 }
 
-// Por ahora todos los niveles usan la habitacion para validar la maquinaria.
+// ---- Nivel 2: PASILLO (cuarto alargado en Z, ancho en X) ----
+function buildLevel2() {
+  floorTex.repeat.set(30, 12);
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  const wallPlaneW = roomW * 2;
+  const wallLowerH = wallHeight * 0.32;
+  const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
+  wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
+  wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, -roomD, 0);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, roomD, Math.PI);
+  makeWall(roomD * 2, wallHeight, -roomW, wallHeight / 2, 0, Math.PI / 2);
+  makeWall(roomD * 2, wallHeight, roomW, wallHeight / 2, 0, -Math.PI / 2);
+
+  ceiling = new THREE.Mesh(
+    new THREE.PlaneGeometry(roomW * 2, roomD * 2),
+    new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
+  );
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.y = wallHeight;
+  scene.add(ceiling);
+
+  lampGroup = new THREE.Group();
+  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 4, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  lampBase.position.set(0, -3, 0);
+  lampGroup.add(lampBase);
+  const lampGlow = new THREE.Mesh(new THREE.CircleGeometry(11, 16), new THREE.MeshStandardMaterial({ color: 0xfff7d0, emissive: 0xfff2b0, emissiveIntensity: 0.8 }));
+  lampGlow.rotation.x = Math.PI / 2;
+  lampGlow.position.set(0, -5.5, 0);
+  lampGroup.add(lampGlow);
+  lampGroup.position.set(0, wallHeight, 0);
+  scene.add(lampGroup);
+
+  hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  boundaryStripes = {
+    zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomD, 0),
+    zPos: makeBoundaryStripe(0, wallHeight / 2, roomD, Math.PI),
+    xNeg: makeBoundaryStripe(-roomW, wallHeight / 2, 0, Math.PI / 2),
+    xPos: makeBoundaryStripe(roomW, wallHeight / 2, 0, -Math.PI / 2)
+  };
+
+  // ---- Puerta del pasillo (portal): en la pared Z negativa se avanza al living ----
+  doorGroup = new THREE.Group();
+  const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.7 });
+  const dw = wallHeight * 0.6;
+  const doorFrameL = new THREE.Mesh(new THREE.BoxGeometry(8, dw, 10), doorFrameMat);
+  doorFrameL.position.set(-50, dw / 2, 0);
+  doorGroup.add(doorFrameL);
+  const doorFrameR = new THREE.Mesh(new THREE.BoxGeometry(8, dw, 10), doorFrameMat);
+  doorFrameR.position.set(50, dw / 2, 0);
+  doorGroup.add(doorFrameR);
+  const doorFrameTop = new THREE.Mesh(new THREE.BoxGeometry(108, 10, 10), doorFrameMat);
+  doorFrameTop.position.set(0, dw - 5, 0);
+  doorGroup.add(doorFrameTop);
+  const doorPanelMat = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.65 });
+  const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(92, dw - 4, 6), doorPanelMat);
+  doorPanel.position.set(-50, dw / 2 - 2, 15);
+  doorPanel.rotation.y = -0.31;
+  addToonOutline(doorPanel, 0x5a4510);
+  doorGroup.add(doorPanel);
+  const doorKnob = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 8), new THREE.MeshStandardMaterial({ color: 0xDDAA44, metalness: 0.7, roughness: 0.3 }));
+  doorKnob.position.set(-5, dw / 2 - 2, 22);
+  doorGroup.add(doorKnob);
+  const doorGlowMat = new THREE.MeshBasicMaterial({ color: 0xbf9dff, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+  const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(35, dw - 10), doorGlowMat);
+  doorGlow.position.set(10, dw / 2 - 2, 2);
+  doorGroup.add(doorGlow);
+  const doorGlowInner = new THREE.Mesh(
+    new THREE.RingGeometry(4, 18, 6, 1),
+    new THREE.MeshStandardMaterial({ color: 0xe8d9ff, emissive: 0xd0b0ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+  );
+  doorGlowInner.position.set(10, dw / 2 - 2, 4);
+  doorGroup.add(doorGlowInner);
+  portalInnerSwirl = doorGlowInner;
+  portalInnerSwirl2 = doorGlow;
+  doorGroup.position.set(0, 0, -roomD + 5);
+  scene.add(doorGroup);
+
+  // ---- Zona de aterrizaje en el pasillo ----
+  LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomD + 120);
+  LANDING_PAD_RADIUS = 40;
+  landingPadGroup = new THREE.Group();
+  const padBase = new THREE.Mesh(new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32), new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 }));
+  landingPadGroup.add(padBase);
+  const hBar = new THREE.Mesh(new THREE.BoxGeometry(16, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hBar.position.y = 0.1; landingPadGroup.add(hBar);
+  const hLeft = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hLeft.position.set(-8, 0.1, 0); landingPadGroup.add(hLeft);
+  const hRight = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hRight.position.set(8, 0.1, 0); landingPadGroup.add(hRight);
+  const padRing = new THREE.Mesh(new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32), new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide }));
+  padRing.rotation.x = -Math.PI / 2;
+  padRing.position.y = 1.6;
+  landingPadGroup.add(padRing);
+  landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  const landingGlow = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
+  landingGlow.rotation.x = -Math.PI / 2;
+  landingGlow.position.y = 0.5;
+  landingPadGroup.add(landingGlow);
+  landingPadGroup.position.copy(LANDING_PAD_POS);
+  scene.add(landingPadGroup);
+
+  decorationInstances = [];
+  tapePostColliders = [];
+  levelExtra = [];
+  const addX = (m) => { m.position.y = m.position.y || 0; scene.add(m); levelExtra.push(m); return m; };
+
+  // ---- Tapete (alfombra) de pasillo en el centro ----
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(200, 1100), new THREE.MeshStandardMaterial({ color: 0x8a5a33, roughness: 0.9 }));
+  mat.rotation.x = -Math.PI / 2;
+  mat.position.y = 0.5;
+  addX(mat);
+
+  // ---- Perchero de madera junto a la entrada ----
+  const coatRack = new THREE.Group();
+  coatRack.position.set(-roomW + 60, 0, -roomD + 340);
+  const rackPost = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 180, 10), new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 }));
+  rackPost.position.y = 90;
+  coatRack.add(rackPost);
+  const rackBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 16, 8, 12), new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.8 }));
+  rackBase.position.y = 4;
+  coatRack.add(rackBase);
+  const rackKnobMat = new THREE.MeshStandardMaterial({ color: 0xDDAA44, metalness: 0.6 });
+  for (let i = 0; i < 4; i++) {
+    const knob = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 6, 8), rackKnobMat);
+    knob.position.set(0, 140 + i * 10, 6);
+    coatRack.add(knob);
+  }
+  const coatMat = new THREE.MeshStandardMaterial({ color: 0xcc2244, roughness: 0.8 });
+  const coat = new THREE.Mesh(new THREE.BoxGeometry(16, 40, 4), coatMat);
+  coat.position.set(0, 120, 8);
+  coatRack.add(coat);
+  coatRack.rotation.y = 0.3;
+  scene.add(coatRack);
+  levelExtra.push(coatRack);
+
+  // ---- Espejo de cuerpo entero en la pared lateral +X ----
+  const mirror = new THREE.Group();
+  mirror.position.set(roomW - 6, 0, 500);
+  const mirrorFrame = new THREE.Mesh(new THREE.BoxGeometry(120, 220, 8), new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 }));
+  mirrorFrame.position.y = 110;
+  addToonOutline(mirrorFrame, 0x5a4510);
+  mirror.add(mirrorFrame);
+  const mirrorGlass = new THREE.Mesh(new THREE.PlaneGeometry(106, 206), new THREE.MeshBasicMaterial({ color: 0xdfefff }));
+  mirrorGlass.position.set(0, 110, 4);
+  const stripeMat = new THREE.MeshBasicMaterial({ color: 0xbbddff });
+  for (let i = -2; i <= 2; i++) {
+    const s = new THREE.Mesh(new THREE.PlaneGeometry(2, 206), stripeMat);
+    s.position.set(i * 18, 110, 4.5);
+    mirror.add(s);
+  }
+  mirror.add(mirrorGlass);
+  mirror.rotation.y = Math.PI / 2;
+  scene.add(mirror);
+  levelExtra.push(mirror);
+
+  // ---- Cuadros en la pared +X (frente al espejo lo dejamos limpio) y en la -X ----
+  const picColors = [0xd93a3a, 0x3a7ad9, 0x3ab96a, 0xd9a53a];
+  const picPos = [[-roomW + 10, -300], [-roomW + 10, 200], [-roomW + 10, 700], [roomW - 10, -700]];
+  const picRot = [0.6, -0.4, 0.5, -0.3];
+  picPos.forEach((pp, i) => {
+    const pic = new THREE.Group();
+    pic.position.set(pp[0], 150, pp[1]);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(90, 70, 5), new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.7 }));
+    addToonOutline(frame, 0x5a4510);
+    pic.add(frame);
+    const art = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), new THREE.MeshBasicMaterial({ color: picColors[i % picColors.length] }));
+    art.position.set(0, 0, 3);
+    pic.add(art);
+    pic.rotation.y = (pp[0] > 0 ? -1 : 1) * Math.PI / 2;
+    pic.rotation.z = picRot[i];
+    scene.add(pic);
+    levelExtra.push(pic);
+  });
+
+  // ---- Hilera de zapatos a lo largo de la pared -X ----
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x663322, roughness: 0.6 });
+  for (let i = 0; i < 8; i++) {
+    const sz = -600 + i * 130;
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 16), shoeMat);
+    shoe.position.set(-roomW + 14, 4, sz);
+    shoe.rotation.y = 0.4;
+    scene.add(shoe);
+    levelExtra.push(shoe);
+    const sole = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 4), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }));
+    sole.position.set(-roomW + 14, 1, sz + 4);
+    sole.rotation.y = 0.4;
+    scene.add(sole);
+    levelExtra.push(sole);
+  }
+
+  // ---- Macetas con plantita de juguete ----
+  const potMat = new THREE.MeshStandardMaterial({ color: 0xc0392b, roughness: 0.6 });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x2faa5a, roughness: 0.6 });
+  const makePot = (x, z) => {
+    const pot = new THREE.Group();
+    pot.position.set(x, 0, z);
+    const bowl = new THREE.Mesh(new THREE.CylinderGeometry(14, 10, 24, 10), potMat);
+    bowl.position.y = 12;
+    pot.add(bowl);
+    for (let i = 0; i < 5; i++) {
+      const leaf = new THREE.Mesh(new THREE.BoxGeometry(4, 26, 4), leafMat);
+      leaf.position.set((Math.random() - 0.5) * 10, 30, (Math.random() - 0.5) * 10);
+      leaf.rotation.x = (Math.random() - 0.5) * 0.4;
+      leaf.rotation.z = (Math.random() - 0.5) * 0.4;
+      pot.add(leaf);
+    }
+    scene.add(pot);
+    levelExtra.push(pot);
+    return pot;
+  };
+  makePot(-roomW + 60, -700);
+  makePot(roomW - 60, 20);
+
+  // ---- Bancos / banquitos de madera ----
+  const benchMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.65 });
+  const benches = [];
+  const makeBench = (x, z, rot) => {
+    const b = new THREE.Group();
+    b.position.set(x, 0, z);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(80, 8, 24), benchMat);
+    top.position.y = 18;
+    b.add(top);
+    for (const [lx, lz] of [[-30, -9], [30, -9], [-30, 9], [30, 9]]) {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(6, 18, 6), new THREE.MeshStandardMaterial({ color: 0x6a4a2a }));
+      leg.position.set(lx, 9, lz);
+      b.add(leg);
+    }
+    b.rotation.y = rot;
+    scene.add(b);
+    levelExtra.push(b);
+    return b;
+  };
+  benches.push(makeBench(roomW - 80, 300, Math.PI / 2));
+  benches.push(makeBench(-roomW + 80, -200, -Math.PI / 2));
+  benches.push(makeBench(-200, 900, 0));
+
+  // ---- Cajas apiladas que forman el pasillo (rompen el rectángulo vacío) ----
+  const boxMat = new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 });
+  const cratePos = [[-280, 40], [-300, 620], [-250, 980], [280, -420], [300, 820], [-80, -500], [80, -860]];
+  const crates = [];
+  cratePos.forEach((cp, ci) => {
+    const cr = new THREE.Mesh(new THREE.BoxGeometry(60 + ci * 4, 50 + ci * 6, 60 + ci * 4), boxMat);
+    cr.position.set(cp[0], 25 + ci * 3, cp[1]);
+    cr.rotation.y = (ci % 2 ? 1 : -1) * 0.3;
+    addToonOutline(cr, 0x8a6a2a);
+    scene.add(cr);
+    levelExtra.push(cr);
+    crates.push(cr);
+  });
+
+  // ---- Marcas de guerra en el piso del pasillo ----
+  makeScorchMark(0, -300, 10, 1.2);
+  makeScorchMark(150, 400, 9, 2.2);
+  makeScorchMark(-120, 800, 11, 0.6);
+  makeScorchMark(0, 0, 9, 3.0);
+  makeScorchMark(-180, -600, 8.5, 1.8);
+
+  // ---- Crayones y pelota tirados ----
+  for (let i = 0; i < 8; i++) {
+    const crayon = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 1.2, 18, 6),
+      new THREE.MeshStandardMaterial({ color: crayonColors[i % crayonColors.length], roughness: 0.5 })
+    );
+    crayon.position.set(-150 + Math.random() * 300, 1.2, -400 + Math.random() * 800);
+    crayon.rotation.x = Math.PI / 2;
+    crayon.rotation.z = Math.random() * Math.PI;
+    scene.add(crayon);
+    levelExtra.push(crayon);
+  }
+  rubberBall = new THREE.Mesh(
+    new THREE.SphereGeometry(12, 16, 12),
+    new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.35, metalness: 0.1 })
+  );
+  rubberBall.position.set(200, 12, -700);
+  scene.add(rubberBall);
+  rubberBallStripe = new THREE.Mesh(
+    new THREE.TorusGeometry(12.1, 1.2, 8, 24),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
+  );
+  rubberBallStripe.position.copy(rubberBall.position);
+  rubberBallStripe.rotation.x = Math.PI / 2;
+  scene.add(rubberBallStripe);
+
+  // ---- Cinta de precaución alrededor del helipad del pasillo ----
+  makeCautionTapeBarrier(-roomD + 120, 40, 70, Math.PI / 2);
+  makeCautionTapeBarrier(-roomD + 120, -40, 70, Math.PI / 2);
+  makeCautionTapeBarrier(-roomD + 60, 0, 90, 0);
+
+  // ---- Colliders del pasillo ----
+  worldColliders = [
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(coatRack.position.x, 60, coatRack.position.z), radius: 30, damaging: false, hp: 4, maxHp: 4, mesh: coatRack, type: 'furniture' },
+    { pos: new THREE.Vector3(mirror.position.x, 60, mirror.position.z), radius: 70, damaging: false, hp: 6, maxHp: 6, mesh: mirror, type: 'furniture' },
+    { pos: new THREE.Vector3(benches[0].position.x, 20, benches[0].position.z), radius: 45, damaging: false, hp: 5, maxHp: 5, mesh: benches[0], type: 'furniture' },
+    { pos: new THREE.Vector3(benches[1].position.x, 20, benches[1].position.z), radius: 45, damaging: false, hp: 5, maxHp: 5, mesh: benches[1], type: 'furniture' },
+    { pos: new THREE.Vector3(benches[2].position.x, 20, benches[2].position.z), radius: 45, damaging: false, hp: 5, maxHp: 5, mesh: benches[2], type: 'furniture' },
+    ...crates.map(c => ({ pos: c.position.clone(), radius: 40, damaging: false, hp: 6, maxHp: 6, mesh: c, type: 'cardboard' })),
+    ...tapePostColliders,
+  ];
+}
+
+// Los niveles 1,3,4,5 son cuartos cuadrados; el nivel 2 es el pasillo alargado (rectangular).
 function buildLevel(n) {
   currentLevel = n;
-  roomSize = LEVEL_ROOM_SIZE[n] || 2000;
+  roomW = LEVEL_ROOM_W[n] || 2000;
+  roomD = LEVEL_ROOM_D[n] || 2000;
+  roomSize = Math.max(roomW, roomD);
   wallHeight = LEVEL_WALL_HEIGHT[n] || 700;
-  buildLevel1();
+  if (n === 2) buildLevel2(); else buildLevel1();
 }
 
 // Construir el nivel inicial (la habitación) al cargar el juego
@@ -3093,29 +3406,33 @@ function getBossHp() {
   return cfg.base + bossEncounters * cfg.growth;
 }
 
-// Punto aleatorio dentro del cuarto que no cae encima de un mueble (ni muy pegado a otro osito)
+// Punto aleatorio dentro del cuarto (rectángulo ±roomW, ±roomD) que no cae sobre un mueble
+// ni muy pegado a otro osito, y alejado del núcleo central donde arranca la nave.
 function findClearSpawnPoint(minR, maxR, clearance, placedPoints) {
+  const xw = Math.max(24, roomW - 30);
+  const zd = Math.max(24, roomD - 30);
+  const tryPoint = () => {
+    const x = -xw + Math.random() * (xw * 2);
+    const z = -zd + Math.random() * (zd * 2);
+    return { x, z };
+  };
   for (let attempt = 0; attempt < 40; attempt++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = minR + Math.random() * (maxR - minR);
-    const x = Math.cos(angle) * radius, z = Math.sin(angle) * radius;
+    const p = tryPoint();
+    if (Math.abs(p.x) < minR && Math.abs(p.z) < minR) continue; // no en el núcleo central
     let clear = true;
     for (const c of worldColliders) {
-      const dx = x - c.pos.x, dz = z - c.pos.z;
+      const dx = p.x - c.pos.x, dz = p.z - c.pos.z;
       if (Math.sqrt(dx * dx + dz * dz) < c.radius + clearance) { clear = false; break; }
     }
     if (clear && placedPoints) {
-      for (const p of placedPoints) {
-        const dx = x - p.x, dz = z - p.z;
+      for (const q of placedPoints) {
+        const dx = p.x - q.x, dz = p.z - q.z;
         if (Math.sqrt(dx * dx + dz * dz) < 45) { clear = false; break; }
       }
     }
-    if (clear) return { x, z };
+    if (clear) return p;
   }
-  // Si no encontró lugar libre en los intentos, devuelve el último punto probado igual
-  const angle = Math.random() * Math.PI * 2;
-  const radius = minR + Math.random() * (maxR - minR);
-  return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius };
+  return tryPoint();
 }
 
 function spawnTeddyWave() {
@@ -3124,7 +3441,7 @@ function spawnTeddyWave() {
     const mesh = buildTeddy();
     const orbitRadius = 18 + Math.random() * 22;
     // Aleatorio en todo el cuarto, evitando bañera/inodoro/lavamanos/espejo y amontonarse entre sí
-    const spot = findClearSpawnPoint(roomSize * 0.1, roomSize * 0.8, orbitRadius + 18, placedPoints);
+    const spot = findClearSpawnPoint(Math.min(roomW, roomD) * 0.1, roomSize * 0.8, orbitRadius + 18, placedPoints);
     placedPoints.push(spot);
     mesh.position.set(spot.x, 40 + Math.random() * 60, spot.z);
     scene.add(mesh);
@@ -5429,20 +5746,21 @@ function warnOpacity(margin) {
   return t * t * 0.85;
 }
 function updateBoundaryWarning() {
-  const limit = roomSize - WALL_MARGIN;
-  boundaryStripes.zNeg.material.opacity = warnOpacity(ship.position.z + limit);
-  boundaryStripes.zPos.material.opacity = warnOpacity(limit - ship.position.z);
-  boundaryStripes.xNeg.material.opacity = warnOpacity(ship.position.x + limit);
-  boundaryStripes.xPos.material.opacity = warnOpacity(limit - ship.position.x);
+  const lx = roomW - WALL_MARGIN, lz = roomD - WALL_MARGIN;
+  boundaryStripes.zNeg.material.opacity = warnOpacity(ship.position.z + lz);
+  boundaryStripes.zPos.material.opacity = warnOpacity(lz - ship.position.z);
+  boundaryStripes.xNeg.material.opacity = warnOpacity(ship.position.x + lx);
+  boundaryStripes.xPos.material.opacity = warnOpacity(lx - ship.position.x);
 }
 function checkWallCollision() {
   let hit = false;
-  const limit = roomSize - WALL_MARGIN;
+  const limitX = roomW - WALL_MARGIN;
+  const limitZ = roomD - WALL_MARGIN;
   const ceilLimit = wallHeight - 8;
-  if (ship.position.x > limit) { ship.position.x = limit; hit = true; }
-  if (ship.position.x < -limit) { ship.position.x = -limit; hit = true; }
-  if (ship.position.z > limit) { ship.position.z = limit; hit = true; }
-  if (ship.position.z < -limit) { ship.position.z = -limit; hit = true; }
+  if (ship.position.x > limitX) { ship.position.x = limitX; hit = true; }
+  if (ship.position.x < -limitX) { ship.position.x = -limitX; hit = true; }
+  if (ship.position.z > limitZ) { ship.position.z = limitZ; hit = true; }
+  if (ship.position.z < -limitZ) { ship.position.z = -limitZ; hit = true; }
   if (ship.position.y > ceilLimit) { ship.position.y = ceilLimit; hit = true; }
   if (hit && difficulty !== 'facil') {
     speed *= 0.1;
@@ -6698,9 +7016,10 @@ function animate() {
       camera.position.copy(ship.position).addScaledVector(camDir, maxCamDist);
     }
     // Room bounds (existing)
-    const camLimit = roomSize - 4;
-    camera.position.x = Math.max(-camLimit, Math.min(camLimit, camera.position.x));
-    camera.position.z = Math.max(-camLimit, Math.min(camLimit, camera.position.z));
+    const camLimitX = roomW - 4;
+    const camLimitZ = roomD - 4;
+    camera.position.x = Math.max(-camLimitX, Math.min(camLimitX, camera.position.x));
+    camera.position.z = Math.max(-camLimitZ, Math.min(camLimitZ, camera.position.z));
     camera.position.y = Math.max(2, Math.min(wallHeight - 4, camera.position.y));
 
     // Camera shake (from Camera.cpp ChangeCamCollType + shake oscillator)
