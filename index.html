@@ -1503,6 +1503,18 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 });
 document.getElementById('resumeBtn').addEventListener('click', () => {
   closeMenu();
+  if (!gameRunning) {
+    if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+      if (typeof generateRunSeed === 'function') { currentRunSeed = generateRunSeed(); var gs = document.getElementById('seedValue'); if (gs) gs.textContent = currentRunSeed; }
+    }
+    applyGearSelection(selectedGear);
+    renderLivesHUD();
+    renderShieldHUD();
+    resetDestructibles();
+    gameRunning = true;
+    startWave();
+    animate();
+  }
   if (!isMobile) renderer.domElement.requestPointerLock();
 });
 const controlsOverlay = document.getElementById('controlsOverlay');
@@ -6617,11 +6629,8 @@ preloadModels(() => {
       applyGearSelection(selectedGear);
       renderLivesHUD();
       renderShieldHUD();
-  
-      resetDestructibles();
-      gameRunning = true;
-      startWave();
-      animate();
+      // No auto-arrancar: la partida empieza con el botón Reanudar/Jugar
+      // (así el jugador no muere mientras lee el tutorial o el login)
     }
     return;
   }
@@ -6636,11 +6645,9 @@ preloadModels(() => {
     applyGearSelection(savedGear);
     renderLivesHUD();
     renderShieldHUD();
-
-    resetDestructibles();
-    gameRunning = true;
-    startWave();
-    animate();
+    // No auto-arrancar: abrir el menú para que el jugador presione Reanudar.
+    // Evita morir mientras está el login/tutorial abierto.
+    openMenu();
   } else {
     openGearSelect();
   }
@@ -6785,7 +6792,7 @@ try {
 // ================= MINI TUTORIAL =================
 var TUTORIAL_STEPS = [
   { icon: '🎮', title: 'Bienvenido, piloto', text: 'Estás controlando un Juguete (tu nave de combate). Tu objetivo: sobrevivir olas de enemigos y derrotar a los Jefes.' },
-  { icon: '🕹️', title: 'Volar', text: 'Usá <b>W</b> para acelerar, <b>S</b> para frenar suave y <b>B</b> para freno aéreo. <b>A/D</b> giran (strafe) y <b>Espacio</b> es el boost. <b>Shift</b> suelta la mira. <b>Enter</b> confirma.' },
+  { icon: '🕹️', title: 'Volar', text: '<b>W</b> acelera, <b>S</b> frena y <b>B</b> es freno aéreo. <b>A/D</b> giran (strafe) y <b>Espacio</b> es el boost. <b>Shift</b> suelta la mira. <b>Enter</b> confirma. <b>Tocá A o D dos veces rápido</b> para hacer un <b>barrel roll</b>: te hace invulnerable un instante y esquiva misiles. ¡Muy útil!' },
   { icon: '🔫', title: 'Disparar', text: '<b>Click izquierdo</b> dispara (arma estándar) y <b>Click derecho</b> lanza (arma avanzada). <b>Rayo y Trueno</b> dependen de la avanzada; <b>Viento y Muro</b> de la estándar.' },
   { icon: '⚡', title: 'Habilidades', text: 'Presioná <b>K</b> para abrir el panel de skills y <b>1-4</b> para activarlas. Cada Juguete tiene habilidades de ataque, defensa y soporte.' },
   { icon: '🛬', title: 'Aterrizar e inventario', text: 'Buscá la <b>zona de aterrizaje</b> (helipad verde, tecla <b>C</b>). Al aterrizar se abre el <b>inventario</b> donde equipás las cartas mágicas que caen de los enemigos.' },
