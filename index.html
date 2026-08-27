@@ -1653,7 +1653,6 @@ function makeWoodPlankTexture(colorA, colorB, grout) {
   return tex;
 }
 
-// Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
 function makeCardboardWallTexture(baseColor, corrugColor) {
   const size = 256;
   const c = document.createElement('canvas');
@@ -1693,23 +1692,12 @@ function makeCardboardWallTexture(baseColor, corrugColor) {
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   return tex;
 }
-
+// Director de niveles: dimensiones globales (recalculadas por nivel)
+let roomSize = 2000, wallHeight = 800;
 const floorTex = makeWoodPlankTexture('#8B6914', '#6B5210', '#2a1e12');
-floorTex.repeat.set(30, 30);
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(1050, 1050), new THREE.MeshStandardMaterial({ map: floorTex }));
-ground.rotation.x = -Math.PI / 2;
-scene.add(ground);
-
-// Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
-const roomSize = 2000, wallHeight = 800;
 const WALL_TILE_WORLD_SIZE = 32;
-const wallPlaneW = roomSize * 2;
-const wallLowerH = wallHeight * 0.32;
-const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
 const wallLowerTex = makeCardboardWallTexture('#8B6914', '#5a4510');
-wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
 const wallUpperTex = makeCardboardWallTexture('#C4A265', '#9a7a40');
-wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
 const wallLowerMat = new THREE.MeshStandardMaterial({ map: wallLowerTex, side: THREE.DoubleSide });
 const wallUpperMat = new THREE.MeshStandardMaterial({ map: wallUpperTex, side: THREE.DoubleSide });
 function makeWall(w, h, x, y, z, rotY) {
@@ -1728,32 +1716,6 @@ function makeWall(w, h, x, y, z, rotY) {
   group.rotation.y = rotY;
   scene.add(group);
 }
-makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, -roomSize, 0);
-makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, roomSize, Math.PI);
-makeWall(roomSize * 2, wallHeight, -roomSize, wallHeight / 2, 0, Math.PI / 2);
-makeWall(roomSize * 2, wallHeight, roomSize, wallHeight / 2, 0, -Math.PI / 2);
-
-// ---- Techo (antes no existía: se podía volar hacia arriba sin límite y salir del cuarto) ----
-const ceiling = new THREE.Mesh(
-  new THREE.PlaneGeometry(roomSize * 2, roomSize * 2),
-  new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
-);
-ceiling.rotation.x = Math.PI / 2;
-ceiling.position.y = wallHeight;
-scene.add(ceiling);
-// Lamparita simple en el centro del techo, de paso (agrupada para poder moverla como una sola pieza)
-const lampGroup = new THREE.Group();
-const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 4, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-lampBase.position.set(0, -3, 0);
-lampGroup.add(lampBase);
-const lampGlow = new THREE.Mesh(new THREE.CircleGeometry(11, 16), new THREE.MeshStandardMaterial({ color: 0xfff7d0, emissive: 0xfff2b0, emissiveIntensity: 0.8 }));
-lampGlow.rotation.x = Math.PI / 2;
-lampGlow.position.set(0, -5.5, 0);
-lampGroup.add(lampGlow);
-lampGroup.position.set(0, wallHeight, 0);
-scene.add(lampGroup);
-
-// ---- Paneles de advertencia en las paredes (no en pantalla): se iluminan al acercarte a cada una ----
 function makeHazardStripeTexture() {
   const size = 256;
   const c = document.createElement('canvas');
@@ -1772,7 +1734,6 @@ function makeHazardStripeTexture() {
   return tex;
 }
 const hazardTex = makeHazardStripeTexture();
-hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
 function makeBoundaryStripe(x, y, z, rotY) {
   const mat = new THREE.MeshBasicMaterial({ map: hazardTex, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
   const planeW = roomSize * 2, planeH = wallHeight;
@@ -1789,14 +1750,6 @@ function makeBoundaryStripe(x, y, z, rotY) {
   scene.add(mesh);
   return mesh;
 }
-const boundaryStripes = {
-  zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomSize, 0),
-  zPos: makeBoundaryStripe(0, wallHeight / 2, roomSize, Math.PI),
-  xNeg: makeBoundaryStripe(-roomSize, wallHeight / 2, 0, Math.PI / 2),
-  xPos: makeBoundaryStripe(roomSize, wallHeight / 2, 0, -Math.PI / 2)
-};
-
-// ---- Ventana en la pared del fondo ----
 function makeOutsideViewTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
@@ -1833,48 +1786,17 @@ function makeOutsideViewTexture() {
   ctx.beginPath(); ctx.arc(178, 92, 10, 0, Math.PI * 2); ctx.fill();
   return new THREE.CanvasTexture(c);
 }
-const outsideView = new THREE.Mesh(
-  new THREE.PlaneGeometry(330, 270),
-  new THREE.MeshBasicMaterial({ map: makeOutsideViewTexture() })
-);
-outsideView.position.set(0, 180, roomSize - 4.5);
-outsideView.rotation.y = Math.PI;
-scene.add(outsideView);
-
-const windowGroup = new THREE.Group();
-const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(340, 280, 10), new THREE.MeshStandardMaterial({ color: 0xf2ede0, roughness: 0.55 }));
-addToonOutline(windowFrame, 0xbfae82);
-windowGroup.add(windowFrame);
-const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(310, 250), new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
-windowGlass.position.z = 3;
-windowGroup.add(windowGlass);
-const mullionV = new THREE.Mesh(new THREE.BoxGeometry(8, 250, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-mullionV.position.z = 4;
-windowGroup.add(mullionV);
-const mullionH = new THREE.Mesh(new THREE.BoxGeometry(310, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-mullionH.position.z = 4;
-windowGroup.add(mullionH);
-const sill = new THREE.Mesh(new THREE.BoxGeometry(370, 14, 24), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-sill.position.set(0, -145, 8);
-windowGroup.add(sill);
-windowGroup.position.set(0, 180, roomSize - 3);
-windowGroup.rotation.y = Math.PI;
-scene.add(windowGroup);
-
-
 function addToonOutline(mesh, color) {
   const edges = new THREE.EdgesGeometry(mesh.geometry, 25);
   const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: color || 0x1a1a1a, linewidth: 2 }));
   mesh.add(line);
 }
-
 const cardboardBrown = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.85 });
 const cardboardDark = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.9 });
 const cardboardTape = new THREE.MeshStandardMaterial({ color: 0xD4C088, roughness: 0.6 });
 const legoRed = new THREE.MeshStandardMaterial({ color: 0xCC2222, roughness: 0.3, metalness: 0.1 });
 const legoBlue = new THREE.MeshStandardMaterial({ color: 0x2244CC, roughness: 0.3, metalness: 0.1 });
 const legoYellow = new THREE.MeshStandardMaterial({ color: 0xDDCC22, roughness: 0.3, metalness: 0.1 });
-
 function buildCardboardBox(w, h, d, mat) {
   const group = new THREE.Group();
   const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat || cardboardBrown);
@@ -1886,7 +1808,6 @@ function buildCardboardBox(w, h, d, mat) {
   group.add(tape);
   return group;
 }
-
 function buildLegoWall(w, h, d) {
   const group = new THREE.Group();
   const mats = [legoRed, legoBlue, legoYellow];
@@ -1904,32 +1825,6 @@ function buildLegoWall(w, h, d) {
   }
   return group;
 }
-
-const boxSur = buildCardboardBox(80, 70, 80);
-boxSur.position.set(-280, 0, 190);
-scene.add(boxSur);
-
-const boxNE = buildCardboardBox(50, 100, 50);
-boxNE.position.set(310, 0, -235);
-scene.add(boxNE);
-
-const legoWall = buildLegoWall(120, 80, 20);
-legoWall.position.set(235, 0, 280);
-legoWall.rotation.y = 0.4;
-scene.add(legoWall);
-
-const boxOeste = buildCardboardBox(120, 40, 60, cardboardDark);
-boxOeste.position.set(-390, 0, 0);
-scene.add(boxOeste);
-
-const boxCentro = buildCardboardBox(40, 55, 40);
-boxCentro.position.set(78, 0, -190);
-scene.add(boxCentro);
-
-// ---- Array central de decoración: todo lo que se puede colocar/borrar desde el editor vive acá ----
-const decorationInstances = [];
-// Assets personalizados (subidos por el usuario): declarado afuera del editor a propósito, para
-// que las instancias ya colocadas se sigan viendo en la versión "sin editor" repartida a amigos.
 const CUSTOM_ASSETS = {}; // key -> { base64, type, scale, name, scene?, geometry? }
 function placeCustomAsset(key, x, z) {
   const asset = CUSTOM_ASSETS[key];
@@ -1947,8 +1842,6 @@ function placeCustomAsset(key, x, z) {
   decorationInstances.push(entry);
   return mesh;
 }
-// Carga (parsea) todos los CUSTOM_ASSETS que tengan base64 pero todavía no tengan geometría/escena
-// lista, y avisa por callback cuando terminó — se usa tanto al arrancar como después de un guardado.
 function loadPendingCustomAssets(onDone) {
   const pending = Object.keys(CUSTOM_ASSETS).filter(k => CUSTOM_ASSETS[k].base64 && !CUSTOM_ASSETS[k].scene && !CUSTOM_ASSETS[k].geometry);
   if (pending.length === 0) { onDone(); return; }
@@ -1978,8 +1871,6 @@ function loadPendingCustomAssets(onDone) {
     }
   });
 }
-
-// ---- Marcas de guerra: manchas de quemado en el piso, como si hubieran explotado misiles cerca ----
 function makeScorchMark(x, z, radius, rotation) {
   const group = new THREE.Group();
   const outer = new THREE.Mesh(
@@ -2014,20 +1905,6 @@ function makeScorchMark(x, z, radius, rotation) {
   decorationInstances.push({ mesh: group, kind: 'scorch', params: { radius, rotation } });
   return group;
 }
-makeScorchMark(95, 60, 11, 0.4);
-makeScorchMark(-60, 170, 9, 1.8);
-makeScorchMark(190, -95, 10, 2.6);
-makeScorchMark(-140, -95, 8, 0.9);
-makeScorchMark(30, -235, 10.5, 3.4);
-makeScorchMark(-280, -50, 9, 2.1);
-makeScorchMark(235, 200, 8, 0.6);
-makeScorchMark(-30, 310, 9.5, 3.0);
-makeScorchMark(-200, 200, 10, 1.2);
-makeScorchMark(150, -300, 8.5, 2.8);
-makeScorchMark(350, 50, 9, 0.3);
-makeScorchMark(-350, -150, 11, 1.5);
-
-// ---- Cinta de precaución (obra en construcción / zona de peligro) ----
 function makeCautionTapeTexture() {
   const size = 128;
   const c = document.createElement('canvas');
@@ -2046,7 +1923,6 @@ function makeCautionTapeTexture() {
   return tex;
 }
 const cautionTapeTex = makeCautionTapeTexture();
-const tapePostColliders = [];
 function makeCautionTapeBarrier(x, z, length, rotationY) {
   const group = new THREE.Group();
   const postMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6 });
@@ -2084,15 +1960,6 @@ function makeCautionTapeBarrier(x, z, length, rotationY) {
   decorationInstances.push({ mesh: group, kind: 'tape', params: { length, rotationY }, colliders: ownColliders });
   return group;
 }
-makeCautionTapeBarrier(155, 95, 55, 0.5);
-makeCautionTapeBarrier(-110, -265, 48, 1.2);
-makeCautionTapeBarrier(280, -220, 52, -0.7);
-makeCautionTapeBarrier(-250, 155, 46, -0.3);
-makeCautionTapeBarrier(95, -345, 50, 1.6);
-makeCautionTapeBarrier(-320, -80, 42, 0.8);
-makeCautionTapeBarrier(380, -120, 38, -1.1);
-
-// ---- Escombros de batalla dispersos por el piso: llenan el mapa sin agregar mucho peso ----
 function spawnDebrisPiece(x, z, kind) {
   const mat = new THREE.MeshStandardMaterial({ color: kind.color, roughness: 0.6 });
   let mesh, restY;
@@ -2121,110 +1988,6 @@ const DEBRIS_KINDS = [
   { type: 'cone', color: 0xffd93d, size: 7 },
   { type: 'block', color: 0x6fe06a, size: 4.5 }
 ];
-for (let i = 0; i < 35; i++) {
-  const angle = Math.random() * Math.PI * 2;
-  const radius = 80 + Math.random() * 380;
-  const kind = DEBRIS_KINDS[Math.floor(Math.random() * DEBRIS_KINDS.length)];
-  spawnDebrisPiece(Math.cos(angle) * radius, Math.sin(angle) * radius, kind);
-}
-
-// ---- Puerta semi-abierta (reemplaza el portal toroidal de AO) ----
-// La hendidura entre la puerta y el marco es el acceso al portal de la siguiente oleada
-const doorGroup = new THREE.Group();
-// Marco de puerta
-const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.7 });
-const doorFrameL = new THREE.Mesh(new THREE.BoxGeometry(8, 120, 10), doorFrameMat);
-doorFrameL.position.set(-50, 60, 0);
-doorGroup.add(doorFrameL);
-const doorFrameR = new THREE.Mesh(new THREE.BoxGeometry(8, 120, 10), doorFrameMat);
-doorFrameR.position.set(50, 60, 0);
-doorGroup.add(doorFrameR);
-const doorFrameTop = new THREE.Mesh(new THREE.BoxGeometry(108, 10, 10), doorFrameMat);
-doorFrameTop.position.set(0, 125, 0);
-doorGroup.add(doorFrameTop);
-// La puerta misma: rotada ~18° abierta (hacia adentro del cuarto)
-const doorPanelMat = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.65 });
-const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(92, 116, 6), doorPanelMat);
-doorPanel.position.set(-50, 58, 15);
-doorPanel.rotation.y = -0.31;
-addToonOutline(doorPanel, 0x5a4510);
-doorGroup.add(doorPanel);
-// Picaporte
-const doorKnob = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 8), new THREE.MeshStandardMaterial({ color: 0xDDAA44, metalness: 0.7, roughness: 0.3 }));
-doorKnob.position.set(-5, 58, 22);
-doorGroup.add(doorKnob);
-// Resplandor que se filtra por la hendidura de la puerta abierta
-const doorGlowMat = new THREE.MeshBasicMaterial({ color: 0xbf9dff, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
-const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(35, 110), doorGlowMat);
-doorGlow.position.set(10, 58, 2);
-doorGroup.add(doorGlow);
-const doorGlowInner = new THREE.Mesh(
-  new THREE.RingGeometry(4, 18, 6, 1),
-  new THREE.MeshStandardMaterial({ color: 0xe8d9ff, emissive: 0xd0b0ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
-);
-doorGlowInner.position.set(10, 58, 4);
-doorGroup.add(doorGlowInner);
-// Portal swirl dentro de la hendidura (para la transición de oleada)
-const portalInnerSwirl = doorGlowInner;
-const portalInnerSwirl2 = doorGlow;
-doorGroup.position.set(0, 0, -roomSize + 5);
-scene.add(doorGroup);
-
-// ---- Cama de niño (lado -X de la habitación) ----
-const bedGroup = new THREE.Group();
-// Colchón
-const mattressMat = new THREE.MeshStandardMaterial({ color: 0x5577cc, roughness: 0.7 });
-const mattress = new THREE.Mesh(new THREE.BoxGeometry(140, 25, 200), mattressMat);
-mattress.position.y = 22;
-addToonOutline(mattress, 0x3355aa);
-bedGroup.add(mattress);
-// Sábana arrugada (geo offset para dar textura)
-const sheetMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.8 });
-const sheet = new THREE.Mesh(new THREE.BoxGeometry(130, 4, 180), sheetMat);
-sheet.position.set(0, 37, 10);
-bedGroup.add(sheet);
-// Almohada
-const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.75 });
-const pillow = new THREE.Mesh(new THREE.BoxGeometry(60, 16, 35), pillowMat);
-pillow.position.set(0, 40, -75);
-addToonOutline(pillow, 0xbbaa99);
-bedGroup.add(pillow);
-// Cabecera
-const headboardMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 });
-const headboard = new THREE.Mesh(new THREE.BoxGeometry(150, 100, 10), headboardMat);
-headboard.position.set(0, 60, -105);
-addToonOutline(headboard, 0x5a4510);
-bedGroup.add(headboard);
-// Patas de la cama (4 cilindros)
-const legMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 });
-for (const [lx, lz] of [[-65, -95], [65, -95], [-65, 95], [65, 95]]) {
-  const leg = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 20, 8), legMat);
-  leg.position.set(lx, 2, lz);
-  bedGroup.add(leg);
-}
-// Oso de peluche tirado en la cama
-const plushBody = new THREE.Mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-plushBody.position.set(25, 48, -20);
-plushBody.scale.set(1, 0.8, 1.1);
-bedGroup.add(plushBody);
-const plushHead = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-plushHead.position.set(25, 58, -12);
-bedGroup.add(plushHead);
-// Ojos del oso
-for (const ex of [-3, 3]) {
-  const eye = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-  eye.position.set(25 + ex, 59, -6);
-  bedGroup.add(eye);
-}
-const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 18, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-plushArm.position.set(38, 44, -18);
-plushArm.rotation.z = -0.8;
-bedGroup.add(plushArm);
-bedGroup.position.set(-roomSize + 90, 0, 0);
-bedGroup.rotation.y = Math.PI / 2;
-scene.add(bedGroup);
-
-// ---- Autos de juguete esparcidos ----
 function buildToyCar(x, z, color, rotY) {
   const car = new THREE.Group();
   const body = new THREE.Mesh(new THREE.BoxGeometry(18, 8, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
@@ -2245,166 +2008,458 @@ function buildToyCar(x, z, color, rotY) {
   scene.add(car);
   return car;
 }
-buildToyCar(200, 150, 0xcc2222, 0.8);
-buildToyCar(-120, -280, 0x2244cc, -1.2);
-buildToyCar(350, 50, 0xddcc22, 2.1);
-
-// ---- Cubos / bloques de construcción esparcidos ----
 const blockColors = [0xcc2222, 0x2244cc, 0xddcc22, 0x22aa44, 0xff6622];
-for (let i = 0; i < 12; i++) {
-  const angle = Math.random() * Math.PI * 2;
-  const dist = 120 + Math.random() * 300;
-  const size = 6 + Math.random() * 10;
-  const block = new THREE.Mesh(
-    new THREE.BoxGeometry(size, size, size),
-    new THREE.MeshStandardMaterial({ color: blockColors[i % blockColors.length], roughness: 0.35 })
-  );
-  block.position.set(Math.cos(angle) * dist, size / 2, Math.sin(angle) * dist);
-  block.rotation.set(Math.random() * 0.3, Math.random() * Math.PI, Math.random() * 0.3);
-  scene.add(block);
-}
-
-// ---- Lápices y crayones tirados en el piso ----
 const crayonColors = [0xcc2222, 0x2244cc, 0x22aa44, 0xddcc22, 0xff6622, 0x8844aa];
-for (let i = 0; i < 15; i++) {
-  const angle = Math.random() * Math.PI * 2;
-  const dist = 60 + Math.random() * 350;
-  const crayon = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.2, 1.2, 18, 6),
-    new THREE.MeshStandardMaterial({ color: crayonColors[i % crayonColors.length], roughness: 0.5 })
+
+// ===== Director de niveles =====
+let currentPortal = null;
+let currentLevel = 1;
+const MAX_LEVEL = 5;
+const LEVEL_ROOM_SIZE = { 1: 2000, 2: 900, 3: 2000, 4: 1600, 5: 3200 };
+const LEVEL_WALL_HEIGHT = { 1: 800, 2: 500, 3: 800, 4: 700, 5: 900 };
+let ground;
+let ceiling;
+let lampGroup;
+let boundaryStripes;
+let outsideView;
+let windowGroup;
+let doorGroup;
+let portalInnerSwirl;
+let portalInnerSwirl2;
+let bedGroup;
+let dinoGroup;
+let landingPadGroup;
+let landingGlowMat;
+let LANDING_PAD_POS;
+let LANDING_PAD_RADIUS;
+let worldColliders;
+let tapePostColliders;
+let decorationInstances;
+let rubberBall;
+let rubberBallStripe;
+let notebookGroup;
+let fork;
+function buildLevel1() {
+  // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
+  
+  floorTex.repeat.set(30, 30);
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(1050, 1050), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+  
+  // Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
+  const wallPlaneW = roomSize * 2;
+  const wallLowerH = wallHeight * 0.32;
+  const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
+  wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
+  wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
+  makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, -roomSize, 0);
+  makeWall(roomSize * 2, wallHeight, 0, wallHeight / 2, roomSize, Math.PI);
+  makeWall(roomSize * 2, wallHeight, -roomSize, wallHeight / 2, 0, Math.PI / 2);
+  makeWall(roomSize * 2, wallHeight, roomSize, wallHeight / 2, 0, -Math.PI / 2);
+  
+  // ---- Techo (antes no existía: se podía volar hacia arriba sin límite y salir del cuarto) ----
+  ceiling = new THREE.Mesh(
+    new THREE.PlaneGeometry(roomSize * 2, roomSize * 2),
+    new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
   );
-  crayon.position.set(Math.cos(angle) * dist, 1.2, Math.sin(angle) * dist);
-  crayon.rotation.x = Math.PI / 2;
-  crayon.rotation.z = Math.random() * Math.PI;
-  scene.add(crayon);
-}
-
-// ---- Pelota de goma tirada en una esquina ----
-const rubberBall = new THREE.Mesh(
-  new THREE.SphereGeometry(12, 16, 12),
-  new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.35, metalness: 0.1 })
-);
-rubberBall.position.set(280, 12, 300);
-scene.add(rubberBall);
-const rubberBallStripe = new THREE.Mesh(
-  new THREE.TorusGeometry(12.1, 1.2, 8, 24),
-  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
-);
-rubberBallStripe.position.copy(rubberBall.position);
-rubberBallStripe.rotation.x = Math.PI / 2;
-scene.add(rubberBallStripe);
-
-// ---- Dinosaurio de juguete ----
-const dinoGroup = new THREE.Group();
-const dinoBody = new THREE.Mesh(new THREE.BoxGeometry(30, 20, 16), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-dinoBody.position.y = 18;
-dinoGroup.add(dinoBody);
-const dinoHead = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-dinoHead.position.set(20, 26, 0);
-dinoGroup.add(dinoHead);
-// Dientes
-const dinoToothMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-for (const tx of [-2, 2]) {
-  const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), dinoToothMat);
-  tooth.position.set(26, 23, tx);
-  tooth.rotation.z = -Math.PI / 2;
-  dinoGroup.add(tooth);
-}
-// Cola
-const dinoTail = new THREE.Mesh(new THREE.ConeGeometry(6, 25, 6), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-dinoTail.position.set(-24, 18, 0);
-dinoTail.rotation.z = Math.PI / 2;
-dinoGroup.add(dinoTail);
-// Patas
-const dinoLegMat = new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 });
-for (const [lx, lz] of [[-8, -8], [-8, 8], [8, -8], [8, 8]]) {
-  const leg = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 5), dinoLegMat);
-  leg.position.set(lx, 4, lz);
-  dinoGroup.add(leg);
-}
-dinoGroup.position.set(-300, 0, -300);
-dinoGroup.rotation.y = 1.2;
-scene.add(dinoGroup);
-
-// ---- Tenedor y cuchara de plástico (juguete de cocina) ----
-const plasticMat = new THREE.MeshStandardMaterial({ color: 0xff88cc, roughness: 0.4 });
-const fork = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 50), plasticMat);
-fork.position.set(160, 1.5, -100);
-fork.rotation.y = 0.4;
-scene.add(fork);
-for (const tx of [-3, 0, 3]) {
-  const tine = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2, 12), plasticMat);
-  tine.position.set(160 + tx * Math.cos(0.4), 2.5, -125);
-  scene.add(tine);
-}
-
-// ---- Cuaderno rasgado ----
-const notebookGroup = new THREE.Mesh(
-  new THREE.BoxGeometry(40, 4, 55),
-  new THREE.MeshStandardMaterial({ color: 0x2244cc, roughness: 0.7 })
-);
-notebookGroup.position.set(250, 2, 200);
-notebookGroup.rotation.y = 0.5;
-scene.add(notebookGroup);
-// Hojas sueltas
-for (let i = 0; i < 4; i++) {
-  const page = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 40),
-    new THREE.MeshStandardMaterial({ color: 0xf8f4e8, roughness: 0.8, side: THREE.DoubleSide })
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.y = wallHeight;
+  scene.add(ceiling);
+  // Lamparita simple en el centro del techo, de paso (agrupada para poder moverla como una sola pieza)
+  lampGroup = new THREE.Group();
+  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 4, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  lampBase.position.set(0, -3, 0);
+  lampGroup.add(lampBase);
+  const lampGlow = new THREE.Mesh(new THREE.CircleGeometry(11, 16), new THREE.MeshStandardMaterial({ color: 0xfff7d0, emissive: 0xfff2b0, emissiveIntensity: 0.8 }));
+  lampGlow.rotation.x = Math.PI / 2;
+  lampGlow.position.set(0, -5.5, 0);
+  lampGroup.add(lampGlow);
+  lampGroup.position.set(0, wallHeight, 0);
+  scene.add(lampGroup);
+  
+  // ---- Paneles de advertencia en las paredes (no en pantalla): se iluminan al acercarte a cada una ----
+  hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  boundaryStripes = {
+    zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomSize, 0),
+    zPos: makeBoundaryStripe(0, wallHeight / 2, roomSize, Math.PI),
+    xNeg: makeBoundaryStripe(-roomSize, wallHeight / 2, 0, Math.PI / 2),
+    xPos: makeBoundaryStripe(roomSize, wallHeight / 2, 0, -Math.PI / 2)
+  };
+  
+  // ---- Ventana en la pared del fondo ----
+  outsideView = new THREE.Mesh(
+    new THREE.PlaneGeometry(330, 270),
+    new THREE.MeshBasicMaterial({ map: makeOutsideViewTexture() })
   );
-  page.rotation.x = -Math.PI / 2;
-  page.position.set(250 + (Math.random() - 0.5) * 30, 4.5, 200 + (Math.random() - 0.5) * 40 + 15);
-  page.rotation.z = Math.random() * 0.5 - 0.25;
-  scene.add(page);
+  outsideView.position.set(0, 180, roomSize - 4.5);
+  outsideView.rotation.y = Math.PI;
+  scene.add(outsideView);
+  
+  windowGroup = new THREE.Group();
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(340, 280, 10), new THREE.MeshStandardMaterial({ color: 0xf2ede0, roughness: 0.55 }));
+  addToonOutline(windowFrame, 0xbfae82);
+  windowGroup.add(windowFrame);
+  const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(310, 250), new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+  windowGlass.position.z = 3;
+  windowGroup.add(windowGlass);
+  const mullionV = new THREE.Mesh(new THREE.BoxGeometry(8, 250, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  mullionV.position.z = 4;
+  windowGroup.add(mullionV);
+  const mullionH = new THREE.Mesh(new THREE.BoxGeometry(310, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  mullionH.position.z = 4;
+  windowGroup.add(mullionH);
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(370, 14, 24), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  sill.position.set(0, -145, 8);
+  windowGroup.add(sill);
+  windowGroup.position.set(0, 180, roomSize - 3);
+  windowGroup.rotation.y = Math.PI;
+  scene.add(windowGroup);
+  
+  
+  
+  
+  
+  
+  const boxSur = buildCardboardBox(80, 70, 80);
+  boxSur.position.set(-280, 0, 190);
+  scene.add(boxSur);
+  
+  const boxNE = buildCardboardBox(50, 100, 50);
+  boxNE.position.set(310, 0, -235);
+  scene.add(boxNE);
+  
+  const legoWall = buildLegoWall(120, 80, 20);
+  legoWall.position.set(235, 0, 280);
+  legoWall.rotation.y = 0.4;
+  scene.add(legoWall);
+  
+  const boxOeste = buildCardboardBox(120, 40, 60, cardboardDark);
+  boxOeste.position.set(-390, 0, 0);
+  scene.add(boxOeste);
+  
+  const boxCentro = buildCardboardBox(40, 55, 40);
+  boxCentro.position.set(78, 0, -190);
+  scene.add(boxCentro);
+  
+  // ---- Array central de decoración: todo lo que se puede colocar/borrar desde el editor vive acá ----
+  decorationInstances = [];
+  // Assets personalizados (subidos por el usuario): declarado afuera del editor a propósito, para
+  // que las instancias ya colocadas se sigan viendo en la versión "sin editor" repartida a amigos.
+  // Carga (parsea) todos los CUSTOM_ASSETS que tengan base64 pero todavía no tengan geometría/escena
+  // lista, y avisa por callback cuando terminó — se usa tanto al arrancar como después de un guardado.
+  
+  // ---- Marcas de guerra: manchas de quemado en el piso, como si hubieran explotado misiles cerca ----
+  makeScorchMark(95, 60, 11, 0.4);
+  makeScorchMark(-60, 170, 9, 1.8);
+  makeScorchMark(190, -95, 10, 2.6);
+  makeScorchMark(-140, -95, 8, 0.9);
+  makeScorchMark(30, -235, 10.5, 3.4);
+  makeScorchMark(-280, -50, 9, 2.1);
+  makeScorchMark(235, 200, 8, 0.6);
+  makeScorchMark(-30, 310, 9.5, 3.0);
+  makeScorchMark(-200, 200, 10, 1.2);
+  makeScorchMark(150, -300, 8.5, 2.8);
+  makeScorchMark(350, 50, 9, 0.3);
+  makeScorchMark(-350, -150, 11, 1.5);
+  
+  // ---- Cinta de precaución (obra en construcción / zona de peligro) ----
+  tapePostColliders = [];
+  makeCautionTapeBarrier(155, 95, 55, 0.5);
+  makeCautionTapeBarrier(-110, -265, 48, 1.2);
+  makeCautionTapeBarrier(280, -220, 52, -0.7);
+  makeCautionTapeBarrier(-250, 155, 46, -0.3);
+  makeCautionTapeBarrier(95, -345, 50, 1.6);
+  makeCautionTapeBarrier(-320, -80, 42, 0.8);
+  makeCautionTapeBarrier(380, -120, 38, -1.1);
+  
+  // ---- Escombros de batalla dispersos por el piso: llenan el mapa sin agregar mucho peso ----
+  for (let i = 0; i < 35; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 80 + Math.random() * 380;
+    const kind = DEBRIS_KINDS[Math.floor(Math.random() * DEBRIS_KINDS.length)];
+    spawnDebrisPiece(Math.cos(angle) * radius, Math.sin(angle) * radius, kind);
+  }
+  
+  // ---- Puerta semi-abierta (reemplaza el portal toroidal de AO) ----
+  // La hendidura entre la puerta y el marco es el acceso al portal de la siguiente oleada
+  doorGroup = new THREE.Group();
+  // Marco de puerta
+  const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.7 });
+  const doorFrameL = new THREE.Mesh(new THREE.BoxGeometry(8, 120, 10), doorFrameMat);
+  doorFrameL.position.set(-50, 60, 0);
+  doorGroup.add(doorFrameL);
+  const doorFrameR = new THREE.Mesh(new THREE.BoxGeometry(8, 120, 10), doorFrameMat);
+  doorFrameR.position.set(50, 60, 0);
+  doorGroup.add(doorFrameR);
+  const doorFrameTop = new THREE.Mesh(new THREE.BoxGeometry(108, 10, 10), doorFrameMat);
+  doorFrameTop.position.set(0, 125, 0);
+  doorGroup.add(doorFrameTop);
+  // La puerta misma: rotada ~18° abierta (hacia adentro del cuarto)
+  const doorPanelMat = new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.65 });
+  const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(92, 116, 6), doorPanelMat);
+  doorPanel.position.set(-50, 58, 15);
+  doorPanel.rotation.y = -0.31;
+  addToonOutline(doorPanel, 0x5a4510);
+  doorGroup.add(doorPanel);
+  // Picaporte
+  const doorKnob = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 8), new THREE.MeshStandardMaterial({ color: 0xDDAA44, metalness: 0.7, roughness: 0.3 }));
+  doorKnob.position.set(-5, 58, 22);
+  doorGroup.add(doorKnob);
+  // Resplandor que se filtra por la hendidura de la puerta abierta
+  const doorGlowMat = new THREE.MeshBasicMaterial({ color: 0xbf9dff, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+  const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(35, 110), doorGlowMat);
+  doorGlow.position.set(10, 58, 2);
+  doorGroup.add(doorGlow);
+  const doorGlowInner = new THREE.Mesh(
+    new THREE.RingGeometry(4, 18, 6, 1),
+    new THREE.MeshStandardMaterial({ color: 0xe8d9ff, emissive: 0xd0b0ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+  );
+  doorGlowInner.position.set(10, 58, 4);
+  doorGroup.add(doorGlowInner);
+  // Portal swirl dentro de la hendidura (para la transición de oleada)
+  portalInnerSwirl = doorGlowInner;
+  portalInnerSwirl2 = doorGlow;
+  doorGroup.position.set(0, 0, -roomSize + 5);
+  scene.add(doorGroup);
+  
+  // ---- Cama de niño (lado -X de la habitación) ----
+  bedGroup = new THREE.Group();
+  // Colchón
+  const mattressMat = new THREE.MeshStandardMaterial({ color: 0x5577cc, roughness: 0.7 });
+  const mattress = new THREE.Mesh(new THREE.BoxGeometry(140, 25, 200), mattressMat);
+  mattress.position.y = 22;
+  addToonOutline(mattress, 0x3355aa);
+  bedGroup.add(mattress);
+  // Sábana arrugada (geo offset para dar textura)
+  const sheetMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.8 });
+  const sheet = new THREE.Mesh(new THREE.BoxGeometry(130, 4, 180), sheetMat);
+  sheet.position.set(0, 37, 10);
+  bedGroup.add(sheet);
+  // Almohada
+  const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.75 });
+  const pillow = new THREE.Mesh(new THREE.BoxGeometry(60, 16, 35), pillowMat);
+  pillow.position.set(0, 40, -75);
+  addToonOutline(pillow, 0xbbaa99);
+  bedGroup.add(pillow);
+  // Cabecera
+  const headboardMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 });
+  const headboard = new THREE.Mesh(new THREE.BoxGeometry(150, 100, 10), headboardMat);
+  headboard.position.set(0, 60, -105);
+  addToonOutline(headboard, 0x5a4510);
+  bedGroup.add(headboard);
+  // Patas de la cama (4 cilindros)
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 });
+  for (const [lx, lz] of [[-65, -95], [65, -95], [-65, 95], [65, 95]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 20, 8), legMat);
+    leg.position.set(lx, 2, lz);
+    bedGroup.add(leg);
+  }
+  // Oso de peluche tirado en la cama
+  const plushBody = new THREE.Mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushBody.position.set(25, 48, -20);
+  plushBody.scale.set(1, 0.8, 1.1);
+  bedGroup.add(plushBody);
+  const plushHead = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushHead.position.set(25, 58, -12);
+  bedGroup.add(plushHead);
+  // Ojos del oso
+  for (const ex of [-3, 3]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    eye.position.set(25 + ex, 59, -6);
+    bedGroup.add(eye);
+  }
+  const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 18, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushArm.position.set(38, 44, -18);
+  plushArm.rotation.z = -0.8;
+  bedGroup.add(plushArm);
+  bedGroup.position.set(-roomSize + 90, 0, 0);
+  bedGroup.rotation.y = Math.PI / 2;
+  scene.add(bedGroup);
+  
+  // ---- Autos de juguete esparcidos ----
+  buildToyCar(200, 150, 0xcc2222, 0.8);
+  buildToyCar(-120, -280, 0x2244cc, -1.2);
+  buildToyCar(350, 50, 0xddcc22, 2.1);
+  
+  // ---- Cubos / bloques de construcción esparcidos ----
+  for (let i = 0; i < 12; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 300;
+    const size = 6 + Math.random() * 10;
+    const block = new THREE.Mesh(
+      new THREE.BoxGeometry(size, size, size),
+      new THREE.MeshStandardMaterial({ color: blockColors[i % blockColors.length], roughness: 0.35 })
+    );
+    block.position.set(Math.cos(angle) * dist, size / 2, Math.sin(angle) * dist);
+    block.rotation.set(Math.random() * 0.3, Math.random() * Math.PI, Math.random() * 0.3);
+    scene.add(block);
+  }
+  
+  // ---- Lápices y crayones tirados en el piso ----
+  for (let i = 0; i < 15; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 350;
+    const crayon = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 1.2, 18, 6),
+      new THREE.MeshStandardMaterial({ color: crayonColors[i % crayonColors.length], roughness: 0.5 })
+    );
+    crayon.position.set(Math.cos(angle) * dist, 1.2, Math.sin(angle) * dist);
+    crayon.rotation.x = Math.PI / 2;
+    crayon.rotation.z = Math.random() * Math.PI;
+    scene.add(crayon);
+  }
+  
+  // ---- Pelota de goma tirada en una esquina ----
+  rubberBall = new THREE.Mesh(
+    new THREE.SphereGeometry(12, 16, 12),
+    new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.35, metalness: 0.1 })
+  );
+  rubberBall.position.set(280, 12, 300);
+  scene.add(rubberBall);
+  rubberBallStripe = new THREE.Mesh(
+    new THREE.TorusGeometry(12.1, 1.2, 8, 24),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
+  );
+  rubberBallStripe.position.copy(rubberBall.position);
+  rubberBallStripe.rotation.x = Math.PI / 2;
+  scene.add(rubberBallStripe);
+  
+  // ---- Dinosaurio de juguete ----
+  dinoGroup = new THREE.Group();
+  const dinoBody = new THREE.Mesh(new THREE.BoxGeometry(30, 20, 16), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoBody.position.y = 18;
+  dinoGroup.add(dinoBody);
+  const dinoHead = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoHead.position.set(20, 26, 0);
+  dinoGroup.add(dinoHead);
+  // Dientes
+  const dinoToothMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  for (const tx of [-2, 2]) {
+    const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), dinoToothMat);
+    tooth.position.set(26, 23, tx);
+    tooth.rotation.z = -Math.PI / 2;
+    dinoGroup.add(tooth);
+  }
+  // Cola
+  const dinoTail = new THREE.Mesh(new THREE.ConeGeometry(6, 25, 6), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoTail.position.set(-24, 18, 0);
+  dinoTail.rotation.z = Math.PI / 2;
+  dinoGroup.add(dinoTail);
+  // Patas
+  const dinoLegMat = new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 });
+  for (const [lx, lz] of [[-8, -8], [-8, 8], [8, -8], [8, 8]]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 5), dinoLegMat);
+    leg.position.set(lx, 4, lz);
+    dinoGroup.add(leg);
+  }
+  dinoGroup.position.set(-300, 0, -300);
+  dinoGroup.rotation.y = 1.2;
+  scene.add(dinoGroup);
+  
+  // ---- Tenedor y cuchara de plástico (juguete de cocina) ----
+  const plasticMat = new THREE.MeshStandardMaterial({ color: 0xff88cc, roughness: 0.4 });
+  fork = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 50), plasticMat);
+  fork.position.set(160, 1.5, -100);
+  fork.rotation.y = 0.4;
+  scene.add(fork);
+  for (const tx of [-3, 0, 3]) {
+    const tine = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2, 12), plasticMat);
+    tine.position.set(160 + tx * Math.cos(0.4), 2.5, -125);
+    scene.add(tine);
+  }
+  
+  // ---- Cuaderno rasgado ----
+  notebookGroup = new THREE.Mesh(
+    new THREE.BoxGeometry(40, 4, 55),
+    new THREE.MeshStandardMaterial({ color: 0x2244cc, roughness: 0.7 })
+  );
+  notebookGroup.position.set(250, 2, 200);
+  notebookGroup.rotation.y = 0.5;
+  scene.add(notebookGroup);
+  // Hojas sueltas
+  for (let i = 0; i < 4; i++) {
+    const page = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 40),
+      new THREE.MeshStandardMaterial({ color: 0xf8f4e8, roughness: 0.8, side: THREE.DoubleSide })
+    );
+    page.rotation.x = -Math.PI / 2;
+    page.position.set(250 + (Math.random() - 0.5) * 30, 4.5, 200 + (Math.random() - 0.5) * 40 + 15);
+    page.rotation.z = Math.random() * 0.5 - 0.25;
+    scene.add(page);
+  }
+  
+  // ---- Zona de aterrizaje (helipad de cartón) ----
+  LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomSize + 120);
+  LANDING_PAD_RADIUS = 40;
+  landingPadGroup = new THREE.Group();
+  // Base circular (cartón)
+  const padBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32),
+    new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 })
+  );
+  landingPadGroup.add(padBase);
+  // H pintada en el centro (dos verticales + una horizontal centrada)
+  const hBar = new THREE.Mesh(new THREE.BoxGeometry(16, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hBar.position.y = 0.1; landingPadGroup.add(hBar);
+  const hLeft = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hLeft.position.set(-8, 0.1, 0); landingPadGroup.add(hLeft);
+  const hRight = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
+  hRight.position.set(8, 0.1, 0); landingPadGroup.add(hRight);
+  // Círculo exterior (borde amarillo)
+  const padRing = new THREE.Mesh(
+    new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32),
+    new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide })
+  );
+  padRing.rotation.x = -Math.PI / 2;
+  padRing.position.y = 1.6;
+  landingPadGroup.add(padRing);
+  // Glow de aterrizaje (se intensifica cuando estás cerca)
+  landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  const landingGlow = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
+  landingGlow.rotation.x = -Math.PI / 2;
+  landingGlow.position.y = 0.5;
+  landingPadGroup.add(landingGlow);
+  landingPadGroup.position.copy(LANDING_PAD_POS);
+  scene.add(landingPadGroup);
+  
+  // ---- Objeto con los que la nave puede chocar ----
+  worldColliders = [
+    { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
+    { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
+    { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false, hp: 6, maxHp: 6, mesh: boxOeste, type: 'cardboard' },
+    { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
+    { pos: new THREE.Vector3(legoWall.position.x, 40, legoWall.position.z), radius: 50, damaging: false, hp: 10, maxHp: 10, mesh: legoWall, type: 'lego' },
+    { pos: new THREE.Vector3(bedGroup.position.x, 40, bedGroup.position.z), radius: 80, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(dinoGroup.position.x, 25, dinoGroup.position.z), radius: 22, damaging: false, hp: 5, maxHp: 5, mesh: dinoGroup, type: 'toy' },
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
+    ...tapePostColliders,
+  ];
+  
 }
 
-// ---- Zona de aterrizaje (helipad de cartón) ----
-const LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomSize + 120);
-const LANDING_PAD_RADIUS = 40;
-const landingPadGroup = new THREE.Group();
-// Base circular (cartón)
-const padBase = new THREE.Mesh(
-  new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32),
-  new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 })
-);
-landingPadGroup.add(padBase);
-// H pintada en el centro (dos verticales + una horizontal centrada)
-const hBar = new THREE.Mesh(new THREE.BoxGeometry(16, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
-hBar.position.y = 0.1; landingPadGroup.add(hBar);
-const hLeft = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
-hLeft.position.set(-8, 0.1, 0); landingPadGroup.add(hLeft);
-const hRight = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
-hRight.position.set(8, 0.1, 0); landingPadGroup.add(hRight);
-// Círculo exterior (borde amarillo)
-const padRing = new THREE.Mesh(
-  new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32),
-  new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide })
-);
-padRing.rotation.x = -Math.PI / 2;
-padRing.position.y = 1.6;
-landingPadGroup.add(padRing);
-// Glow de aterrizaje (se intensifica cuando estás cerca)
-const landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
-const landingGlow = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
-landingGlow.rotation.x = -Math.PI / 2;
-landingGlow.position.y = 0.5;
-landingPadGroup.add(landingGlow);
-landingPadGroup.position.copy(LANDING_PAD_POS);
-scene.add(landingPadGroup);
+function teardownLevel() {
+  for (const d of decorationInstances || []) { if (d.mesh && d.mesh.parent) { while (d.mesh.children.length) d.mesh.remove(d.mesh.children[0]); d.mesh.parent.remove(d.mesh); } if (d.colliders) { for (const col of d.colliders) { const idx = (tapePostColliders||[]).indexOf(col); if (idx>=0) tapePostColliders.splice(idx,1); } } }
+  if (decorationInstances) decorationInstances.length = 0;
+  if (worldColliders) worldColliders.length = 0;
+  if (tapePostColliders) tapePostColliders.length = 0;
+  const known = [ground, ceiling, lampGroup, outsideView, windowGroup, landingPadGroup, bedGroup, dinoGroup, doorGroup, rubberBall, rubberBallStripe, notebookGroup, fork];
+  for (const obj of known) { if (obj && obj.parent) { while (obj.children.length) obj.remove(obj.children[0]); obj.parent.remove(obj); } }
+  if (boundaryStripes) { for (const k in boundaryStripes) { if (boundaryStripes[k] && boundaryStripes[k].parent) boundaryStripes[k].parent.remove(boundaryStripes[k]); } }
+}
 
-// ---- Objeto con los que la nave puede chocar ----
-const worldColliders = [
-  { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
-  { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
-  { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false, hp: 6, maxHp: 6, mesh: boxOeste, type: 'cardboard' },
-  { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
-  { pos: new THREE.Vector3(legoWall.position.x, 40, legoWall.position.z), radius: 50, damaging: false, hp: 10, maxHp: 10, mesh: legoWall, type: 'lego' },
-  { pos: new THREE.Vector3(bedGroup.position.x, 40, bedGroup.position.z), radius: 80, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
-  { pos: new THREE.Vector3(dinoGroup.position.x, 25, dinoGroup.position.z), radius: 22, damaging: false, hp: 5, maxHp: 5, mesh: dinoGroup, type: 'toy' },
-  { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
-  ...tapePostColliders,
-];
+// Por ahora todos los niveles usan la habitacion para validar la maquinaria.
+function buildLevel(n) {
+  currentLevel = n;
+  roomSize = LEVEL_ROOM_SIZE[n] || 2000;
+  wallHeight = LEVEL_WALL_HEIGHT[n] || 700;
+  buildLevel1();
+}
 
+// Construir el nivel inicial (la habitación) al cargar el juego
+buildLevel(1);
+
+// ================= Modelos 3D propios
 // ================= Modelos 3D propios (opcional) =================
 // Para usar un modelo hecho en Meshy.ai (u otro): exportalo como .glb, pasámelo,
 // y yo lo convierto a base64 y lo pego en el campo "base64" correspondiente de acá abajo.
