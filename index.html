@@ -2887,8 +2887,10 @@ let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube co
 
 // Vida de los ositos según dificultad: calibrada para que el sistema de daño tenga peso.
 // Vida de los ositos: "cuarto de AO nivel 81" (mobs AO lv81 = 7.5k-25k HP) → 2000/3200/6000.
-// Fiel al Juego Madre pero jugable con el DPS del clon (cañón ~350/volley, gatling ~136/volley):
-// un osito normal aguanta ~9 volleys del cañón (~4s) o ~23 del gatling.
+// Cada gear mata con su arma PRINCIPAL:
+//   I/Rayo & B/Trueno → arma AVANZADA (Arrow 474/1.8s, Bawoo 576/4s)
+//   M/Viento & A/Muro → arma ESTÁNDAR (Gatling 52/0.6s, Cañón 180/0.45s)
+// A nivel medio un osito normal (3200) muere en ~3-12s según el gear (ritmo arcade fiel).
 const TEDDY_HP_BY_DIFFICULTY = { facil: 2000, normal: 3200, dificil: 6000, sniper: 3200 };
 function getTeddyHp() { return TEDDY_HP_BY_DIFFICULTY[difficulty] ?? TEDDY_HP_BY_DIFFICULTY.normal; }
 
