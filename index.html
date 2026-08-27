@@ -2015,7 +2015,7 @@ const crayonColors = [0xcc2222, 0x2244cc, 0x22aa44, 0xddcc22, 0xff6622, 0x8844aa
 let currentPortal = null;
 let currentLevel = 1;
 const MAX_LEVEL = 5;
-const LEVEL_ROOM_SIZE = { 1: 2000, 2: 900, 3: 2000, 4: 1600, 5: 3200 };
+const LEVEL_ROOM_SIZE = { 1: 525, 2: 900, 3: 2000, 4: 1600, 5: 3200 };
 const LEVEL_WALL_HEIGHT = { 1: 800, 2: 500, 3: 800, 4: 700, 5: 900 };
 let ground;
 let ceiling;
@@ -2043,7 +2043,7 @@ function buildLevel1() {
   // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
   
   floorTex.repeat.set(30, 30);
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(1050, 1050), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomSize * 2, roomSize * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   
