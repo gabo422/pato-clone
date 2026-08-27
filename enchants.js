@@ -265,7 +265,7 @@ function tryDropCard(enemy, wave, gear, bossEnc) {
     var cardTypes = ['atk', 'acc', 'def', 'eva', 'ovh', 'sp', 'prc'];
     drop = { id: cardTypes[typeRoll] + '_' + rarity, type: cardTypes[typeRoll], rarity: rarity };
   } else if (wave >= 3) {
-    var roll = (currentRunSeed + wave * 7 + enemy.mesh.position.x * 0.1) % 100;
+    var roll = (currentRunSeed + wave * 7) % 100;
     if (roll < 15) {
       drop = calculateDrop(currentRunSeed, wave, gear, 0);
     }

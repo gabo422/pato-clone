@@ -2885,18 +2885,18 @@ const ENEMIES_PER_WAVE = 6;
 // Daño base por arma (ahora viene de GEAR_CONFIGS[selectedGear].weapons)
 let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube con nivel)
 
-// Vida de los ositos según dificultad: calibrada para que el básico mate en pocos golpes
-// (normal = 3 golpes de básico, o 1 misil), no en decenas como antes.
-const TEDDY_HP_BY_DIFFICULTY = { facil: 20, normal: 30, dificil: 40, sniper: 30 };
+// Vida de los ositos según dificultad: calibrada para que el sistema de daño tenga peso.
+// Las armas nuevas (nivel 110-118) hacen daño alto, así que los ositos deben aguantar
+// varios golpes del arma estándar (gatling ~136/volley) — normal = ~5 volleys de gatling.
+const TEDDY_HP_BY_DIFFICULTY = { facil: 400, normal: 650, dificil: 1000, sniper: 650 };
 function getTeddyHp() { return TEDDY_HP_BY_DIFFICULTY[difficulty] ?? TEDDY_HP_BY_DIFFICULTY.normal; }
 
-// Vida del boss según dificultad: la base equivale aprox. a lo que sale limpiar una oleada normal
-// completa de ositos (mismo orden de magnitud, no una pared de vida desproporcionada).
+// Vida del boss según dificultad: ~10x un osito normal (un "mini-jefe" que aguanta varias oleadas).
 const BOSS_HP_CONFIG = {
-  facil:   { base: 120, growth: 60 },
-  normal:  { base: 180, growth: 90 },
-  dificil: { base: 240, growth: 120 },
-  sniper:  { base: 180, growth: 90 }
+  facil:   { base: 4000, growth: 1500 },
+  normal:  { base: 6500, growth: 2500 },
+  dificil: { base: 10000, growth: 4000 },
+  sniper:  { base: 6500, growth: 2500 }
 };
 function getBossHp() {
   const cfg = BOSS_HP_CONFIG[difficulty] ?? BOSS_HP_CONFIG.normal;
@@ -5929,16 +5929,29 @@ function animate() {
       const dot = m.velocity.dot(toTarget);
       const passedTarget = m.prevDist !== undefined && dist > m.prevDist && dot < 0;
       m.prevDist = dist;
-      if (reachedTarget || passedTarget || (hitGround && groundBombingActive)) {
-        const aoeR = groundBombingActive ? 55 : (m.aoeRadius || 30);
+
+      // AO GBM/ABM: la bomba explota al impactar cualquier mob que esté en su trayectoria
+      // (sin doblar ni perseguir: bombardeo directo). Si pasa cerca de un mob, detona ahí.
+      let impactedEnemy = null;
+      const impactRadius = 12;
+      for (const e of enemies) {
+        if (!e.alive) continue;
+        const d = e.mesh.position.distanceTo(m.mesh.position);
+        const hitRadius = e.isBoss ? 165 : impactRadius;
+        if (d < hitRadius) { impactedEnemy = e; break; }
+      }
+
+      if (impactedEnemy || reachedTarget || passedTarget || (hitGround && groundBombingActive)) {
+        const aoeR = groundBombingActive ? 120 : (m.aoeRadius || 45);
         spawnExplosion(m.mesh.position.clone(), true);
+        let hitSomething = false;
         for (const e of enemies) {
           if (!e.alive) continue;
-          if (e.mesh.position.distanceTo(m.mesh.position) < aoeR) registerHit(e, m.damage, false);
+          if (e.mesh.position.distanceTo(m.mesh.position) < aoeR) { registerHit(e, m.damage, true); hitSomething = true; }
         }
         for (const d of destructibles) {
           if (!d.alive) continue;
-          if (d.mesh.position.distanceTo(m.mesh.position) < aoeR) hitDestructible(d, 3);
+          if (d.mesh.position.distanceTo(m.mesh.position) < aoeR) { hitDestructible(d, 3); hitSomething = true; }
         }
         scene.remove(m.mesh);
         missiles.splice(i, 1);
@@ -6477,6 +6490,11 @@ preloadModels(() => {
   const savedGear = localStorage.getItem('patoClone_gear');
   if (savedGear && GEAR_CONFIGS[savedGear]) {
     selectedGear = savedGear;
+    if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+      if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+      var seedEl0 = document.getElementById('seedValue');
+      if (seedEl0) seedEl0.textContent = currentRunSeed;
+    }
     applyGearSelection(savedGear);
     renderLivesHUD();
     renderShieldHUD();
