@@ -275,6 +275,11 @@ function tryDropCard(enemy, wave, gear, bossEnc) {
     addCardToInventory(drop);
     spawnCardDrop(enemy.mesh.position.clone(), drop);
     showCardPickupNotification(drop);
+    var invOverlay = document.getElementById('inventoryOverlay');
+    var invHint = document.getElementById('inventoryHint');
+    if (invHint && invOverlay && invOverlay.classList.contains('hidden')) {
+      invHint.classList.remove('hidden');
+    }
   }
 }
 
