@@ -116,7 +116,7 @@
   #hudText b { color: #99bbcc; }
 
   /* ---- Action Buttons (top-right) ---- */
-  #restartBtn, #resetBotsBtn, #scoreboardBtn, #fullscreenBtn {
+  #restartBtn, #openInventoryBtn, #scoreboardBtn, #fullscreenBtn {
     position: absolute; right: 12px; z-index: 20;
     background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.3);
     color: #80aacc; font-weight: 600; font-family: 'Rajdhani', sans-serif;
@@ -125,11 +125,11 @@
     transition: all 0.15s;
   }
   #restartBtn { top: 12px; }
-  #resetBotsBtn { top: 50px; border-color: rgba(0,200,100,0.3); color: #66cc88; }
+  #openInventoryBtn { top: 50px; border-color: rgba(255,220,0,0.4); color: #ffd94a; }
   #scoreboardBtn { top: 88px; border-color: rgba(255,170,0,0.3); color: #ccaa66; }
   #fullscreenBtn { top: 126px; border-color: rgba(136,100,255,0.3); color: #aa88ee; }
   #restartBtn:hover { background: rgba(0,180,255,0.15); border-color: rgba(0,180,255,0.5); }
-  #resetBotsBtn:hover { background: rgba(0,200,100,0.1); }
+  #openInventoryBtn:hover { background: rgba(255,220,0,0.1); }
   #scoreboardBtn:hover { background: rgba(255,170,0,0.1); }
   #fullscreenBtn:hover { background: rgba(136,100,255,0.1); }
 
@@ -465,7 +465,7 @@
   body.mobile-active #hud {
     font-size: 10px; width: 155px; transform: scale(0.7); transform-origin: top left;
   }
-  body.mobile-active #restartBtn, body.mobile-active #resetBotsBtn, body.mobile-active #scoreboardBtn, body.mobile-active #fullscreenBtn {
+  body.mobile-active #restartBtn, body.mobile-active #openInventoryBtn, body.mobile-active #scoreboardBtn, body.mobile-active #fullscreenBtn {
     padding: 5px 9px; font-size: 10px;
   }
   #mobileBarsWrap { display: none; }
@@ -692,17 +692,6 @@
     cursor: pointer; font-size: 12px; padding: 0 3px;
   }
   .ench-remove:hover { color: #ff6; }
-  #openInventoryBtn {
-    position: fixed; bottom: 10px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7); color: #ff0;
-    border: 1px solid #ff0; border-radius: 5px;
-    padding: 5px 15px; font-size: 12px;
-    cursor: pointer; z-index: 50;
-    font-family: monospace;
-  }
-  #openInventoryBtn:hover { background: rgba(255,255,0,0.15); }
-  #openInventoryBtn { display: none; }
   /* ---- Login / carga previa ---- */
   #loginOverlay {
     position: fixed; inset: 0; z-index: 9999;
@@ -899,7 +888,6 @@
   <div id="skillPanelGrid"></div>
 </div>
 <button id="restartBtn">↻ Reiniciar</button>
-<button id="resetBotsBtn">🐻 Reiniciar bots</button>
 <button id="scoreboardBtn">🏆 Puntajes</button>
 <button id="fullscreenBtn">⛶ Pantalla completa</button>
 <div id="bossBar"><div class="label">BOSS: Barco de Guerra</div><div class="track"><div class="fill" id="bossFill"></div></div></div>
@@ -1089,8 +1077,7 @@
     <p>Puntos: <b id="goScore">0</b></p>
     <p>Oleadas limpiadas: <b id="goWaves">0</b></p>
     <div id="saveScoreRow">
-      <input id="playerNameInput" maxlength="14" placeholder="Tu nombre">
-      <button id="saveScoreBtn">Guardar</button>
+      <p id="goSavedMsg">Puntaje registrado como <b id="goSavedName">—</b> ⭐</p>
     </div>
     <div id="scoreboardListGO" class="scoreboardList"></div>
     <button id="gameOverRestartBtn">↻ Volver a jugar</button>
@@ -1439,21 +1426,6 @@ function openScoreboard() {
 }
 function closeScoreboard() { scoreboardOverlay.classList.add('hidden'); }
 document.getElementById('closeScoreboardBtn').addEventListener('click', closeScoreboard);
-document.getElementById('saveScoreBtn').addEventListener('click', () => {
-  const input = document.getElementById('playerNameInput');
-  const pilotName = (typeof patoCloneUser !== 'undefined' && patoCloneUser && patoCloneUser.name)
-    ? patoCloneUser.name
-    : input.value.trim();
-  addScoreEntry(pilotName || input.value.trim(), score, clearedCount);
-  renderScoreboardInto(document.getElementById('scoreboardListGO'));
-  input.disabled = true;
-  document.getElementById('saveScoreBtn').disabled = true;
-  document.getElementById('saveScoreBtn').textContent = 'Guardado ✓';
-});
-try {
-  const lastName = localStorage.getItem('patoClone_lastName');
-  if (lastName) document.getElementById('playerNameInput').value = lastName;
-} catch (e) {}
 const bindList = document.getElementById('bindList');
 const invertYCheck = document.getElementById('invertYCheck');
 invertYCheck.checked = invertY;
@@ -1536,7 +1508,6 @@ document.getElementById('backToMenuBtn').addEventListener('click', () => {
 });
 
 document.getElementById('restartBtn').addEventListener('click', () => { if (pointerLocked) document.exitPointerLock(); resetGame(); });
-document.getElementById('resetBotsBtn').addEventListener('click', () => { resetBots(); });
 document.getElementById('scoreboardBtn').addEventListener('click', () => { if (pointerLocked) document.exitPointerLock(); openScoreboard(); });
 
 function isInFullscreen() {
@@ -5430,10 +5401,17 @@ function triggerGameOver() {
   gameOver = true;
   document.getElementById('goScore').textContent = score;
   document.getElementById('goWaves').textContent = clearedCount;
-  document.getElementById('playerNameInput').disabled = false;
-  const saveBtn = document.getElementById('saveScoreBtn');
-  saveBtn.disabled = false;
-  saveBtn.textContent = 'Guardar';
+  // Registro automático del puntaje (sin preguntar): usa el piloto del login
+  // o el último nombre guardado localmente.
+  var pilotName = (typeof patoCloneUser !== 'undefined' && patoCloneUser && patoCloneUser.name)
+    ? patoCloneUser.name
+    : '';
+  if (!pilotName) {
+    try { pilotName = localStorage.getItem('patoClone_lastName') || 'Pato'; } catch (e) { pilotName = 'Pato'; }
+  }
+  var savedTop = addScoreEntry(pilotName, score, clearedCount);
+  var savedNameEl = document.getElementById('goSavedName');
+  if (savedNameEl) savedNameEl.textContent = pilotName;
   renderScoreboardInto(document.getElementById('scoreboardListGO'));
   gameOverOverlay.classList.remove('hidden');
   if (pointerLocked) document.exitPointerLock();
@@ -6760,9 +6738,6 @@ function doLogin() {
       loginOverlay.classList.add('hidden');
       // El menú de elegir nave sale SIEMPRE después del login
       openGearSelect();
-      // Usar el nombre del piloto en el input de guardar puntaje
-      var pName = document.getElementById('playerNameInput');
-      if (pName) pName.value = patoCloneUser.name;
     }, 600);
   }, 300);
 }
@@ -6785,8 +6760,6 @@ try {
   if (savedUser && savedUser.name) {
     patoCloneUser = savedUser;
     if (loginUserInput) loginUserInput.value = savedUser.name;
-    var pName = document.getElementById('playerNameInput');
-    if (pName) pName.value = savedUser.name;
   }
 } catch (e) {}
 
