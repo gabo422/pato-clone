@@ -1073,7 +1073,7 @@
 
 <div id="gameOverOverlay" class="hidden">
   <div id="gameOverPanel">
-    <h2>¡Te quedaste sin vidas!</h2>
+    <h2>¡Se agotó tu HP!</h2>
     <p>Puntos: <b id="goScore">0</b></p>
     <p>Oleadas limpiadas: <b id="goWaves">0</b></p>
     <div id="saveScoreRow">
@@ -1342,7 +1342,7 @@ function applyGearSelection(gearKey) {
   accel = cfg.stats.accel;
   boostAccel = cfg.stats.boostAccel;
   speedMin = cfg.stats.speedMin || maxSpeed * 0.6; // AO: idle speed is ~60-77% of max (Eurostar IX: 154/200=77%)
-  MAX_LIVES = cfg.stats.hp;
+  MAX_LIVES = cfg.stats.hp * PLAYER_HP_PER_LIFE_UNIT;
   lives = MAX_LIVES;
   shieldMax = cfg.stats.shield;
   shield = shieldMax;
@@ -5068,8 +5068,8 @@ function addXP(amount) {
   while (playerXP >= xpForLevel(playerLevel)) {
     playerXP -= xpForLevel(playerLevel);
     playerLevel++;
-    MAX_LIVES += 2;
-    lives = Math.min(lives + 2, MAX_LIVES);
+    MAX_LIVES += HEAL_LEVELUP;
+    lives = Math.min(lives + HEAL_LEVELUP, MAX_LIVES);
     spawnLevelUpEffect();
     showWaveBanner('¡NIVEL ' + playerLevel + '!');
     renderLivesHUD();
@@ -5091,7 +5091,23 @@ const barrelRoll = { active: false, dir: 1, timer: 0, duration: 0.5 };
 const lastTapTime = { rollLeft: -999, rollRight: -999 };
 const DOUBLE_TAP_WINDOW = 0.32;
 
-let MAX_LIVES = 5;
+// ===== Escala de vida normalizada: el pato usa HP numérico en la MISMA escala que los mobs =====
+// Cada "vida" vieja vale 500 HP. Un osito normal tiene 3200 HP; el pato parte con 2000-5000
+// según el gear (hp 4/10/7/7 → 2000/5000/3500/3500), así el aguante arcade (golpes para morir)
+// se mantiene pero todo comparte la misma unidad (HP).
+const PLAYER_HP_PER_LIFE_UNIT = 500;
+// Daño entrante por origen (misma escala que armas/mobs):
+const DMG_TEDDY_PROJ = 500;   // proyectil de osito común
+const DMG_BOSS_PROJ  = 700;   // proyectil/misil del boss
+const DMG_WALL       = 150;   // chocar contra pared/suelo/techo
+const DMG_COLLIDER   = 100;   // chocar contra mueble
+const SHIELD_BLOCK   = 500;   // HP que absorbe CADA barra de escudo
+// Curaciones (proporcionales al viejo "+1 vida" = +500 HP):
+const HEAL_LIFE       = 500;  // powerup de vida
+const HEAL_HEAL_TARGET= 1500; // skill healTarget (antes +3 vidas)
+const HEAL_LEVELUP    = 1000; // subir de nivel (antes +2 vidas)
+const HEAL_FIELD_TICK = 500;  // healing field por tick (antes 1 vida)
+let MAX_LIVES = 5 * PLAYER_HP_PER_LIFE_UNIT;
 let lives = MAX_LIVES;
 let invulnTimer = 0;
 let playerDefense = 5;
@@ -5500,7 +5516,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- VIENTO: Heal Target ----
   if (skillId === 'healTarget') {
-    lives = Math.min(MAX_LIVES, lives + 3); renderLivesHUD();
+    lives = Math.min(MAX_LIVES, lives + HEAL_HEAL_TARGET); renderLivesHUD();
     spawnSkillRing(ship.position, 0x44ff44, 2, 25);
     aceSpawnParticles(ACE.healTarget.burst, ship.position.clone(), explosions);
   }
@@ -6080,7 +6096,7 @@ function registerHit(enemy, dmg, isMissile) {
   if (isSkillActive('drain')) {
     const healPct = 0.25; // 25% of damage dealt
     const healAmt = Math.max(1, Math.round(finalDmg * healPct));
-    if (shield < shieldMax) { shield = Math.min(shieldMax, shield + healAmt); renderShieldHUD(); }
+    if (shield < shieldMax) { const shieldBars = Math.max(1, Math.round(healAmt / SHIELD_BLOCK)); shield = Math.min(shieldMax, shield + shieldBars); renderShieldHUD(); }
     spawnDamageNumber(enemy.mesh.position, '+' + healAmt, 0x44aaff);
   }
 
@@ -6112,7 +6128,8 @@ function registerHit(enemy, dmg, isMissile) {
   }
 }
 
-function registerPlayerHit() {
+function registerPlayerHit(dmg) {
+  dmg = (typeof dmg === 'number' && dmg > 0) ? dmg : DMG_TEDDY_PROJ;
   if (window._godMode) return;
   if (tutorialActive) return;
   if (invulnTimer > 0) return;
@@ -6146,13 +6163,17 @@ function registerPlayerHit() {
   if (dmgReduction > 0 && Math.random() < dmgReduction) return;
   flashDamage();
   spawnExplosion(ship.position, false);
-  if (shield > 0) {
+  // El escudo absorbe SHIELD_BLOCK de daño por barra; lo que sobrepasa pasa al HP.
+  let remaining = dmg;
+  if (shield > 0 && remaining > 0) {
     aceSpawnParticles(ACE.shieldImpact.flash, ship.position.clone(), explosions);
+    const absorb = Math.min(remaining, SHIELD_BLOCK);
+    remaining -= absorb;
     shield -= 1;
     renderShieldHUD();
     // ---- REFLECT: return damage to nearest enemy (AO DES_PAIR_REFLECTION) ----
     if (isSkillActive('reflect')) {
-      const reflectDmg = 15;
+      const reflectDmg = Math.max(1, Math.round(absorb * 0.4));
       const nearEnemy = enemies.find(e => e.alive && e.mesh.position.distanceTo(ship.position) < 100);
       if (nearEnemy) {
         nearEnemy.hp -= reflectDmg;
@@ -6165,10 +6186,11 @@ function registerPlayerHit() {
         }
       }
     }
-  } else {
-    lives -= 1;
+  }
+  if (remaining > 0) {
+    lives -= remaining;
     renderLivesHUD();
-    if (lives <= 0) triggerGameOver();
+    if (lives <= 0) { lives = 0; triggerGameOver(); }
   }
 }
 
@@ -6199,7 +6221,7 @@ function checkWallCollision() {
   if (ship.position.y > ceilLimit) { ship.position.y = ceilLimit; hit = true; }
   if (hit && difficulty !== 'facil') {
     speed *= 0.1;
-    registerPlayerHit();
+    registerPlayerHit(DMG_WALL);
   }
 }
 
@@ -6224,7 +6246,7 @@ function checkOneCollider(c) {
       if (ship.position.y < 3) ship.position.y = 3;
       if (difficulty !== 'facil') {
         speed *= 0.1;
-        if (c.damaging !== false) registerPlayerHit();
+        if (c.damaging !== false) registerPlayerHit(DMG_COLLIDER);
       }
     }
 }
@@ -6233,7 +6255,7 @@ function triggerGameOver() {
   gameOver = true;
   document.getElementById('goScore').textContent = score;
   document.getElementById('goWaves').textContent = clearedCount;
-  document.querySelector('#gameOverPanel h2').textContent = '¡Te quedaste sin vidas!';
+  document.querySelector('#gameOverPanel h2').textContent = '¡Se agotó tu HP!';
   // Registro automático del puntaje (sin preguntar): usa el piloto del login
   // o el último nombre guardado localmente.
   var pilotName = (typeof patoCloneUser !== 'undefined' && patoCloneUser && patoCloneUser.name)
@@ -6457,10 +6479,10 @@ function resetGame() {
   score = 0; invulnTimer = 0; playerXP = 0; playerLevel = 1;
   if (selectedGear && GEAR_CONFIGS[selectedGear]) {
     const cfg = GEAR_CONFIGS[selectedGear];
-    MAX_LIVES = cfg.stats.hp;
+    MAX_LIVES = cfg.stats.hp * PLAYER_HP_PER_LIFE_UNIT;
     shieldMax = cfg.stats.shield;
   } else {
-    MAX_LIVES = 5; shieldMax = SHIELD_START;
+    MAX_LIVES = 5 * PLAYER_HP_PER_LIFE_UNIT; shieldMax = SHIELD_START;
   }
   lives = MAX_LIVES;
   shield = shieldMax;
@@ -6555,7 +6577,7 @@ function spawnPowerup(position) {
 }
 function applyPowerup(type) {
   if (type === 'life') {
-    if (lives < MAX_LIVES) { lives++; renderLivesHUD(); }
+    if (lives < MAX_LIVES) { lives = Math.min(MAX_LIVES, lives + HEAL_LIFE); renderLivesHUD(); }
     else { score += 150; }
   } else if (type === 'shield') {
     shield = shieldMax;
@@ -6567,7 +6589,7 @@ function applyPowerup(type) {
   }
   showWaveBanner(POWERUP_LABELS[type]);
 }
-const POWERUP_LABELS = { life: '+1 Vida', shield: 'Escudo recargado', boost: 'Boost recargado', rapidfire: '¡Disparo rápido!' };
+const POWERUP_LABELS = { life: '+Vida', shield: 'Escudo recargado', boost: 'Boost recargado', rapidfire: '¡Disparo rápido!' };
 let rapidFireTimer = 0;
 function updatePowerups(dt) {
   for (let i = powerups.length - 1; i >= 0; i--) {
@@ -7061,7 +7083,7 @@ function animate() {
     m.life -= dt;
     updateMissileTrail(m, dt);
     let hit = false;
-    if (m.mesh.position.distanceTo(ship.position) < 3.5) { registerPlayerHit(); hit = true; }
+    if (m.mesh.position.distanceTo(ship.position) < 3.5) { registerPlayerHit(DMG_BOSS_PROJ); hit = true; }
     if (hit || m.life <= 0) { scene.remove(m.mesh); enemyMissiles.splice(i, 1); }
   }
 
@@ -7070,7 +7092,7 @@ function animate() {
     p.mesh.position.addScaledVector(p.velocity, dt);
     p.life -= dt;
     let hit = false;
-    if (p.mesh.position.distanceTo(ship.position) < 3) { registerPlayerHit(); hit = true; }
+    if (p.mesh.position.distanceTo(ship.position) < 3) { registerPlayerHit(DMG_TEDDY_PROJ); hit = true; }
     if (!hit) {
       for (const c of worldColliders) {
         if (p.mesh.position.distanceTo(c.pos) < c.radius) { hit = true; spawnImpactSpark(p.mesh.position.clone()); break; }
@@ -7515,7 +7537,7 @@ function animate() {
     window._healTimer += dt;
     if (window._healTimer >= 3) {
       window._healTimer -= 3;
-      if (lives < MAX_LIVES) { lives++; renderLivesHUD(); }
+      if (lives < MAX_LIVES) { lives = Math.min(MAX_LIVES, lives + HEAL_FIELD_TICK); renderLivesHUD(); }
     }
   } else { window._healTimer = 0; }
   renderSkillBar();
