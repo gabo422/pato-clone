@@ -5312,6 +5312,7 @@ function registerHit(enemy, dmg, isMissile) {
 
 function registerPlayerHit() {
   if (window._godMode) return;
+  if (tutorialActive) return;
   if (invulnTimer > 0) return;
   // ---- DODGE / EVASION (AO GetDefenseProbabilityC) ----
   const gear = getGearConfig();
@@ -5795,7 +5796,7 @@ const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const dt = Math.min(clock.getDelta(), 0.05) * (tutorialActive ? TUTORIAL_SLOW : 1);
 
   if (!menuOverlay.classList.contains('hidden') || !controlsOverlay.classList.contains('hidden') || !scoreboardOverlay.classList.contains('hidden') || !waveClearOverlay.classList.contains('hidden') || !document.getElementById('cheatOverlay').classList.contains('hidden') || gameOver) { renderer.render(scene, camera); return; }
 
@@ -6791,7 +6792,7 @@ try {
 
 // ================= MINI TUTORIAL =================
 var TUTORIAL_STEPS = [
-  { icon: '🎮', title: 'Bienvenido, piloto', text: 'Estás controlando un Juguete (tu nave de combate). Tu objetivo: sobrevivir olas de enemigos y derrotar a los Jefes.' },
+  { icon: '🎮', title: 'Bienvenido, piloto', text: 'Estás controlando un Juguete (tu nave de combate). Tu objetivo: sobrevivir olas de enemigos y derrotar a los Jefes. <b>No te preocupes:</b> mientras leés esta guía el juego va en cámara lenta y tu Juguete es <b>invencible</b>.' },
   { icon: '🕹️', title: 'Volar', text: '<b>W</b> acelera, <b>S</b> frena y <b>B</b> es freno aéreo. <b>A/D</b> giran (strafe) y <b>Espacio</b> es el boost. <b>Shift</b> suelta la mira. <b>Enter</b> confirma. <b>Tocá A o D dos veces rápido</b> para hacer un <b>barrel roll</b>: te hace invulnerable un instante y esquiva misiles. ¡Muy útil!' },
   { icon: '🔫', title: 'Disparar', text: '<b>Click izquierdo</b> dispara (arma estándar) y <b>Click derecho</b> lanza (arma avanzada). <b>Rayo y Trueno</b> dependen de la avanzada; <b>Viento y Muro</b> de la estándar.' },
   { icon: '⚡', title: 'Habilidades', text: 'Presioná <b>K</b> para abrir el panel de skills y <b>1-4</b> para activarlas. Cada Juguete tiene habilidades de ataque, defensa y soporte.' },
@@ -6800,11 +6801,14 @@ var TUTORIAL_STEPS = [
   { icon: '🏆', title: 'Objetivo', text: 'Superá todas las oleadas, derrotá a los Jefes y sumá puntos para el ranking. ¡Buena suerte, piloto! 🚀' }
 ];
 var tutIndex = 0;
+var tutorialActive = false;
+var TUTORIAL_SLOW = 0.15;
 
 function showTutorial() {
   tutIndex = 0;
   renderTutorialStep();
   document.getElementById('tutorialOverlay').classList.remove('hidden');
+  tutorialActive = true;
 }
 function renderTutorialStep() {
   var step = TUTORIAL_STEPS[tutIndex];
@@ -6823,6 +6827,7 @@ function renderTutorialStep() {
 }
 function closeTutorial() {
   document.getElementById('tutorialOverlay').classList.add('hidden');
+  tutorialActive = false;
   try { localStorage.setItem('patoClone_tutorial', '1'); } catch (e) {}
   if (pendingGearStart) {
     pendingGearStart = false;
