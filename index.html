@@ -2777,14 +2777,449 @@ function buildLevel2() {
   ];
 }
 
-// Los niveles 1,3,4,5 son cuartos cuadrados; el nivel 2 es el pasillo alargado (rectangular).
+// ---- Shell compartido: piso, paredes, techo, lámpara, rayas de límite, puerta (portal) y helipad ----
+function buildCommonShell() {
+  floorTex.repeat.set(30, 30);
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+  const wallPlaneW = roomW * 2;
+  const wallLowerH = wallHeight * 0.32;
+  const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
+  wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
+  wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, -roomD, 0);
+  makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, roomD, Math.PI);
+  makeWall(roomD * 2, wallHeight, -roomW, wallHeight / 2, 0, Math.PI / 2);
+  makeWall(roomD * 2, wallHeight, roomW, wallHeight / 2, 0, -Math.PI / 2);
+  ceiling = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide }));
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.y = wallHeight;
+  scene.add(ceiling);
+  lampGroup = new THREE.Group();
+  const lampBaseS = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 4, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  lampBaseS.position.set(0, -3, 0); lampGroup.add(lampBaseS);
+  const lampGlow = new THREE.Mesh(new THREE.CircleGeometry(11, 16), new THREE.MeshStandardMaterial({ color: 0xfff7d0, emissive: 0xfff2b0, emissiveIntensity: 0.8 }));
+  lampGlow.rotation.x = Math.PI / 2; lampGlow.position.set(0, -5.5, 0); lampGroup.add(lampGlow);
+  lampGroup.position.set(0, wallHeight, 0);
+  scene.add(lampGroup);
+  hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  boundaryStripes = {
+    zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomD, 0),
+    zPos: makeBoundaryStripe(0, wallHeight / 2, roomD, Math.PI),
+    xNeg: makeBoundaryStripe(-roomW, wallHeight / 2, 0, Math.PI / 2),
+    xPos: makeBoundaryStripe(roomW, wallHeight / 2, 0, -Math.PI / 2)
+  };
+  // Puerta (portal) en la pared Z negativa
+  doorGroup = new THREE.Group();
+  const doorFrameMatC = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.7 });
+  const dh = Math.min(wallHeight * 0.6, 150);
+  const dFL = new THREE.Mesh(new THREE.BoxGeometry(8, dh, 10), doorFrameMatC); dFL.position.set(-50, dh / 2, 0); doorGroup.add(dFL);
+  const dFR = new THREE.Mesh(new THREE.BoxGeometry(8, dh, 10), doorFrameMatC); dFR.position.set(50, dh / 2, 0); doorGroup.add(dFR);
+  const dFT = new THREE.Mesh(new THREE.BoxGeometry(108, 10, 10), doorFrameMatC); dFT.position.set(0, dh - 5, 0); doorGroup.add(dFT);
+  const doorPanelC = new THREE.Mesh(new THREE.BoxGeometry(92, dh - 4, 6), new THREE.MeshStandardMaterial({ color: 0xC4A265, roughness: 0.65 }));
+  doorPanelC.position.set(-50, dh / 2 - 2, 15); doorPanelC.rotation.y = -0.31;
+  addToonOutline(doorPanelC, 0x5a4510); doorGroup.add(doorPanelC);
+  const doorKnobC = new THREE.Mesh(new THREE.SphereGeometry(4, 10, 8), new THREE.MeshStandardMaterial({ color: 0xDDAA44, metalness: 0.7, roughness: 0.3 }));
+  doorKnobC.position.set(-5, dh / 2 - 2, 22); doorGroup.add(doorKnobC);
+  const doorGlowC = new THREE.Mesh(new THREE.PlaneGeometry(35, dh - 10), new THREE.MeshBasicMaterial({ color: 0xbf9dff, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+  doorGlowC.position.set(10, dh / 2 - 2, 2); doorGroup.add(doorGlowC);
+  const doorSwirlC = new THREE.Mesh(new THREE.RingGeometry(4, 18, 6, 1), new THREE.MeshStandardMaterial({ color: 0xe8d9ff, emissive: 0xd0b0ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+  doorSwirlC.position.set(10, dh / 2 - 2, 4); doorGroup.add(doorSwirlC);
+  portalInnerSwirl = doorSwirlC;
+  portalInnerSwirl2 = doorGlowC;
+  doorGroup.position.set(0, 0, -roomD + 5);
+  scene.add(doorGroup);
+  // Helipad
+  LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomD + 120);
+  LANDING_PAD_RADIUS = 40;
+  landingPadGroup = new THREE.Group();
+  const padBaseC = new THREE.Mesh(new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32), new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 }));
+  landingPadGroup.add(padBaseC);
+  const hBarC = new THREE.Mesh(new THREE.BoxGeometry(16, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 })); hBarC.position.y = 0.1; landingPadGroup.add(hBarC);
+  const hLC = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 })); hLC.position.set(-8, 0.1, 0); landingPadGroup.add(hLC);
+  const hRC = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 })); hRC.position.set(8, 0.1, 0); landingPadGroup.add(hRC);
+  const padRingC = new THREE.Mesh(new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32), new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide }));
+  padRingC.rotation.x = -Math.PI / 2; padRingC.position.y = 1.6; landingPadGroup.add(padRingC);
+  landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  const landingGlowC = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
+  landingGlowC.rotation.x = -Math.PI / 2; landingGlowC.position.y = 0.5; landingPadGroup.add(landingGlowC);
+  landingPadGroup.position.copy(LANDING_PAD_POS);
+  scene.add(landingPadGroup);
+  decorationInstances = [];
+  tapePostColliders = [];
+  levelExtra = [];
+}
+
+// ---- Nivel 3: LIVING ----
+function buildLevel3() {
+  buildCommonShell();
+  const addX = (m) => { scene.add(m); levelExtra.push(m); return m; };
+
+  // Alfombra central
+  const rug = new THREE.Mesh(new THREE.PlaneGeometry(900, 1200), new THREE.MeshStandardMaterial({ color: 0x4477bb, roughness: 0.9 }));
+  rug.rotation.x = -Math.PI / 2; rug.position.y = 0.5; addX(rug);
+
+  // Sofá grande de 3 cuerpos
+  const sofa = new THREE.Group();
+  sofa.position.set(0, 0, roomD - 420);
+  const sofaMat = new THREE.MeshStandardMaterial({ color: 0x8B3A3A, roughness: 0.8 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(700, 80, 220), sofaMat); base.position.y = 40; sofa.add(base);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(700, 120, 50), sofaMat); back.position.set(0, 110, -90); sofa.add(back);
+  for (const sx of [-260, 0, 260]) {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(60, 110, 240), sofaMat); arm.position.set(sx, 60, 0); sofa.add(arm);
+  }
+  for (const cx of [-140, 0, 140]) {
+    const cushion = new THREE.Mesh(new THREE.BoxGeometry(120, 30, 180), new THREE.MeshStandardMaterial({ color: 0xcc6a5a, roughness: 0.85 }));
+    cushion.position.set(cx, 90, 0); sofa.add(cushion);
+  }
+  sofa.rotation.y = Math.PI;
+  scene.add(sofa); levelExtra.push(sofa);
+
+  // Mesa ratona
+  const ctable = new THREE.Group();
+  ctable.position.set(0, 0, 200);
+  const ctop = new THREE.Mesh(new THREE.BoxGeometry(380, 16, 160), new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 }));
+  ctop.position.y = 30; addToonOutline(ctop, 0x5a4510); ctable.add(ctop);
+  for (const [lx, lz] of [[-160, -60], [160, -60], [-160, 60], [160, 60]]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(14, 30, 14), new THREE.MeshStandardMaterial({ color: 0x6a4a2a }));
+    leg.position.set(lx, 15, lz); ctable.add(leg);
+  }
+  // Revistas encima
+  for (let i = 0; i < 3; i++) {
+    const mag = new THREE.Mesh(new THREE.BoxGeometry(60, 3, 80), new THREE.MeshStandardMaterial({ color: [0xd93a3a, 0x3a7ad9, 0x3ab96a][i], roughness: 0.8 }));
+    mag.position.set((i - 1) * 60, 40, 0); ctable.add(mag);
+  }
+  scene.add(ctable); levelExtra.push(ctable);
+
+  // Rack de TV con pantalla
+  const tv = new THREE.Group();
+  tv.position.set(0, 0, -roomD + 320);
+  const rack = new THREE.Mesh(new THREE.BoxGeometry(420, 60, 60), new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.6 }));
+  rack.position.y = 30; tv.add(rack);
+  const screenFrame = new THREE.Mesh(new THREE.BoxGeometry(420, 260, 20), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+  screenFrame.position.y = 180; tv.add(screenFrame);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(390, 230), new THREE.MeshBasicMaterial({ color: 0x66ccff }));
+  screen.position.set(0, 180, 11); tv.add(screen);
+  for (let i = 0; i < 3; i++) {
+    const star = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 2), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    star.position.set(-100 + i * 100, 250, 12); tv.add(star);
+  }
+  scene.add(tv); levelExtra.push(tv);
+
+  // Estantería con libros
+  const shelf = new THREE.Group();
+  shelf.position.set(roomW - 360, 0, -200);
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 });
+  for (let lv = 0; lv < 5; lv++) {
+    const shelfBoard = new THREE.Mesh(new THREE.BoxGeometry(40, 400, 14), shelfMat);
+    shelfBoard.position.set(0, 50 + lv * 70, 0); shelf.add(shelfBoard);
+  }
+  const sideL = new THREE.Mesh(new THREE.BoxGeometry(28, 360, 40), shelfMat); sideL.position.set(-200, 180, 0); shelf.add(sideL);
+  const sideR = new THREE.Mesh(new THREE.BoxGeometry(28, 360, 40), shelfMat); sideR.position.set(200, 180, 0); shelf.add(sideR);
+  for (let lv = 0; lv < 5; lv++) {
+    for (let b = 0; b < 3; b++) {
+      const book = new THREE.Mesh(new THREE.BoxGeometry(24, 46 + (b % 2) * 20, 12), new THREE.MeshStandardMaterial({ color: blockColors[(lv * 3 + b) % blockColors.length], roughness: 0.5 }));
+      book.position.set(-140 + b * 140, 50 + lv * 70, 0); shelf.add(book);
+    }
+  }
+  scene.add(shelf); levelExtra.push(shelf);
+
+  // Lámpara de pie
+  const floorLamp = new THREE.Group();
+  floorLamp.position.set(-roomW + 300, 0, 500);
+  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 260, 8), new THREE.MeshStandardMaterial({ color: 0x6a4a2a }));
+  lampPole.position.y = 130; floorLamp.add(lampPole);
+  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(40, 70, 10), new THREE.MeshStandardMaterial({ color: 0xffd97a, emissive: 0xffe0a0, emissiveIntensity: 0.3 }));
+  lampShade.position.y = 260; floorLamp.add(lampShade);
+  scene.add(floorLamp); levelExtra.push(floorLamp);
+
+  // Cajas de cartón y autos de juguete
+  buildToyCar(600, 300, 0x2244cc, 1.6);
+  buildToyCar(-700, -600, 0xcc2222, -2.2);
+  buildToyCar(500, -700, 0xddcc22, 0.6);
+  const cl = buildCardboardBox(140, 90, 140); cl.position.set(-600, 0, 300); scene.add(cl);
+  const cl2 = buildCardboardBox(90, 60, 90); cl2.position.set(700, 0, -500); scene.add(cl2);
+
+  // Pelota de juguete
+  rubberBall = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 12), new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.35, metalness: 0.1 }));
+  rubberBall.position.set(-400, 14, -700); scene.add(rubberBall);
+  rubberBallStripe = new THREE.Mesh(new THREE.TorusGeometry(14.1, 1.3, 8, 24), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }));
+  rubberBallStripe.position.copy(rubberBall.position); rubberBallStripe.rotation.x = Math.PI / 2; scene.add(rubberBallStripe);
+
+  // Marcas de guerra y escombros
+  makeScorchMark(0, 0, 12, 1.0);
+  makeScorchMark(400, -300, 11, 2.4);
+  makeScorchMark(-500, 600, 10, 0.6);
+  makeScorchMark(300, 700, 12, 3.1);
+  for (let i = 0; i < 40; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 120 + Math.random() * (roomSize - 200);
+    const kind = DEBRIS_KINDS[Math.floor(Math.random() * DEBRIS_KINDS.length)];
+    spawnDebrisPiece(Math.cos(angle) * radius, Math.sin(angle) * radius, kind);
+  }
+
+  // Colliders del living
+  worldColliders = [
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(sofa.position.x, 60, sofa.position.z), radius: 320, damaging: false, hp: 8, maxHp: 8, mesh: sofa, type: 'furniture' },
+    { pos: new THREE.Vector3(ctable.position.x, 40, ctable.position.z), radius: 180, damaging: false, hp: 5, maxHp: 5, mesh: ctable, type: 'furniture' },
+    { pos: new THREE.Vector3(tv.position.x, 130, tv.position.z), radius: 200, damaging: false, hp: 6, maxHp: 6, mesh: tv, type: 'furniture' },
+    { pos: new THREE.Vector3(shelf.position.x, 170, shelf.position.z), radius: 220, damaging: false, hp: 7, maxHp: 7, mesh: shelf, type: 'furniture' },
+    { pos: new THREE.Vector3(floorLamp.position.x, 130, floorLamp.position.z), radius: 30, damaging: false, hp: 3, maxHp: 3, mesh: floorLamp, type: 'furniture' },
+    { pos: new THREE.Vector3(cl.position.x, 45, cl.position.z), radius: 70, damaging: false, hp: 5, maxHp: 5, mesh: cl, type: 'cardboard' },
+    { pos: new THREE.Vector3(cl2.position.x, 30, cl2.position.z), radius: 45, damaging: false, hp: 4, maxHp: 4, mesh: cl2, type: 'cardboard' },
+    ...tapePostColliders,
+  ];
+}
+
+// ---- Nivel 4: COCINA ----
+function buildLevel4() {
+  buildCommonShell();
+  const addX = (m) => { scene.add(m); levelExtra.push(m); return m; };
+  const woodC = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 });
+  const metalC = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.4, metalness: 0.4 });
+
+  // Mesa central con 4 sillas
+  const table = new THREE.Group();
+  table.position.set(0, 0, 0);
+  const tt = new THREE.Mesh(new THREE.BoxGeometry(500, 16, 300), woodC); tt.position.y = 90; addToonOutline(tt, 0x5a4510); table.add(tt);
+  const tcol = new THREE.Mesh(new THREE.CylinderGeometry(10, 12, 90, 8), new THREE.MeshStandardMaterial({ color: 0x6a4a2a })); tcol.position.y = 45; table.add(tcol);
+  for (let i = 0; i < 3; i++) {
+    const plat = new THREE.Mesh(new THREE.CircleGeometry(30, 20), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    plat.rotation.x = -Math.PI / 2; plat.position.set((i - 1) * 120, 99, -20); table.add(plat);
+  }
+  scene.add(table); levelExtra.push(table);
+  const chairs = [];
+  const chairPos = [[-320, 0, 1.57], [320, 0, -1.57], [0, -200, 0], [0, 200, 3.14]];
+  const makeChair = (cp) => {
+    const ch = new THREE.Group(); ch.position.set(cp[0], 0, cp[1]); ch.rotation.y = cp[2];
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(60, 10, 55), woodC); seat.position.y = 45; ch.add(seat);
+    const backC = new THREE.Mesh(new THREE.BoxGeometry(60, 60, 8), woodC); backC.position.set(0, 80, -24); ch.add(backC);
+    for (const [lx, lz] of [[-24, -22], [24, -22], [-24, 22], [24, 22]]) {
+      const legC = new THREE.Mesh(new THREE.BoxGeometry(8, 45, 8), new THREE.MeshStandardMaterial({ color: 0x6a4a2a }));
+      legC.position.set(lx, 22, lz); ch.add(legC);
+    }
+    scene.add(ch); levelExtra.push(ch); return ch;
+  };
+  chairPos.forEach(cp => chairs.push(makeChair(cp)));
+
+  // Mesada + alacenas superiores (contra la pared X positiva)
+  const counter = new THREE.Group();
+  counter.position.set(roomW - 260, 0, -200);
+  const counterBase = new THREE.Mesh(new THREE.BoxGeometry(70, 200, 1200), metalC); counterBase.position.y = 100; counter.add(counterBase);
+  const counterTop = new THREE.Mesh(new THREE.BoxGeometry(86, 12, 1260), new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.4 }));
+  counterTop.position.set(0, 206, 0); counter.add(counterTop);
+  // alacenas superiores (colgadas)
+  const upperMat = new THREE.MeshStandardMaterial({ color: 0x88cc88, roughness: 0.6 });
+  for (let i = 0; i < 3; i++) {
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(60, 140, 120), upperMat);
+    cab.position.set(0, 330, -400 + i * 400); counter.add(cab);
+  }
+  scene.add(counter); levelExtra.push(counter);
+
+  // Heladera
+  const fridge = new THREE.Group();
+  fridge.position.set(roomW - 300, 0, 500);
+  const fBody = new THREE.Mesh(new THREE.BoxGeometry(140, 320, 100), new THREE.MeshStandardMaterial({ color: 0xe8e8e8, roughness: 0.5 }));
+  fBody.position.y = 160; addToonOutline(fBody, 0xaaaaaa); fridge.add(fBody);
+  const fHandle = new THREE.Mesh(new THREE.BoxGeometry(6, 130, 8), new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.6 }));
+  fHandle.position.set(-70, 120, 0); fridge.add(fHandle);
+  scene.add(fridge); levelExtra.push(fridge);
+
+  // Cocina / anafe
+  const stove = new THREE.Group();
+  stove.position.set(-roomW + 300, 0, 500);
+  const stoveBody = new THREE.Mesh(new THREE.BoxGeometry(160, 90, 110), metalC); stoveBody.position.y = 45; stove.add(stoveBody);
+  for (const [bx, bz] of [[-40, -30], [40, -30], [-40, 30], [40, 30]]) {
+    const burner = new THREE.Mesh(new THREE.CylinderGeometry(24, 24, 4, 16), new THREE.MeshBasicMaterial({ color: 0x333333 }));
+    burner.position.set(bx, 91, bz); stove.add(burner);
+  }
+  scene.add(stove); levelExtra.push(stove);
+
+  // Lavaplatos (pileta de juguete)
+  const sink = new THREE.Group();
+  sink.position.set(-roomW + 300, 0, -300);
+  const sinkBody = new THREE.Mesh(new THREE.BoxGeometry(180, 100, 120), metalC); sinkBody.position.y = 50; sink.add(sinkBody);
+  const sinkBowl = new THREE.Mesh(new THREE.BoxGeometry(120, 10, 80), new THREE.MeshStandardMaterial({ color: 0x88aadd, metalness: 0.5 }));
+  sinkBowl.position.y = 75; sink.add(sinkBowl);
+  const faucet = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 60, 8), metalC); faucet.position.set(0, 130, -50); sink.add(faucet);
+  scene.add(sink); levelExtra.push(sink);
+
+  // Tenedores y cucharas de juguete en el piso
+  for (let i = 0; i < 6; i++) {
+    const tool = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 50), new THREE.MeshStandardMaterial({ color: [0xff88cc, 0x88ccff][i % 2], roughness: 0.4 }));
+    tool.position.set((Math.random() - 0.5) * 1000, 1.5, (Math.random() - 0.5) * 1000);
+    tool.rotation.y = Math.random() * 3;
+    scene.add(tool); levelExtra.push(tool);
+  }
+
+  // Cajas de cereal y frutas de juguete esparcidas
+  for (let i = 0; i < 5; i++) {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(30, 44, 16), new THREE.MeshStandardMaterial({ color: [0xffcc33, 0xff8844, 0x44aa44][i % 3], roughness: 0.6 }));
+    box.position.set((Math.random() - 0.5) * 1200, 22, (Math.random() - 0.5) * 1200);
+    box.rotation.y = Math.random() * 3; scene.add(box); levelExtra.push(box);
+  }
+  for (let i = 0; i < 4; i++) {
+    const fruit = new THREE.Mesh(new THREE.SphereGeometry(12, 10, 8), new THREE.MeshStandardMaterial({ color: [0xff3333, 0xffaa00, 0x66cc33, 0xcc66ff][i % 4], roughness: 0.5 }));
+    fruit.position.set(100 + i * 60, 110, -900); scene.add(fruit); levelExtra.push(fruit);
+  }
+
+  // Marcas de guerra en el piso de la cocina
+  makeScorchMark(200, 300, 10, 1.4);
+  makeScorchMark(-500, -500, 11, 2.6);
+  makeScorchMark(600, -200, 9, 0.8);
+
+  // Colliders de la cocina
+  worldColliders = [
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(table.position.x, 60, table.position.z), radius: 250, damaging: false, hp: 8, maxHp: 8, mesh: table, type: 'furniture' },
+    ...chairs.map(ch => ({ pos: new THREE.Vector3(ch.position.x, 40, ch.position.z), radius: 40, damaging: false, hp: 3, maxHp: 3, mesh: ch, type: 'furniture' })),
+    { pos: new THREE.Vector3(counter.position.x, 150, counter.position.z), radius: 340, damaging: false, hp: 9, maxHp: 9, mesh: counter, type: 'furniture' },
+    { pos: new THREE.Vector3(fridge.position.x, 160, fridge.position.z), radius: 80, damaging: false, hp: 6, maxHp: 6, mesh: fridge, type: 'furniture' },
+    { pos: new THREE.Vector3(stove.position.x, 50, stove.position.z), radius: 80, damaging: false, hp: 5, maxHp: 5, mesh: stove, type: 'furniture' },
+    { pos: new THREE.Vector3(sink.position.x, 60, sink.position.z), radius: 80, damaging: false, hp: 5, maxHp: 5, mesh: sink, type: 'furniture' },
+    ...tapePostColliders,
+  ];
+}
+
+// ---- Nivel 5: PATIO GRANDE (jefe mayor) ----
+function buildLevel5() {
+  buildCommonShell();
+  const addX = (m) => { scene.add(m); levelExtra.push(m); return m; };
+
+  // Piso del patio: césped
+  const grass = new THREE.Mesh(
+    new THREE.PlaneGeometry(roomW * 2 - 80, roomD * 2 - 80),
+    new THREE.MeshLambertMaterial({ color: 0x5fbf3f, roughness: 1 })
+  );
+  grass.rotation.x = -Math.PI / 2; grass.position.y = 2.5; addX(grass);
+
+  // Camino de piedras (círculo de losetas grises) hacia el centro
+  for (let i = 0; i < 24; i++) {
+    const a = i / 24 * Math.PI * 2;
+    const r = 300 + (i % 3) * 90;
+    const tile = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 6, 6), new THREE.MeshStandardMaterial({ color: 0x999999, roughness: 0.9 }));
+    tile.position.set(Math.cos(a) * r, 1.5, Math.sin(a) * r);
+    scene.add(tile); levelExtra.push(tile);
+  }
+
+  // Árbol grande
+  const tree = new THREE.Group();
+  tree.position.set(-roomW + 500, 0, 500);
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(40, 55, 320, 10), new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.9 }));
+  trunk.position.y = 160; tree.add(trunk);
+  const leafMat = new THREE.MeshLambertMaterial({ color: 0x2f8f3f });
+  for (let i = 0; i < 3; i++) {
+    const foliage = new THREE.Mesh(new THREE.IcosahedronGeometry(180 - i * 40, 0), leafMat);
+    foliage.position.set((i - 1) * 40, 320 + i * 60, 0);
+    tree.add(foliage);
+  }
+  scene.add(tree); levelExtra.push(tree);
+
+  // Árbol pequeño 2
+  const tree2 = new THREE.Group();
+  tree2.position.set(roomW - 400, 0, -600);
+  const trunk2 = new THREE.Mesh(new THREE.CylinderGeometry(25, 34, 200, 8), new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.9 }));
+  trunk2.position.y = 100; tree2.add(trunk2);
+  const fol2 = new THREE.Mesh(new THREE.IcosahedronGeometry(120, 0), leafMat); fol2.position.y = 240; tree2.add(fol2);
+  scene.add(tree2); levelExtra.push(tree2);
+
+  // Caja de arena (sandbox)
+  const sandbox = new THREE.Group();
+  sandbox.position.set(-roomW + 500, 0, -500);
+  const sbMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.8 });
+  for (const [lx, lz, r] of [[-1, 0, 0], [1, 0, Math.PI], [0, -1, Math.PI / 2], [0, 1, -Math.PI / 2]]) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(420, 40, 30), sbMat);
+    b.position.set(lx * 195, 20, lz * 195); b.rotation.y = r; sandbox.add(b);
+  }
+  const sand = new THREE.Mesh(new THREE.PlaneGeometry(360, 360), new THREE.MeshLambertMaterial({ color: 0xe8d08a }));
+  sand.rotation.x = -Math.PI / 2; sand.position.y = 8; sandbox.add(sand);
+  scene.add(sandbox); levelExtra.push(sandbox);
+
+  // Mesa de picnic + 2 bancos
+  const picnic = new THREE.Group();
+  picnic.position.set(0, 0, 800);
+  const ptop = new THREE.Mesh(new THREE.BoxGeometry(500, 12, 140), new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 }));
+  ptop.position.y = 70; picnic.add(ptop);
+  for (const [lx, lz] of [[-200, -55], [200, -55], [-200, 55], [200, 55]]) {
+    const legP = new THREE.Mesh(new THREE.BoxGeometry(16, 70, 12), new THREE.MeshStandardMaterial({ color: 0x6a4a2a }));
+    legP.position.set(lx, 35, lz); legP.rotation.y = 0.6; picnic.add(legP);
+  }
+  for (const [bx, bz] of [[-220, -90], [220, 90]]) {
+    const benchB = new THREE.Mesh(new THREE.BoxGeometry(200, 10, 30), new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 }));
+    benchB.position.set(bx, 40, bz); picnic.add(benchB);
+  }
+  scene.add(picnic); levelExtra.push(picnic);
+
+  // Parrilla de juguete
+  const grill = new THREE.Group();
+  grill.position.set(roomW - 400, 0, 700);
+  const gBody = new THREE.Mesh(new THREE.BoxGeometry(120, 70, 90), new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.6, metalness: 0.5 }));
+  gBody.position.y = 40; grill.add(gBody);
+  const gLegL = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 50, 6), new THREE.MeshStandardMaterial({ color: 0x555555 })); gLegL.position.set(-40, 10, 0); grill.add(gLegL);
+  const gLegR = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 50, 6), new THREE.MeshStandardMaterial({ color: 0x555555 })); gLegR.position.set(40, 10, 0); grill.add(gLegR);
+  scene.add(grill); levelExtra.push(grill);
+
+  // Piletita de pelotas (patio)
+  const ballPit = new THREE.Group();
+  ballPit.position.set(0, 0, -800);
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2;
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 90, 6), new THREE.MeshStandardMaterial({ color: 0x2244cc, roughness: 0.6 }));
+    seg.position.set(Math.cos(a) * 120, 45, Math.sin(a) * 120); ballPit.add(seg);
+  }
+  for (let i = 0; i < 10; i++) {
+    const ballP = new THREE.Mesh(new THREE.SphereGeometry(12, 8, 6), new THREE.MeshStandardMaterial({ color: blockColors[i % blockColors.length], roughness: 0.5 }));
+    ballP.position.set((Math.random() - 0.5) * 160, 10, (Math.random() - 0.5) * 160); ballP.scale.set(1, 0.8, 1); ballPit.add(ballP);
+  }
+  scene.add(ballPit); levelExtra.push(ballPit);
+
+  // Autos de juguete y cajas alrededor
+  buildToyCar(1200, 900, 0x22aa44, 0.8);
+  buildToyCar(-1100, -900, 0xddcc22, -1.4);
+  for (let i = 0; i < 6; i++) {
+    const cl = buildCardboardBox(120, 70, 120);
+    cl.position.set((Math.random() - 0.5) * 2400, 0, (Math.random() - 0.5) * 2400);
+    scene.add(cl);
+  }
+
+  // Cinta de precaución alrededor del helipad
+  makeCautionTapeBarrier(-roomD + 120, 50, 90, Math.PI / 2);
+  makeCautionTapeBarrier(-roomD + 120, -50, 90, Math.PI / 2);
+  makeCautionTapeBarrier(-roomD + 60, 0, 100, 0);
+
+  // Marcas de guerra
+  makeScorchMark(300, 0, 14, 1.0);
+  makeScorchMark(-800, 700, 12, 2.0);
+  makeScorchMark(900, -700, 13, 3.0);
+  makeScorchMark(0, 1200, 12, 0.5);
+
+  // Colliders del patio
+  worldColliders = [
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(tree.position.x, 160, tree.position.z), radius: 150, damaging: false, hp: 9, maxHp: 9, mesh: tree, type: 'furniture' },
+    { pos: new THREE.Vector3(tree2.position.x, 100, tree2.position.z), radius: 90, damaging: false, hp: 6, maxHp: 6, mesh: tree2, type: 'furniture' },
+    { pos: new THREE.Vector3(sandbox.position.x, 40, sandbox.position.z), radius: 220, damaging: false, hp: 8, maxHp: 8, mesh: sandbox, type: 'furniture' },
+    { pos: new THREE.Vector3(picnic.position.x, 60, picnic.position.z), radius: 260, damaging: false, hp: 8, maxHp: 8, mesh: picnic, type: 'furniture' },
+    { pos: new THREE.Vector3(grill.position.x, 60, grill.position.z), radius: 60, damaging: false, hp: 4, maxHp: 4, mesh: grill, type: 'furniture' },
+    { pos: new THREE.Vector3(ballPit.position.x, 60, ballPit.position.z), radius: 130, damaging: false, hp: 6, maxHp: 6, mesh: ballPit, type: 'furniture' },
+    ...tapePostColliders,
+  ];
+}
+
+// Los niveles 1,3,4 son cuartos cuadrados; el 2 es el pasillo alargado; el 5 es el patio grande.
 function buildLevel(n) {
   currentLevel = n;
   roomW = LEVEL_ROOM_W[n] || 2000;
   roomD = LEVEL_ROOM_D[n] || 2000;
   roomSize = Math.max(roomW, roomD);
   wallHeight = LEVEL_WALL_HEIGHT[n] || 700;
-  if (n === 2) buildLevel2(); else buildLevel1();
+  if (n === 2) buildLevel2();
+  else if (n === 3) buildLevel3();
+  else if (n === 4) buildLevel4();
+  else if (n === 5) buildLevel5();
+  else buildLevel1();
 }
 
 // Construir el nivel inicial (la habitación) al cargar el juego
