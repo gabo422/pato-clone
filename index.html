@@ -2886,17 +2886,18 @@ const ENEMIES_PER_WAVE = 6;
 let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube con nivel)
 
 // Vida de los ositos según dificultad: calibrada para que el sistema de daño tenga peso.
-// Las armas nuevas (nivel 110-118) hacen daño alto, así que los ositos deben aguantar
-// varios golpes del arma estándar (gatling ~136/volley) — normal = ~5 volleys de gatling.
-const TEDDY_HP_BY_DIFFICULTY = { facil: 400, normal: 650, dificil: 1000, sniper: 650 };
+// Vida de los ositos: "cuarto de AO nivel 81" (mobs AO lv81 = 7.5k-25k HP) → 2000/3200/6000.
+// Fiel al Juego Madre pero jugable con el DPS del clon (cañón ~350/volley, gatling ~136/volley):
+// un osito normal aguanta ~9 volleys del cañón (~4s) o ~23 del gatling.
+const TEDDY_HP_BY_DIFFICULTY = { facil: 2000, normal: 3200, dificil: 6000, sniper: 3200 };
 function getTeddyHp() { return TEDDY_HP_BY_DIFFICULTY[difficulty] ?? TEDDY_HP_BY_DIFFICULTY.normal; }
 
-// Vida del boss según dificultad: ~10x un osito normal (un "mini-jefe" que aguanta varias oleadas).
+// Vida del boss según dificultad: ~10x un osito (un "mini-jefe" que aguanta varias oleadas).
 const BOSS_HP_CONFIG = {
-  facil:   { base: 4000, growth: 1500 },
-  normal:  { base: 6500, growth: 2500 },
-  dificil: { base: 10000, growth: 4000 },
-  sniper:  { base: 6500, growth: 2500 }
+  facil:   { base: 20000, growth: 7500 },
+  normal:  { base: 32000, growth: 12500 },
+  dificil: { base: 60000, growth: 20000 },
+  sniper:  { base: 32000, growth: 12500 }
 };
 function getBossHp() {
   const cfg = BOSS_HP_CONFIG[difficulty] ?? BOSS_HP_CONFIG.normal;
