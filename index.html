@@ -1086,8 +1086,8 @@
 
 <div id="waveClearOverlay" class="hidden">
   <div id="gameOverPanel">
-    <h2>🎉 ¡Oleada limpiada!</h2>
-    <p>Tiempo: <b id="wcTime">0.0</b>s</p>
+    <h2 id="wcTitle">🎉 ¡Oleada limpiada!</h2>
+    <p id="wcTimeRow">Tiempo: <b id="wcTime">0.0</b>s</p>
     <p>Mejor tiempo: <b id="wcBest">—</b></p>
     <p>Escudo mejorado a: <b id="wcShield">3/3</b></p>
     <p id="wcNextLabel">Siguiente: Oleada <b id="wcNextWave">2</b></p>
@@ -1300,6 +1300,12 @@ function startGearPlay() {
   if (!gameRunning) {
     renderLivesHUD();
     renderShieldHUD();
+    // Corrida nueva: siempre arrancar desde la habitación (nivel 1)
+    currentLevel = 1;
+    waveInLevel = 1;
+    portalActive = false;
+    teardownLevel();
+    buildLevel(1);
     resetDestructibles();
     gameRunning = true;
     startWave();
@@ -1482,6 +1488,12 @@ document.getElementById('resumeBtn').addEventListener('click', () => {
     applyGearSelection(selectedGear);
     renderLivesHUD();
     renderShieldHUD();
+    // Corrida nueva: arrancar desde la habitación (nivel 1)
+    currentLevel = 1;
+    waveInLevel = 1;
+    portalActive = false;
+    teardownLevel();
+    buildLevel(1);
     resetDestructibles();
     gameRunning = true;
     startWave();
@@ -1536,7 +1548,13 @@ document.getElementById('restartGameBtn').addEventListener('click', () => { open
 document.getElementById('gameOverRestartBtn').addEventListener('click', () => { openGearSelect(); });
 document.getElementById('waveClearAcceptBtn').addEventListener('click', () => {
   waveClearOverlay.classList.add('hidden');
-  startWave();
+  if (waveClearMode === 'next') {
+    startWave();
+  } else if (waveClearMode === 'portal') {
+    // el portal ya quedó activo (activatePortal), solo se libera el cartel
+    portalActive = true;
+    if (!isMobile) renderer.domElement.requestPointerLock();
+  }
 });
 
 // ================= Escena: ARENA DE GUERRA DE JUGUETES =================
@@ -5227,6 +5245,12 @@ let bestWaveTime = null;
 let gameOver = false;
 let waveIsBoss = false;
 
+// ---- Recorrido por la casa: cada nivel tiene N oleadas y un portal al siguiente ----
+const WAVES_PER_LEVEL = 3;
+let waveInLevel = 1;               // oleada dentro del nivel actual (1..WAVES_PER_LEVEL)
+let portalActive = false;          // el nivel está limpio y el portal espera ser atravesado
+let waveClearMode = 'next';        // qué hace el botón Aceptar: 'next'=siguiente oleada, 'portal'=ir al portal
+
 function showHitmarker() {
   const el = document.getElementById('hitmarker');
   el.style.opacity = '1';
@@ -5456,6 +5480,7 @@ function triggerGameOver() {
   gameOver = true;
   document.getElementById('goScore').textContent = score;
   document.getElementById('goWaves').textContent = clearedCount;
+  document.querySelector('#gameOverPanel h2').textContent = '¡Te quedaste sin vidas!';
   // Registro automático del puntaje (sin preguntar): usa el piloto del login
   // o el último nombre guardado localmente.
   var pilotName = (typeof patoCloneUser !== 'undefined' && patoCloneUser && patoCloneUser.name)
@@ -5476,7 +5501,7 @@ function triggerGameOver() {
 
 function startWave() {
   waveTimer = 0;
-  const isBossWave = waveNumber % 5 === 0;
+  const isBossWave = waveInLevel >= WAVES_PER_LEVEL;
   waveIsBoss = isBossWave;
   stdHeat = 0; advHeat = 0;
   stdOverheated = false; advOverheated = false;
@@ -5545,10 +5570,85 @@ function clearWaveIfDone() {
     document.getElementById('wcTime').textContent = waveTimer.toFixed(1);
     document.getElementById('wcBest').textContent = bestWaveTime.toFixed(1) + 's';
     document.getElementById('wcShield').textContent = shield + '/' + shieldMax;
-    document.getElementById('wcNextWave').textContent = waveNumber;
+
+    const lastWaveOfLevel = waveInLevel >= WAVES_PER_LEVEL;
+    if (!lastWaveOfLevel) {
+      // Sigue en la misma habitación: pasa a la siguiente oleada
+      waveInLevel++;
+      waveClearMode = 'next';
+      document.getElementById('wcTitle').textContent = '🎉 ¡Oleada limpiada!';
+      document.getElementById('wcNextLabel').innerHTML = 'Siguiente: Oleada <b>' + waveInLevel + '</b> de ' + WAVES_PER_LEVEL;
+    } else if (currentLevel >= MAX_LEVEL) {
+      // Limpió el último nivel: ¡ganó toda la casa!
+      gameWon();
+      return;
+    } else {
+      // Limpió la habitación actual: se abre el portal al siguiente nivel
+      activatePortal();
+      waveClearMode = 'portal';
+      document.getElementById('wcTitle').textContent = '🚪 ¡Habitación limpia!';
+      document.getElementById('wcNextLabel').innerHTML = 'Atravesá el <b>portal</b> (la puerta iluminada) para pasar a la <b>habitación ' + (currentLevel + 1) + '</b>.';
+      document.getElementById('waveClearAcceptBtn').textContent = 'Al portal 🚪';
+    }
     waveClearOverlay.classList.remove('hidden');
     if (pointerLocked) document.exitPointerLock();
   }
+}
+
+// Abre el portal (la puerta iluminada) para pasar a la siguiente habitación cuando el nivel está limpio
+function activatePortal() {
+  // Quita el collider de la puerta para poder atravesarla como portal
+  if (worldColliders) {
+    const idx = worldColliders.findIndex(c => c.mesh === doorGroup);
+    if (idx >= 0) worldColliders.splice(idx, 1);
+  }
+  // Enciende el resplandor del portal
+  if (portalInnerSwirl) {
+    portalInnerSwirl.material = new THREE.MeshBasicMaterial({ color: 0x66ff88, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  }
+  if (portalInnerSwirl2) {
+    portalInnerSwirl2.material = new THREE.MeshBasicMaterial({ color: 0x44ff66, transparent: true, opacity: 0.75, side: THREE.DoubleSide });
+  }
+}
+
+// Atraviesa el portal: destruye el nivel actual y construye el siguiente
+function advanceLevel() {
+  portalActive = false;
+  // Limpia enemigos/proyectiles de la habitación anterior
+  for (const e of enemies) scene.remove(e.mesh);
+  enemies.length = 0;
+  for (const m of enemyMissiles) scene.remove(m.mesh);
+  enemyMissiles.length = 0;
+  for (const p of teddyProjectiles) scene.remove(p.mesh);
+  teddyProjectiles.length = 0;
+  currentLockTarget = null;
+  document.getElementById('bossBar').style.display = 'none';
+  teardownLevel();
+  buildLevel(currentLevel + 1);
+  waveInLevel = 1;
+  ship.position.set(0, 60, 0);
+  ship.quaternion.identity();
+  startWave();
+  document.getElementById('waveClearAcceptBtn').textContent = 'Aceptar';
+  document.getElementById('wcTitle').textContent = '🎉 ¡Oleada limpiada!';
+  showWaveBanner('Habitación ' + currentLevel);
+  if (!isMobile) renderer.domElement.requestPointerLock();
+}
+
+// Ganó toda la casa: termina la partida y registra el score
+function gameWon() {
+  gameOver = true;
+  document.getElementById('goScore').textContent = score;
+  document.getElementById('goWaves').textContent = clearedCount;
+  document.querySelector('#gameOverPanel h2').textContent = '🏆 ¡Ganaste toda la casa!';
+  var pilotName = (typeof patoCloneUser !== 'undefined' && patoCloneUser && patoCloneUser.name) ? patoCloneUser.name : '';
+  if (!pilotName) { try { pilotName = localStorage.getItem('patoClone_lastName') || 'Pato'; } catch (e) { pilotName = 'Pato'; } }
+  addScoreEntry(pilotName, score, clearedCount);
+  var savedNameEl = document.getElementById('goSavedName');
+  if (savedNameEl) savedNameEl.textContent = pilotName;
+  renderScoreboardInto(document.getElementById('scoreboardListGO'));
+  gameOverOverlay.classList.remove('hidden');
+  if (pointerLocked) document.exitPointerLock();
 }
 
 function resetGame() {
@@ -5630,6 +5730,13 @@ function resetGame() {
     if (typeof saveInventory === 'function') saveInventory();
   }
   resetDestructibles();
+
+  // Reiniciar desde el nivel 1 (volver a la habitación inicial)
+  currentLevel = 1;
+  waveInLevel = 1;
+  portalActive = false;
+  teardownLevel();
+  buildLevel(1);
 
   document.getElementById('score').textContent = 0;
   renderLivesHUD();
@@ -6009,6 +6116,15 @@ function animate() {
   checkWallCollision();
   checkFixtureCollisions();
   updateBoundaryWarning();
+
+  // Atravesar el portal cuando el nivel está limpio y te acercás a la puerta iluminada
+  if (portalActive && currentLevel < MAX_LEVEL && ship && doorGroup) {
+    const portalDist = ship.position.distanceTo(doorGroup.position);
+    if (portalDist < 65) {
+      advanceLevel();
+    }
+  }
+
   portalInnerSwirl.rotation.z += dt * 0.6;
   portalInnerSwirl2.rotation.z -= dt * 0.9;
   updatePowerups(dt);
