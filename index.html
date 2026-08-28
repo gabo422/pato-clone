@@ -10,11 +10,11 @@
 
   /* ============ HUD CONTAINER ============ */
   #hud {
-    position: absolute; top: 12px; left: 12px; color: #c0d8e8; font-size: 12px;
+    position: absolute; top: 12px; left: 12px; color: #c0d8e8; font-size: 18px;
     background: linear-gradient(180deg, rgba(5,12,25,0.92) 0%, rgba(8,18,35,0.88) 100%);
     padding: 10px 12px; border: 1px solid rgba(0,180,255,0.25);
     border-radius: 4px; line-height: 1.4; pointer-events: none; user-select: none;
-    width: 185px; z-index: 10;
+    width: 215px; z-index: 10;
     box-shadow: 0 0 20px rgba(0,100,180,0.1), inset 0 1px 0 rgba(0,180,255,0.08);
   }
   #hud b { color: #00d4ff; font-weight: 600; }
@@ -22,7 +22,7 @@
   /* ---- Ammo / Heat Bars ---- */
   #ammoRow { display: flex; gap: 8px; margin-bottom: 8px; }
   .ammoBox { display: flex; align-items: center; gap: 4px; flex: 1; }
-  .ammoIcon { font-size: 12px; opacity: 0.8; }
+  .ammoIcon { font-size: 18px; opacity: 0.8; }
   .cooldownBar {
     flex: 1; height: 4px; border-radius: 2px; overflow: hidden;
     background: rgba(255,255,255,0.08); position: relative;
@@ -33,7 +33,7 @@
     transition: width 0.08s linear;
     box-shadow: 0 0 6px rgba(255,100,0,0.4);
   }
-  .ammoNum { font-size: 10px; font-weight: 600; min-width: 18px; text-align: right; color: #8099aa; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ammoNum { font-size: 15px; font-weight: 600; min-width: 18px; text-align: right; color: #8099aa; text-transform: uppercase; letter-spacing: 0.5px; }
 
   /* ---- Circular Gauge (Life/Shield/Speed) ---- */
   #gaugeWrap { position: relative; width: 140px; height: 140px; margin: 0 auto 6px; }
@@ -45,26 +45,26 @@
   #speedNeedle { stroke: #1a1a2e; stroke-width: 3; stroke-linecap: round; }
   #waveGaugeText {
     position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-    font-size: 9px; color: #5a8aaa; font-weight: 600; text-align: center;
+    font-size: 14px; color: #5a8aaa; font-weight: 600; text-align: center;
     text-transform: uppercase; letter-spacing: 1px;
   }
   #waveGaugeText b { color: #00d4ff; }
   #speedGaugeText {
-    position: absolute; top: 72px; left: 50%; transform: translateX(-50%);
-    font-size: 18px; font-weight: 700; color: #e0e8f0; text-align: center;
+    position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
+    font-size: 27px; font-weight: 700; color: #e0e8f0; text-align: center;
     text-shadow: 0 0 8px rgba(0,180,255,0.3);
   }
   .gaugeSideLabel {
-    position: absolute; top: 64px; font-size: 10px; font-weight: 700;
+    position: absolute; top: 62px; font-size: 15px; font-weight: 700;
   }
   #lifeGaugeLabel { left: -2px; color: #ff4455; }
-  #lifeGaugeLabel b { color: #ff4455; }
+  #lifeGaugeLabel b { color: #ff4455; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6); }
   #shieldGaugeLabel { right: -2px; color: #00ccee; }
-  #shieldGaugeLabel b { color: #00ccee; }
+  #shieldGaugeLabel b { color: #00ccee; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6); }
 
   /* ---- Boost Bar ---- */
   #boostRow { display: flex; align-items: center; gap: 6px; margin: 4px 0 6px; }
-  .boostLabel { font-size: 9px; color: #5a7a8a; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+  .boostLabel { font-size: 14px; color: #5a7a8a; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
   #boostBarWrap {
     flex: 1; height: 5px; border-radius: 3px; overflow: hidden;
     background: rgba(255,255,255,0.06);
@@ -81,28 +81,28 @@
   #spBar { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
   #spBarWrap { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,0.06); }
   #spBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #8844ff, #cc66ff); border-radius: 2px; transition: width 0.15s linear; box-shadow: 0 0 5px rgba(136,68,255,0.4); }
-  #spLabel { font-size: 9px; color: #8866cc; min-width: 50px; text-align: right; }
+  #spLabel { font-size: 14px; color: #8866cc; min-width: 50px; text-align: right; }
 
   /* ---- Juguete Name + Level ---- */
   #gearNameHud {
-    font-size: 12px; color: #00d4ff; text-transform: uppercase; letter-spacing: 1.5px;
+    font-size: 18px; color: #00d4ff; text-transform: uppercase; letter-spacing: 1.5px;
     margin-bottom: 3px; font-weight: 700;
     text-shadow: 0 0 10px rgba(0,212,255,0.3);
   }
-  #levelRow { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; font-size: 10px; color: #ffaa00; }
+  #levelRow { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; font-size: 15px; color: #ffaa00; }
   #levelBadge {
     background: linear-gradient(135deg, #ffaa00, #ff6600); color: #0a0a00; font-weight: 700;
-    padding: 1px 6px; border-radius: 3px; font-size: 11px; min-width: 18px; text-align: center;
+    padding: 1px 6px; border-radius: 3px; font-size: 17px; min-width: 18px; text-align: center;
     box-shadow: 0 0 6px rgba(255,150,0,0.3);
   }
   #xpBarWrap { flex: 1; height: 4px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,0.06); }
   #xpBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #ffaa00, #ff6600); border-radius: 2px; transition: width 0.3s linear; }
-  #xpLabel { font-size: 8px; color: #887744; min-width: 55px; text-align: right; }
+  #xpLabel { font-size: 12px; color: #887744; min-width: 55px; text-align: right; }
 
   /* ---- Buff Icons ---- */
   #buffRow { display: flex; gap: 3px; margin-bottom: 4px; flex-wrap: wrap; }
   .buffIcon {
-    font-size: 9px; padding: 1px 4px; border-radius: 2px;
+    font-size: 14px; padding: 1px 4px; border-radius: 2px;
     background: rgba(0,180,255,0.15); color: #00ccee;
     border: 1px solid rgba(0,180,255,0.25);
     text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600;
@@ -111,7 +111,7 @@
   /* ---- HUD Text (score, time, etc.) ---- */
   #hudText {
     border-top: 1px solid rgba(0,180,255,0.12); padding-top: 5px;
-    font-size: 11px; color: #6a8899;
+    font-size: 17px; color: #6a8899;
   }
   #hudText b { color: #99bbcc; }
 
@@ -140,7 +140,7 @@
     border-radius: 3px; padding: 5px 8px; display: none; pointer-events: none;
     box-shadow: 0 0 15px rgba(255,50,50,0.15);
   }
-  #bossBar .label { font-size: 10px; color: #cc4444; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  #bossBar .label { font-size: 15px; color: #cc4444; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
   #bossBar .track { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
   #bossBar .fill { height: 100%; background: linear-gradient(90deg, #ff2222, #ff6644); width: 100%; transition: width 0.15s; border-radius: 3px; box-shadow: 0 0 8px rgba(255,50,50,0.4); }
 
@@ -150,7 +150,7 @@
     width: 200px; background: rgba(5,12,25,0.9); border: 1px solid rgba(255,170,0,0.3);
     border-radius: 3px; padding: 4px 8px; display: none; pointer-events: none;
   }
-  #mobBar .label { font-size: 9px; color: #ccaa44; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  #mobBar .label { font-size: 14px; color: #ccaa44; margin-bottom: 2px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
   #mobBar .track { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
   #mobBar .fill { height: 100%; background: linear-gradient(90deg, #cc8800, #ffaa33); width: 100%; transition: width 0.15s; border-radius: 3px; }
 
@@ -514,17 +514,17 @@
   .skillSlot.movement .skillIcon { width: 36px; height: 36px; }
   .skillKey {
     position: absolute; top: 1px; left: 2px;
-    font-size: 8px; font-weight: 700; color: #80aacc; z-index: 3;
+    font-size: 12px; font-weight: 700; color: #80aacc; z-index: 3;
     background: rgba(0,100,150,0.5); border-radius: 2px; padding: 0 2px; line-height: 1.3;
   }
   .skillSlot.movement .skillKey { color: #66ddaa; background: rgba(0,120,80,0.4); }
   .skillName { display: none; }
   .skillCooldown {
-    position: absolute; bottom: 1px; font-size: 9px; color: #ff6644; font-weight: 700; z-index: 2;
+    position: absolute; bottom: 1px; font-size: 14px; color: #ff6644; font-weight: 700; z-index: 2;
     text-shadow: 0 0 3px rgba(0,0,0,0.8);
   }
   .skillSPCost {
-    position: absolute; top: 1px; right: 2px; font-size: 6px; color: #aa88dd; z-index: 3;
+    position: absolute; top: 1px; right: 2px; font-size: 9px; color: #aa88dd; z-index: 3;
   }
   /* ===== Skill Panel (AO-style drag-to-slot) ===== */
   #skillPanel {
@@ -561,12 +561,13 @@
   /* Drop zone highlight */
   .skillSlot.dropTarget { border-color: rgba(100,255,200,0.7) !important; box-shadow: 0 0 10px rgba(100,255,200,0.3); }
   #seedDisplay {
-    position: fixed; top: 10px; left: 10px;
-    background: rgba(0,0,0,0.7); color: #ff0;
-    padding: 5px 10px; border-radius: 5px;
-    font-family: monospace; font-size: 14px;
-    z-index: 100; pointer-events: none;
+    display: none;
   }
+  #loginSeed {
+    margin-top: 12px; font-family: monospace; font-size: 13px; color: #ff0;
+    background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;
+  }
+  #loginSeed.hidden { display: none; }
   #cardPickupNotif {
     position: fixed; right: 14px; bottom: 215px; left: auto; top: auto;
     transform: none;
@@ -794,6 +795,7 @@
     <p class="errMsg" id="loginErrMsg"></p>
     <button id="loginSubmitBtn">INGRESAR</button>
     <div id="loginLoading"></div>
+    <div id="loginSeed" class="hidden">Corrida · SEED: <b id="loginSeedValue">----</b></div>
   </div>
 </div>
 <div id="hud">
@@ -816,18 +818,18 @@
     </svg>
     <div id="waveGaugeText">OLEADA <b id="waveGauge">1</b></div>
     <div id="speedGaugeText"><b id="speedNum">0</b></div>
-    <div id="lifeGaugeLabel" class="gaugeSideLabel"><b id="livesFrac">5/5</b></div>
-    <div id="shieldGaugeLabel" class="gaugeSideLabel"><b id="shieldFrac">3/3</b></div>
+    <div id="lifeGaugeLabel" class="gaugeSideLabel"><b id="livesFrac">2500/2500</b></div>
+    <div id="shieldGaugeLabel" class="gaugeSideLabel"><b id="shieldFrac">1500/1500</b></div>
   </div>
 
   <div id="mobileBarsWrap">
     <div class="mobileBarRow"><span class="boostLabel">Velocidad <b id="mobileSpeedNum">0</b> · Oleada <b id="mobileWaveNum">1</b></span></div>
     <div class="mobileBarRow">
-      <span class="boostLabel">Vida <b id="mobileLivesFrac">5/5</b></span>
+      <span class="boostLabel">Vida <b id="mobileLivesFrac">2500/2500</b></span>
       <div class="mobileBarWrap"><div id="mobileLifeFill" class="mobileBarFill mobileBarLife"></div></div>
     </div>
     <div class="mobileBarRow">
-      <span class="boostLabel">Escudo <b id="mobileShieldFrac">3/3</b></span>
+      <span class="boostLabel">Escudo <b id="mobileShieldFrac">1500/1500</b></span>
       <div class="mobileBarWrap"><div id="mobileShieldFill" class="mobileBarFill mobileBarShield"></div></div>
     </div>
   </div>
@@ -1296,6 +1298,9 @@ gearSelectStartBtn.addEventListener('click', () => {
   startGearPlay();
 });
 function startGearPlay() {
+  if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+    if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+  }
   if (!isMobile && !anyUiOverlayVisible()) renderer.domElement.requestPointerLock();
   if (!gameRunning) {
     renderLivesHUD();
@@ -1345,7 +1350,7 @@ function applyGearSelection(gearKey) {
   speedMin = cfg.stats.speedMin || maxSpeed * 0.6; // AO: idle speed is ~60-77% of max (Eurostar IX: 154/200=77%)
   MAX_LIVES = cfg.stats.hp * PLAYER_HP_PER_LIFE_UNIT;
   lives = MAX_LIVES;
-  shieldMax = cfg.stats.shield;
+  shieldMax = cfg.stats.shield * SHIELD_BLOCK;
   shield = shieldMax;
   playerDefense = cfg.stats.defense;
   playerEvasion = cfg.stats.evasion;
@@ -3901,7 +3906,7 @@ function spawnTeddyWave() {
 
 function spawnBossWave() {
   const mesh = buildBoatBoss();
-  const scaleUp = 1 + bossEncounters * 0.12;
+  const scaleUp = 5 * (1 + bossEncounters * 0.12);
   mesh.scale.setScalar(scaleUp);
   mesh.position.set(0, 90, 0);
   scene.add(mesh);
@@ -4741,7 +4746,7 @@ const CHEATS = {
     showWaveBanner('CHEAT: Kill all');
   },
   'maxshield': () => {
-    shieldMax = SHIELD_CAP;
+    shieldMax = SHIELD_CAP * SHIELD_BLOCK;
     shield = shieldMax;
     renderShieldHUD();
     showWaveBanner('CHEAT: Escudo máximo');
@@ -5383,7 +5388,7 @@ function applySkillEffect(skillId, on) {
   if (!on) {
     delete activeSkillEffects[skillId];
     if (skillId === 'siegeMode') { isSiegeMode = false; }
-    if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
+    if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5 * SHIELD_BLOCK); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
     if (skillId === 'deployChaffs') { delete window._chaffHits; }
     if (skillId === 'healingField') { removeHealingFieldVisual(); }
     if (skillId === 'energizingField') { removeEnergizingFieldVisual(); }
@@ -5433,7 +5438,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- MURO: Barrier ----
   if (skillId === 'barrier') {
-    shield += 5; shieldMax += 5; renderShieldHUD();
+    shield += 5 * SHIELD_BLOCK; shieldMax += 5 * SHIELD_BLOCK; renderShieldHUD();
     spawnBarrierVisual();
     spawnSkillRing(ship.position, 0x44aaff, 3, 20);
     aceSpawnParticles(ACE.barrier.activate, ship.position.clone(), explosions);
@@ -5957,7 +5962,7 @@ scene.add(bombReticle);
 // Escudo: absorbe golpes antes de tocar las vidas. Sube su tope con cada oleada limpiada.
 const SHIELD_START = 3;
 const SHIELD_CAP = 8;
-let shieldMax = SHIELD_START;
+let shieldMax = SHIELD_START * SHIELD_BLOCK;
 let shield = shieldMax;
 
 const RING_HALF_LEN = Math.PI * 75; // longitud de cada medio-anillo (arco de 180°, r=75)
@@ -6106,7 +6111,7 @@ function registerHit(enemy, dmg, isMissile) {
   if (isSkillActive('drain')) {
     const healPct = 0.25; // 25% of damage dealt
     const healAmt = Math.max(1, Math.round(finalDmg * healPct));
-    if (shield < shieldMax) { const shieldBars = Math.max(1, Math.round(healAmt / SHIELD_BLOCK)); shield = Math.min(shieldMax, shield + shieldBars); renderShieldHUD(); }
+    if (shield < shieldMax) { const shieldBars = Math.max(1, Math.round(healAmt / SHIELD_BLOCK)); shield = Math.min(shieldMax, shield + shieldBars * SHIELD_BLOCK); renderShieldHUD(); }
     spawnDamageNumber(enemy.mesh.position, '+' + healAmt, 0x44aaff);
   }
 
@@ -6179,7 +6184,7 @@ function registerPlayerHit(dmg) {
     aceSpawnParticles(ACE.shieldImpact.flash, ship.position.clone(), explosions);
     const absorb = Math.min(remaining, SHIELD_BLOCK);
     remaining -= absorb;
-    shield -= 1;
+    shield = Math.max(0, shield - SHIELD_BLOCK);
     renderShieldHUD();
     // ---- REFLECT: return damage to nearest enemy (AO DES_PAIR_REFLECTION) ----
     if (isSkillActive('reflect')) {
@@ -6342,7 +6347,7 @@ function clearWaveIfDone() {
     if (wasBoss) bossEncounters++;
     clearedCount++;
     waveNumber++;
-    shieldMax = Math.min(SHIELD_CAP, shieldMax + 1);
+    shieldMax = Math.min(SHIELD_CAP * SHIELD_BLOCK, shieldMax + SHIELD_BLOCK);
     shield = shieldMax;
     renderShieldHUD();
     if (bestWaveTime === null || waveTimer < bestWaveTime) {
@@ -6490,9 +6495,9 @@ function resetGame() {
   if (selectedGear && GEAR_CONFIGS[selectedGear]) {
     const cfg = GEAR_CONFIGS[selectedGear];
     MAX_LIVES = cfg.stats.hp * PLAYER_HP_PER_LIFE_UNIT;
-    shieldMax = cfg.stats.shield;
+    shieldMax = cfg.stats.shield * SHIELD_BLOCK;
   } else {
-    MAX_LIVES = 5 * PLAYER_HP_PER_LIFE_UNIT; shieldMax = SHIELD_START;
+    MAX_LIVES = 5 * PLAYER_HP_PER_LIFE_UNIT; shieldMax = SHIELD_START * SHIELD_BLOCK;
   }
   lives = MAX_LIVES;
   shield = shieldMax;
@@ -6979,8 +6984,8 @@ function animate() {
     let consumed = false;
     for (const enemy of enemies) {
       if (!enemy.alive || enemiesHit.has(enemy)) continue;
-      const hitRadius = enemy.isBoss ? 165 : 5.5;
-      if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) {
+const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
+        if (p.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) {
         registerHit(enemy, p.damage || 10, false);
         enemiesHit.add(enemy);
         if (pierceCount <= 0) { consumed = true; break; }
@@ -7022,7 +7027,7 @@ function animate() {
       for (const e of enemies) {
         if (!e.alive) continue;
         const d = e.mesh.position.distanceTo(m.mesh.position);
-        const hitRadius = e.isBoss ? 165 : impactRadius;
+        const hitRadius = e.isBoss ? 165 * e.mesh.scale.x : impactRadius;
         if (d < hitRadius) { impactedEnemy = e; break; }
       }
 
@@ -7065,7 +7070,7 @@ function animate() {
     if (!m.bombTarget) {
       for (const enemy of enemies) {
         if (!enemy.alive) continue;
-        const hitRadius = enemy.isBoss ? 165 : 5.5;
+const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
         if (m.mesh.position.distanceTo(enemy.mesh.position) < hitRadius) { registerHit(enemy, m.damage || 30, true); hit = true; break; }
       }
     }
@@ -7688,6 +7693,13 @@ function doLogin() {
   setLoginLoading('Conectando...');
   // Carga de fondo mientras el login está abierto: precargamos un poco antes de seguir
   setTimeout(function() {
+    if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+      if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+    }
+    var ls = document.getElementById('loginSeed');
+    var lsv = document.getElementById('loginSeedValue');
+    if (ls) ls.classList.remove('hidden');
+    if (lsv) lsv.textContent = (typeof currentRunSeed !== 'undefined' && currentRunSeed !== null) ? currentRunSeed : '----';
     setLoginLoading('Cargando recursos...');
     setTimeout(function() {
       try { localStorage.setItem('patoClone_user', JSON.stringify({ name: patoCloneUser.name })); } catch (e) {}

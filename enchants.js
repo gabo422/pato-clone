@@ -249,7 +249,10 @@ function getEnchantBonus(stat) {
 // ================= 7. DROPS =================
 function tryDropCard(enemy, wave, gear, bossEnc) {
   if (typeof scene === 'undefined' || typeof ship === 'undefined') return;
-  if (!currentRunSeed) return;
+  if (!currentRunSeed) {
+    if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+    else return;
+  }
 
   var drop = null;
 
@@ -299,7 +302,7 @@ function buildCardDropMesh(card) {
   var group = new THREE.Group();
 
   var core = new THREE.Mesh(
-    new THREE.OctahedronGeometry(2.6, 0),
+    new THREE.OctahedronGeometry(4.5, 0),
     new THREE.MeshStandardMaterial({
       color: color,
       emissive: color,
@@ -311,7 +314,7 @@ function buildCardDropMesh(card) {
   group.add(core);
 
   var ring = new THREE.Mesh(
-    new THREE.TorusGeometry(3.6, 0.25, 8, 20),
+    new THREE.TorusGeometry(6.5, 0.4, 8, 20),
     new THREE.MeshStandardMaterial({
       color: color,
       emissive: color,
@@ -325,7 +328,7 @@ function buildCardDropMesh(card) {
 }
 
 function spawnCardDrop(position, card) {
-  if (droppedCards.length >= 5) return;
+  if (droppedCards.length >= 8) return;
   if (typeof THREE === 'undefined' || typeof scene === 'undefined') return;
 
   var mesh = buildCardDropMesh(card);
@@ -338,7 +341,7 @@ function spawnCardDrop(position, card) {
     mesh: mesh,
     card: card,
     bobPhase: Math.random() * Math.PI * 2,
-    life: 30
+    life: 45
   });
 }
 
@@ -351,7 +354,7 @@ function updateCardDrops(dt) {
     d.mesh.rotation.y += dt * 1.5;
     d.life -= dt;
 
-    if (d.mesh.position.distanceTo(ship.position) < 6) {
+    if (d.mesh.position.distanceTo(ship.position) < 16) {
       scene.remove(d.mesh);
       droppedCards.splice(i, 1);
       continue;
