@@ -487,6 +487,13 @@
     pointer-events: auto;
     box-shadow: 0 0 20px rgba(0,100,180,0.15);
   }
+  #skillCount {
+    align-self: center; font-size: 11px; font-weight: 700; color: #aaddff;
+    background: rgba(0,80,140,0.35); border: 1px solid rgba(0,180,255,0.3);
+    border-radius: 4px; padding: 4px 6px; margin-right: 2px;
+    line-height: 1.2; text-align: center; white-space: nowrap;
+    min-width: 22px;
+  }
   .skillSlot {
     width: 46px; height: 46px; border-radius: 4px; flex: none;
     background: rgba(5,12,25,0.85); border: 1px solid rgba(0,180,255,0.2);
@@ -911,18 +918,6 @@
   </div>
 </div>
 <div id="skillBar">
-  <div class="skillSlot movement" id="skillSlotQ"><div class="skillKey">Q</div><img class="skillIcon" id="skillIconQ"><div class="skillCooldown" id="skillCDQ"></div></div>
-  <div class="skillSlot movement" id="skillSlotE"><div class="skillKey">E</div><img class="skillIcon" id="skillIconE"><div class="skillCooldown" id="skillCDE"></div></div>
-  <div class="skillSlot" id="skillSlot0"><div class="skillKey">1</div><img class="skillIcon" id="skillIcon0"><div class="skillCooldown" id="skillCD0"></div><div class="skillSPCost" id="skillSP0"></div></div>
-  <div class="skillSlot" id="skillSlot1"><div class="skillKey">2</div><img class="skillIcon" id="skillIcon1"><div class="skillCooldown" id="skillCD1"></div><div class="skillSPCost" id="skillSP1"></div></div>
-  <div class="skillSlot" id="skillSlot2"><div class="skillKey">3</div><img class="skillIcon" id="skillIcon2"><div class="skillCooldown" id="skillCD2"></div><div class="skillSPCost" id="skillSP2"></div></div>
-  <div class="skillSlot" id="skillSlot3"><div class="skillKey">4</div><img class="skillIcon" id="skillIcon3"><div class="skillCooldown" id="skillCD3"></div><div class="skillSPCost" id="skillSP3"></div></div>
-  <div class="skillSlot" id="skillSlot4"><div class="skillKey">5</div><img class="skillIcon" id="skillIcon4"><div class="skillCooldown" id="skillCD4"></div><div class="skillSPCost" id="skillSP4"></div></div>
-  <div class="skillSlot" id="skillSlot5"><div class="skillKey">6</div><img class="skillIcon" id="skillIcon5"><div class="skillCooldown" id="skillCD5"></div><div class="skillSPCost" id="skillSP5"></div></div>
-  <div class="skillSlot" id="skillSlot6"><div class="skillKey">7</div><img class="skillIcon" id="skillIcon6"><div class="skillCooldown" id="skillCD6"></div><div class="skillSPCost" id="skillSP6"></div></div>
-  <div class="skillSlot" id="skillSlot7"><div class="skillKey">8</div><img class="skillIcon" id="skillIcon7"><div class="skillCooldown" id="skillCD7"></div><div class="skillSPCost" id="skillSP7"></div></div>
-  <div class="skillSlot" id="skillSlot8"><div class="skillKey">9</div><img class="skillIcon" id="skillIcon8"><div class="skillCooldown" id="skillCD8"></div><div class="skillSPCost" id="skillSP8"></div></div>
-  <div class="skillSlot" id="skillSlot9"><div class="skillKey">0</div><img class="skillIcon" id="skillIcon9"><div class="skillCooldown" id="skillCD9"></div><div class="skillSPCost" id="skillSP9"></div></div>
 </div>
 <img id="dragGhost">
 <div id="skillPanel">
@@ -1225,12 +1220,7 @@ const GEAR_CONFIGS = {
     desc: 'Pesado y letal. Siege mode y defensa.',
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 180, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 90, pierce: true },
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
-    stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10 },
-    passives: [
-      { id: 'collisionAbsorption', name: 'Collision Absorption', desc: '-40% daño de choques', stat: 'collisionDmgReduction', value: 0.4 },
-      { id: 'siegeDefense', name: 'Siege Defense', desc: '+50% defensa extra en siege', stat: 'siegeDefenseBonus', value: 0.5 },
-      { id: 'groundAccelerator', name: 'Ground Accelerator', desc: '+60% velocidad', stat: 'speedBonus', value: 0.6 }
-    ],
+    stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10, collisionDmgReduction: 0.4, siegeDefenseBonus: 0.5, speedBonus: 0.6 },
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar' },
       { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada' },
@@ -1256,10 +1246,7 @@ const GEAR_CONFIGS = {
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 210, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
-    stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7 },
-    passives: [
-      { id: 'reduceDamage', name: 'Reduce Damage', desc: '-25% daño recibido', stat: 'dmgReduction', value: 0.25 }
-    ],
+    stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7, dmgReduction: 0.25 },
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar' },
       { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada' },
@@ -1284,11 +1271,7 @@ const GEAR_CONFIGS = {
     desc: 'La columna vertebral del equipo. Curación y buffs.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 52, speed: 220, reattackTime: 0.60, overheatTime: 15, accuracy: 95, pierce: false },
                advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false } },
-    stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7 },
-    passives: [
-      { id: 'elevation', name: 'Elevation', desc: '+30% daño arma estándar', stat: 'stdDmgBonus', value: 0.3 },
-      { id: 'smartSP', name: 'Smart SP', desc: '-30% SP cost de todas las skills', stat: 'spCostReduction', value: 0.3 }
-    ],
+    stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7, stdDmgBonus: 0.3, spCostReduction: 0.3 },
     activeSkills: [
       { id: 'healingField', name: 'Healing Field', cat: 'Defensa', spCost: 20, cooldown: 1, duration: 15, desc: '+1 HP cada 3s (área)' },
       { id: 'energizingField', name: 'Energizing Field', cat: 'Atributo', spCost: 15, cooldown: 1, duration: 15, desc: '+200% regen SP (área)' },
@@ -5105,15 +5088,7 @@ if (isMobile) {
     }, { passive: false });
   }
 
-  // ---- Skills touch: tocar los slots directamente ----
-  for (let i = 0; i < 10; i++) {
-    const slot = document.getElementById('skillSlot' + i);
-    if (slot) slot.addEventListener('touchstart', e => { e.preventDefault(); onSkillKey(i); }, { passive: false });
-  }
-  const qSlot = document.getElementById('skillSlotQ');
-  const eSlot = document.getElementById('skillSlotE');
-  if (qSlot) qSlot.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('q'); }, { passive: false });
-  if (eSlot) eSlot.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('e'); }, { passive: false });
+  // ---- Skills touch: tocar los slots directamente (bindings dinámicos en buildSkillBarDOM) ----
 
   // Ocultar skill bar por defecto en mobile
   document.getElementById('skillBar').style.display = 'none';
@@ -5260,7 +5235,7 @@ let noAttackTimer = 0;
 const NO_ATTACK_THRESHOLD = 5; // segundos sin atacar para regen rápida
 
 // Skill slots: indices 0-9对应 teclas 1-0
-let skillSlots = [];           // array de { id, ... } o null, longitud 10
+let skillSlots = [];           // array dinámico: un slot por skill activa del gear
 let skillCooldowns = new Array(10).fill(0);
 let skillActiveTimers = {};    // { skillId: remainingTime }
 let activeSkillEffects = {};   // { gearId_skillId: true }
@@ -5277,13 +5252,18 @@ function getGearConfig() {
 // ================= Passive Buffs =================
 let passiveBuffs = {}; // { statName: totalValue }
 
+const PASSIVE_STAT_KEYS = ['stdDmgBonus','advDmgBonus','defenseBonus','evasionBonus','stdAccuracyBonus','advAccuracyBonus','spCostReduction','dmgReduction','collisionDmgReduction','siegeDefenseBonus','speedBonus'];
 function applyPassiveBuffs() {
   passiveBuffs = {};
   const gear = getGearConfig();
-  if (!gear || !gear.passives) return;
-  for (const p of gear.passives) {
-    if (!passiveBuffs[p.stat]) passiveBuffs[p.stat] = 0;
-    passiveBuffs[p.stat] += p.value;
+  if (!gear) return;
+  const st = gear.stats || {};
+  for (const k of PASSIVE_STAT_KEYS) { if (st[k]) passiveBuffs[k] = (passiveBuffs[k] || 0) + st[k]; }
+  if (gear.passives) {
+    for (const p of gear.passives) {
+      if (!passiveBuffs[p.stat]) passiveBuffs[p.stat] = 0;
+      passiveBuffs[p.stat] += p.value;
+    }
   }
 }
 
@@ -5350,31 +5330,101 @@ const SKILL_ICON_DIR = 'icons/skills_ace/';
 // ================= Skill Slot Management =================
 function initSkillSlots() {
   const gear = getGearConfig();
-  skillSlots = new Array(10).fill(null);
-  skillCooldowns = new Array(10).fill(0);
+  const skills = gear ? (gear.activeSkills || []).slice(0, 14) : [];
+  skillSlots = skills.slice();
+  skillCooldowns = new Array(skillSlots.length).fill(0);
   skillActiveTimers = {};
   movementCooldowns = { q: 0, e: 0 };
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
-  if (!gear) return;
-  const skills = gear.activeSkills || [];
-  for (let i = 0; i < Math.min(skills.length, 10); i++) {
-    skillSlots[i] = skills[i];
-  }
+  buildSkillBarDOM(gear);
   if (skillPanelOpen) renderSkillPanel();
 }
 
+function makeSkillSlotEl(i) {
+  const key = i < 9 ? String(i + 1) : i === 9 ? '0' : '·';
+  const div = document.createElement('div');
+  div.className = 'skillSlot';
+  div.id = 'skillSlot' + i;
+  div.innerHTML =
+    '<div class="skillKey">' + key + '</div>' +
+    '<img class="skillIcon" id="skillIcon' + i + '" alt="">' +
+    '<div class="skillCooldown" id="skillCD' + i + '"></div>' +
+    '<div class="skillSPCost" id="skillSP' + i + '"></div>';
+  return div;
+}
+
+function buildSkillBarDOM(gear) {
+  const bar = document.getElementById('skillBar');
+  bar.innerHTML = '';
+  const count = document.createElement('div');
+  count.id = 'skillCount';
+  count.textContent = '0/0';
+  count.title = 'Skills activables ahora (SP suficiente y sin cooldown)';
+  bar.appendChild(count);
+  if (gear && gear.movement) {
+    for (const [keyLabel, keyText] of [['Q','Q'],['E','E']]) {
+      if (!gear.movement[keyText.toLowerCase()]) continue;
+      const div = document.createElement('div');
+      div.className = 'skillSlot movement';
+      div.id = 'skillSlot' + keyLabel;
+      div.innerHTML = '<div class="skillKey">' + keyText + '</div><img class="skillIcon" id="skillIcon' + keyLabel + '"><div class="skillCooldown" id="skillCD' + keyLabel + '"></div>';
+      bar.appendChild(div);
+    }
+  }
+  for (let i = 0; i < skillSlots.length; i++) {
+    bar.appendChild(makeSkillSlotEl(i));
+  }
+  bindSkillBarEvents();
+}
+
+function bindSkillBarEvents() {
+  const qEl = document.getElementById('skillSlotQ');
+  const eEl = document.getElementById('skillSlotE');
+  if (qEl) qEl.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('q'); }, { passive: false });
+  if (eEl) eEl.addEventListener('touchstart', e => { e.preventDefault(); activateMovementSkill('e'); }, { passive: false });
+  for (let i = 0; i < skillSlots.length; i++) {
+    const el = document.getElementById('skillSlot' + i);
+    if (!el) continue;
+    el.addEventListener('touchstart', e => { e.preventDefault(); onSkillKey(i); }, { passive: false });
+    el.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      if (!skillSlots[i]) return;
+      e.preventDefault();
+      const iconFile = SKILL_ICON_MAP[skillSlots[i].id];
+      dragData = { skillId: skillSlots[i].id, sourceSlot: i };
+      dragGhost.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+      dragGhost.style.display = 'block';
+      dragGhost.style.left = (e.clientX - 18) + 'px';
+      dragGhost.style.top = (e.clientY - 18) + 'px';
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+    });
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (skillSlots[i]) { skillSlots[i] = null; renderSkillBar(); }
+    });
+  }
+}
+
+function getSkillCost(sk) {
+  const base = (sk && sk.spCost) || 0;
+  if (base <= 0) return 0;
+  let red = getPassive('spCostReduction');
+  if (typeof getEnchantBonus === 'function') red += getEnchantBonus('spCostReduction');
+  return Math.max(1, Math.round(base * (1 - red)));
+}
+
 function canUseSkillSlot(slot) {
-  if (slot < 0 || slot >= 10) return false;
+  if (slot < 0 || slot >= skillSlots.length) return false;
   const sk = skillSlots[slot];
   if (!sk) return false;
-  const costReduction = getPassive('spCostReduction');
-  const actualCost = Math.round(sk.spCost * (1 - costReduction));
+  const actualCost = getSkillCost(sk);
   return playerSP >= actualCost && skillCooldowns[slot] <= 0;
 }
 
 function activateSkillSlot(slot) {
-  if (slot < 0 || slot >= 10) return false;
+  if (slot < 0 || slot >= skillSlots.length) return false;
   const sk = skillSlots[slot];
   if (!sk) return false;
   // Toggle off if already active (for bombing modes)
@@ -5383,8 +5433,7 @@ function activateSkillSlot(slot) {
     delete skillActiveTimers[sk.id];
     return true;
   }
-  const costReduction = getPassive('spCostReduction');
-  const actualCost = Math.round(sk.spCost * (1 - costReduction));
+  const actualCost = getSkillCost(sk);
   if (playerSP < actualCost || skillCooldowns[slot] > 0) return false;
   playerSP -= actualCost;
   skillCooldowns[slot] = sk.cooldown;
@@ -5761,7 +5810,7 @@ function getAdvAccuracyBonus() {
 // ================= Render Skill Bar =================
 function renderSkillBar() {
   const gear = getGearConfig();
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < skillSlots.length; i++) {
     const slotEl = document.getElementById('skillSlot' + i);
     if (!slotEl) continue;
     const sk = skillSlots[i];
@@ -5786,8 +5835,7 @@ function renderSkillBar() {
     cdEl.textContent = cd > 0 ? Math.ceil(cd) + 's' : '';
     slotEl.classList.toggle('onCooldown', cd > 0);
     slotEl.classList.toggle('active', !!skillActiveTimers[sk.id]);
-    const costReduction = getPassive('spCostReduction');
-    const actualCost = Math.round(sk.spCost * (1 - costReduction));
+    const actualCost = getSkillCost(sk);
     if (spCostEl) spCostEl.textContent = actualCost + ' SP';
     slotEl.title = sk.name + ': ' + sk.desc + ' (SP: ' + actualCost + ', CD: ' + sk.cooldown + 's)';
   }
@@ -5830,6 +5878,20 @@ function renderSkillBar() {
   const spNum = document.getElementById('spNum');
   if (spFill) spFill.style.width = (playerSP / MAX_SP * 100) + '%';
   if (spNum) spNum.textContent = Math.floor(playerSP);
+  // Contador dinámico de skills activables ahora (SP suficiente + sin cooldown)
+  const skillCountEl = document.getElementById('skillCount');
+  if (skillCountEl) {
+    let ready = 0;
+    const total = skillSlots.filter(Boolean).length;
+    for (let i = 0; i < skillSlots.length; i++) {
+      const sk = skillSlots[i];
+      if (!sk) continue;
+      if (skillCooldowns[i] > 0) continue;
+      if (playerSP < getSkillCost(sk)) continue;
+      ready++;
+    }
+    skillCountEl.textContent = ready + '/' + total;
+  }
 }
 
 // ================= Skill Panel + Drag & Drop (AO-style) =================
@@ -5879,7 +5941,7 @@ function renderSkillPanel() {
     });
     // Click to first empty slot
     div.addEventListener('dblclick', (e) => {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < skillSlots.length; i++) {
         if (!skillSlots[i]) {
           skillSlots[i] = allSkills.find(s => s.id === sk.id);
           renderSkillBar();
@@ -5895,7 +5957,7 @@ function onDragMove(e) {
   dragGhost.style.left = (e.clientX - 18) + 'px';
   dragGhost.style.top = (e.clientY - 18) + 'px';
   // Highlight drop target
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < skillSlots.length; i++) {
     const el = document.getElementById('skillSlot' + i);
     if (!el) continue;
     const r = el.getBoundingClientRect();
@@ -5908,7 +5970,7 @@ function onDragEnd(e) {
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
   dragGhost.style.display = 'none';
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < skillSlots.length; i++) {
     const el = document.getElementById('skillSlot' + i);
     if (el) el.classList.remove('dropTarget');
   }
@@ -5919,7 +5981,7 @@ function onDragEnd(e) {
   const allSkills = getGearConfig() ? (getGearConfig().activeSkills || []) : [];
   const droppedSkill = allSkills.find(s => s.id === dragData.skillId);
   let droppedOnSlot = -1;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < skillSlots.length; i++) {
     const el = document.getElementById('skillSlot' + i);
     if (!el) continue;
     const r = el.getBoundingClientRect();
@@ -5954,34 +6016,6 @@ function onDragEnd(e) {
   }
   renderSkillBar();
   dragData = null;
-}
-
-// Add drag-from-slot support to existing skill slots
-for (let i = 0; i < 10; i++) {
-  const el = document.getElementById('skillSlot' + i);
-  if (!el) continue;
-  el.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    if (!skillSlots[i]) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const iconFile = SKILL_ICON_MAP[skillSlots[i].id];
-    dragData = { skillId: skillSlots[i].id, sourceSlot: i };
-    dragGhost.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
-    dragGhost.style.display = 'block';
-    dragGhost.style.left = (e.clientX - 18) + 'px';
-    dragGhost.style.top = (e.clientY - 18) + 'px';
-    document.addEventListener('mousemove', onDragMove);
-    document.addEventListener('mouseup', onDragEnd);
-  });
-  // Right-click to remove skill from slot
-  el.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    if (skillSlots[i]) {
-      skillSlots[i] = null;
-      renderSkillBar();
-    }
-  });
 }
 
 // ================= Skill Key Handlers =================
@@ -6371,7 +6405,7 @@ function startWave() {
   waveIsBoss = isBossWave;
   stdHeat = 0; advHeat = 0;
   stdOverheated = false; advOverheated = false;
-  skillCooldowns = new Array(10).fill(0);
+  skillCooldowns = new Array(skillSlots.length).fill(0);
   skillActiveTimers = {};
   activeSkillEffects = {};
   movementCooldowns = { q: 0, e: 0 };
