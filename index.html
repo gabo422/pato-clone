@@ -563,11 +563,37 @@
   #seedDisplay {
     display: none;
   }
-  #loginSeed {
-    margin-top: 12px; font-family: monospace; font-size: 13px; color: #ff0;
-    background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;
+  #seedOverlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: radial-gradient(ellipse at 50% 35%, #0d1c30 0%, #040b14 65%, #000 100%);
+    display: flex; align-items: center; justify-content: center;
   }
-  #loginSeed.hidden { display: none; }
+  #seedOverlay.hidden { display: none; }
+  #seedPanel {
+    width: 380px; max-width: 92%; text-align: center;
+    background: rgba(8,18,32,0.92); border: 1px solid rgba(255,220,60,0.4);
+    border-radius: 12px; padding: 26px 24px;
+    box-shadow: 0 0 30px rgba(255,180,40,0.12);
+  }
+  #seedPanel h2 { margin: 0 0 2px; color: #ffe27a; font-size: 22px; letter-spacing: 1px; font-family: 'Rajdhani', sans-serif; }
+  #seedPanel .sub { color: #b3a56a; font-size: 12px; margin: 0 0 16px; }
+  #seedPanel label { display: block; text-align: left; color: #d8c97a; font-size: 12px; margin: 10px 0 4px; }
+  #seedPanel input {
+    width: 100%; box-sizing: border-box; padding: 9px 11px;
+    background: rgba(10,25,45,0.9); color: #ffe27a;
+    border: 1px solid rgba(255,220,60,0.35); border-radius: 6px;
+    font-size: 16px; font-weight: 700; font-family: monospace; outline: none; text-align: center;
+  }
+  #seedPanel input:focus { border-color: rgba(255,220,60,0.7); }
+  #seedBtns { display: flex; gap: 8px; margin-top: 16px; }
+  #seedBtns button {
+    flex: 1; padding: 11px 8px; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,200,60,0.35) 0%, rgba(160,110,20,0.35) 100%);
+    border: 1px solid rgba(255,220,60,0.6); border-radius: 8px;
+    color: #1a1400; font-size: 15px; font-weight: 700; font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+  }
+  #seedBtns button:hover { filter: brightness(1.25); }
   #cardPickupNotif {
     position: fixed; right: 14px; bottom: 215px; left: auto; top: auto;
     transform: none;
@@ -793,10 +819,22 @@
     <label for="loginPassInput">Contraseña</label>
     <input id="loginPassInput" type="password" maxlength="30" autocomplete="off" spellcheck="false">
     <p class="errMsg" id="loginErrMsg"></p>
-    <button id="loginSubmitBtn">INGRESAR</button>
+<button id="loginSubmitBtn">INGRESAR</button>
     <div id="loginLoading"></div>
-    <div id="loginSeed" class="hidden">Corrida · SEED: <b id="loginSeedValue">----</b></div>
   </div>
+</div>
+<div id="seedOverlay" class="hidden">
+  <div id="seedPanel">
+    <h2>🎲 SEED DE LA CORRIDA</h2>
+    <p class="sub">La seed define qué cartas caen en este run</p>
+    <label for="seedInput">Semilla numerica (generada o propia)</label>
+    <input id="seedInput" type="text" inputmode="numeric" maxlength="6" autocomplete="off" spellcheck="false" placeholder="Dejala vacia = al azar">
+    <div id="seedBtns">
+      <button id="seedGenerateBtn">🎲 GENERAR NUEVA</button>
+      <button id="seedConfirmBtn">CONTINUAR</button>
+    </div>
+  </div>
+</div>
 </div>
 <div id="hud">
   <div id="gearNameHud">—</div>
@@ -4645,11 +4683,34 @@ function drawMinimap() {
   minimapCtx.beginPath(); minimapCtx.arc(cx, cy, R, 0, Math.PI * 2); minimapCtx.fill();
   minimapCtx.strokeStyle = 'rgba(42,166,207,0.5)';
   minimapCtx.lineWidth = 1;
-  for (const frac of [0.33, 0.66, 1]) {
-    minimapCtx.beginPath(); minimapCtx.arc(cx, cy, R * frac, 0, Math.PI * 2); minimapCtx.stroke();
-  }
+  minimapCtx.beginPath(); minimapCtx.arc(cx, cy, R, 0, Math.PI * 2); minimapCtx.stroke();
 
   const scale = R / RADAR_RANGE;
+
+  // Paredes reales del cuarto proyectadas al radar (el cuarto es UN solo mapa abierto)
+  minimapCtx.save();
+  minimapCtx.beginPath();
+  minimapCtx.arc(cx, cy, R, 0, Math.PI * 2);
+  minimapCtx.clip();
+  minimapCtx.strokeStyle = 'rgba(42,166,207,0.55)';
+  minimapCtx.lineWidth = 2;
+  const hw = roomW * scale, hd = roomD * scale;
+  minimapCtx.strokeRect(cx - hw, cy - hd, hw * 2, hd * 2);
+  // Salida (portal) marcada en verde
+  if (typeof doorGroup !== 'undefined' && doorGroup) {
+    const ddx = (doorGroup.position.x - ship.position.x) * scale;
+    const ddz = (doorGroup.position.z - ship.position.z) * scale;
+    const ddist = Math.hypot(ddx, ddz);
+    let px, py;
+    if (ddist <= R - 6) { px = cx + ddx; py = cy + ddz; }
+    else { const ang = Math.atan2(ddz, ddx); px = cx + Math.cos(ang) * (R - 6); py = cy + Math.sin(ang) * (R - 6); }
+    minimapCtx.fillStyle = '#7dff9a';
+    minimapCtx.strokeStyle = '#0a3d1a';
+    minimapCtx.lineWidth = 1;
+    minimapCtx.beginPath(); minimapCtx.arc(px, py, 4.5, 0, Math.PI * 2); minimapCtx.fill(); minimapCtx.stroke();
+  }
+  minimapCtx.restore();
+
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
     const dx = enemy.mesh.position.x - ship.position.x;
@@ -4859,7 +4920,7 @@ let gameRunning = false;
 const mouseButtons = { left: false, right: false, middle: false };
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 function anyUiOverlayVisible() {
-  var ids = ['gearSelectOverlay', 'loginOverlay', 'tutorialOverlay', 'inventoryOverlay'];
+  var ids = ['gearSelectOverlay', 'loginOverlay', 'seedOverlay', 'tutorialOverlay', 'inventoryOverlay'];
   for (var i = 0; i < ids.length; i++) {
     var el = document.getElementById(ids[i]);
     if (el && !el.classList.contains('hidden')) return true;
@@ -7693,23 +7754,55 @@ function doLogin() {
   setLoginLoading('Conectando...');
   // Carga de fondo mientras el login está abierto: precargamos un poco antes de seguir
   setTimeout(function() {
-    if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
-      if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
-    }
-    var ls = document.getElementById('loginSeed');
-    var lsv = document.getElementById('loginSeedValue');
-    if (ls) ls.classList.remove('hidden');
-    if (lsv) lsv.textContent = (typeof currentRunSeed !== 'undefined' && currentRunSeed !== null) ? currentRunSeed : '----';
     setLoginLoading('Cargando recursos...');
     setTimeout(function() {
       try { localStorage.setItem('patoClone_user', JSON.stringify({ name: patoCloneUser.name })); } catch (e) {}
       setLoginLoading('');
       loginOverlay.classList.add('hidden');
-      // El menú de elegir nave sale SIEMPRE después del login
-      openGearSelect();
+      // Pantalla de seed: generar una nueva o introducir una existente
+      openSeedPanel();
     }, 600);
   }, 300);
 }
+
+var seedOverlay = document.getElementById('seedOverlay');
+var seedInput = document.getElementById('seedInput');
+var seedGenerateBtn = document.getElementById('seedGenerateBtn');
+var seedConfirmBtn = document.getElementById('seedConfirmBtn');
+function openSeedPanel() {
+  if (document.pointerLockElement) { try { document.exitPointerLock(); } catch (e) {} }
+  if (seedInput) seedInput.value = (typeof currentRunSeed !== 'undefined' && currentRunSeed !== null) ? currentRunSeed : '';
+  if (seedOverlay) seedOverlay.classList.remove('hidden');
+  if (seedInput) seedInput.focus();
+}
+function commitSeed() {
+  var raw = (seedInput ? seedInput.value : '').trim();
+  var v = parseInt(raw, 10);
+  if (!raw) {
+    if (typeof currentRunSeed === 'undefined' || currentRunSeed === null) {
+      if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+    }
+  } else if (!isNaN(v) && v >= 0) {
+    currentRunSeed = Math.min(999999, v);
+  } else {
+    if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+  }
+  if (typeof currentRunSeed === 'undefined' || currentRunSeed === null || isNaN(currentRunSeed)) {
+    if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+  }
+  if (seedInput) seedInput.value = currentRunSeed;
+  if (typeof saveInventory === 'function') saveInventory();
+  if (seedOverlay) seedOverlay.classList.add('hidden');
+  openGearSelect();
+}
+if (seedGenerateBtn) seedGenerateBtn.addEventListener('click', function() {
+  if (typeof generateRunSeed === 'function') currentRunSeed = generateRunSeed();
+  if (seedInput) seedInput.value = currentRunSeed;
+});
+if (seedConfirmBtn) seedConfirmBtn.addEventListener('click', commitSeed);
+if (seedInput) seedInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') commitSeed();
+});
 
 if (loginSubmitBtn) loginSubmitBtn.addEventListener('click', doLogin);
 if (loginPassInput) {
