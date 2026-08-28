@@ -692,10 +692,12 @@
     border-radius: 5px; padding: 8px 20px; cursor: pointer;
     font-size: 13px;
   }
+  #radarWrap { margin-top: 12px; text-align: center; }
+  #radarWrap .title { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   #radarChart {
-    position: fixed; bottom: 10px; right: 10px;
-    border-radius: 50%; z-index: 50;
-    pointer-events: none; opacity: 0.8;
+    border-radius: 50%; pointer-events: none; opacity: 0.95;
+    display: block; margin: 0 auto;
+    background: #111a2e;
   }
   #enchantPanel {
     position: fixed; bottom: 10px; left: 10px;
@@ -957,6 +959,7 @@
     <h2>INVENTARIO</h2>
     <div id="inventoryCards"></div>
     <div id="inventoryEnergy">Energía: <span id="energyValue">100</span>/<span id="energyMax">100</span></div>
+    <div id="radarWrap"><div class="title">ENCHANTS EQUIPADOS</div><canvas id="radarChart" width="160" height="160"></canvas></div>
     <button id="inventoryClose">CERRAR</button>
   </div>
 </div>
@@ -967,7 +970,6 @@
     <button id="equipModalClose">CANCELAR</button>
   </div>
 </div>
-<canvas id="radarChart" width="160" height="160"></canvas>
 <div id="enchantPanel">
   <div class="title">Enchants</div>
   <div id="enchantSlotsList"></div>
@@ -1777,7 +1779,9 @@ function makeWall(w, h, x, y, z, rotY) {
   group.position.set(x, 0, z);
   group.rotation.y = rotY;
   scene.add(group);
+  wallLayers.push(group);
 }
+const wallLayers = [];
 function makeHazardStripeTexture() {
   const size = 256;
   const c = document.createElement('canvas');
@@ -2504,6 +2508,8 @@ function buildLevel1() {
 }
 
 function teardownLevel() {
+  for (const obj of wallLayers) { if (obj && obj.parent) obj.parent.remove(obj); }
+  wallLayers.length = 0;
   for (const d of decorationInstances || []) { if (d.mesh && d.mesh.parent) { while (d.mesh.children.length) d.mesh.remove(d.mesh.children[0]); d.mesh.parent.remove(d.mesh); } if (d.colliders) { for (const col of d.colliders) { const idx = (tapePostColliders||[]).indexOf(col); if (idx>=0) tapePostColliders.splice(idx,1); } } }
   if (decorationInstances) decorationInstances.length = 0;
   if (worldColliders) worldColliders.length = 0;
@@ -7671,6 +7677,7 @@ function toggleInventory() {
   if (overlay.classList.contains('hidden')) {
     overlay.classList.remove('hidden');
     if (typeof renderInventoryUI === 'function') renderInventoryUI();
+    if (typeof drawRadarChart === 'function') drawRadarChart();
     var hint = document.getElementById('inventoryHint');
     if (hint) hint.classList.add('hidden');
     if (typeof document !== 'undefined' && document.pointerLockElement) {
