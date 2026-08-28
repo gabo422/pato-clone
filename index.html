@@ -986,8 +986,8 @@
 <div id="waveClearBanner"></div>
 <div id="cheatOverlay" class="hidden">
   <div id="cheatBox">
-    <label>CHEAT — Nivel (oleada)</label>
-    <input id="cheatInput" type="number" min="1" value="1">
+    <label>CHEAT — Ir al nivel (1: guardería · 2: pasillo · 3: living · 4: cocina · 5: patio)</label>
+    <input id="cheatInput" type="number" min="1" max="5" value="1">
     <br>
     <button id="cheatGoBtn">Ir</button>
     <button id="cheatCancelBtn">Cancelar</button>
@@ -4764,12 +4764,14 @@ const CHEATS = {
     document.exitPointerLock();
     const ov = document.getElementById('cheatOverlay');
     const inp = document.getElementById('cheatInput');
-    inp.value = waveNumber;
+    inp.value = currentLevel;
+    inp.max = MAX_LEVEL;
     ov.classList.remove('hidden');
     setTimeout(() => inp.focus(), 50);
     function go() {
       ov.classList.add('hidden');
-      const target = Math.max(1, parseInt(inp.value) || 1);
+      document.getElementById('waveClearOverlay').classList.add('hidden');
+      const target = Math.max(1, Math.min(MAX_LEVEL, parseInt(inp.value) || 1));
       for (const e of enemies) scene.remove(e.mesh);
       enemies.length = 0;
       for (const m of enemyMissiles) { scene.remove(m.mesh); }
@@ -4778,12 +4780,19 @@ const CHEATS = {
       teddyProjectiles.length = 0;
       currentLockTarget = null;
       document.getElementById('bossBar').style.display = 'none';
-      waveNumber = target;
+      portalActive = false;
+      waveInLevel = 1;
+      waveNumber = (target - 1) * WAVES_PER_LEVEL + 1;
+      bossEncounters = target - 1;
+      teardownLevel();
+      buildLevel(target);
+      resetDestructibles();
+      ship.position.set(0, 60, 0);
+      ship.quaternion.identity();
       document.getElementById('waveGauge').textContent = waveNumber;
       if (isMobile) document.getElementById('mobileWaveNum').textContent = waveNumber;
-      bossEncounters = Math.floor((target - 1) / 5);
       startWave();
-      showWaveBanner('CHEAT: Oleada ' + target);
+      showWaveBanner('CHEAT: Nivel ' + target);
     }
     document.getElementById('cheatGoBtn').onclick = go;
     document.getElementById('cheatCancelBtn').onclick = () => { ov.classList.add('hidden'); };
