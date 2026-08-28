@@ -1296,7 +1296,7 @@ gearSelectStartBtn.addEventListener('click', () => {
   startGearPlay();
 });
 function startGearPlay() {
-  if (!isMobile) renderer.domElement.requestPointerLock();
+  if (!isMobile && !anyUiOverlayVisible()) renderer.domElement.requestPointerLock();
   if (!gameRunning) {
     renderLivesHUD();
     renderShieldHUD();
@@ -1318,6 +1318,7 @@ function startGearPlay() {
 var pendingGearStart = false;
 
 function openGearSelect() {
+  if (document.pointerLockElement) { try { document.exitPointerLock(); } catch (e) {} }
   gearSelectOverlay.classList.remove('hidden');
   const saved = localStorage.getItem('patoClone_gear');
   if (saved && GEAR_CONFIGS[saved]) {
@@ -1499,7 +1500,7 @@ document.getElementById('resumeBtn').addEventListener('click', () => {
     startWave();
     animate();
   }
-  if (!isMobile) renderer.domElement.requestPointerLock();
+  if (!isMobile && !anyUiOverlayVisible()) renderer.domElement.requestPointerLock();
 });
 const controlsOverlay = document.getElementById('controlsOverlay');
 function openMenu() { menuOverlay.classList.remove('hidden'); controlsOverlay.classList.add('hidden'); }
@@ -4852,7 +4853,16 @@ let firing = false;
 let gameRunning = false;
 const mouseButtons = { left: false, right: false, middle: false };
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+function anyUiOverlayVisible() {
+  var ids = ['gearSelectOverlay', 'loginOverlay', 'tutorialOverlay', 'inventoryOverlay'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el && !el.classList.contains('hidden')) return true;
+  }
+  return false;
+}
 renderer.domElement.addEventListener('mousedown', e => {
+  if (anyUiOverlayVisible()) return;
   if (!menuOverlay.classList.contains('hidden')) return;
   if (!controlsOverlay.classList.contains('hidden')) return;
   if (!gameOverOverlay.classList.contains('hidden')) return;
@@ -7599,7 +7609,7 @@ function toggleInventory() {
 var inventoryCloseBtn = document.getElementById('inventoryClose');
 if (inventoryCloseBtn) inventoryCloseBtn.addEventListener('click', function() {
   document.getElementById('inventoryOverlay').classList.add('hidden');
-  if (!isMobile && menuOverlay.classList.contains('hidden') && mode === 'FLIGHT' && gameRunning && !gameOver) {
+  if (!isMobile && menuOverlay.classList.contains('hidden') && !anyUiOverlayVisible() && mode === 'FLIGHT' && gameRunning && !gameOver) {
     renderer.domElement.requestPointerLock();
   }
 });
@@ -7725,6 +7735,7 @@ var tutorialActive = false;
 var TUTORIAL_SLOW = 0.15;
 
 function showTutorial() {
+  if (document.pointerLockElement) { try { document.exitPointerLock(); } catch (e) {} }
   tutIndex = 0;
   renderTutorialStep();
   document.getElementById('tutorialOverlay').classList.remove('hidden');
