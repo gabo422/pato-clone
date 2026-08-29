@@ -5316,6 +5316,8 @@ const SKILL_ICON_MAP = {
   invincible:        '07811100.png', // 7811100
   smartSP:           '07813020.png', // 7813020
   elevation:         '07810040.png', // 7810040
+  // Rayo Scanning comparte el icono del Scan de Viento (misma familia)
+  scanning:          '07813060.png', // 7813060 (Scanning)
   // Shared skills — B-Gear versions used as fallback
   fireShot:          '07800010.png', // 7800010 (all gears)
   missileShot:       '07800020.png', // 7800020 (all gears)
@@ -5326,6 +5328,16 @@ const SKILL_ICON_MAP = {
   backMoveMach:      '07802010.png', // 7802010 (B+I gears)
 };
 const SKILL_ICON_DIR = 'icons/skills_ace/';
+
+const SKILL_CAT_EMOJI = { Ataque: '⚔️', Defensa: '🛡️', Atributo: '✦', Control: '⚡', Aire: '⬇' };
+function skillIconSrc(sk) {
+  const iconFile = SKILL_ICON_MAP[sk.id];
+  if (iconFile) return SKILL_ICON_DIR + iconFile;
+  // Fallback visual por categoría: ningún slot queda nunca vacío
+  const emoji = SKILL_CAT_EMOJI[sk.cat] || '✦';
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" rx="5" fill="#14283f"/><text x="16" y="25" font-size="21" text-anchor="middle" dominant-baseline="middle">' + emoji + '</text></svg>';
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
 
 // ================= Skill Slot Management =================
 function initSkillSlots() {
@@ -5391,19 +5403,22 @@ function bindSkillBarEvents() {
       if (e.button !== 0) return;
       if (!skillSlots[i]) return;
       e.preventDefault();
-      const iconFile = SKILL_ICON_MAP[skillSlots[i].id];
       dragData = { skillId: skillSlots[i].id, sourceSlot: i };
-      dragGhost.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+      dragGhost.src = skillIconSrc(skillSlots[i]);
       dragGhost.style.display = 'block';
       dragGhost.style.left = (e.clientX - 18) + 'px';
       dragGhost.style.top = (e.clientY - 18) + 'px';
       document.addEventListener('mousemove', onDragMove);
       document.addEventListener('mouseup', onDragEnd);
     });
-    el.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      if (skillSlots[i]) { skillSlots[i] = null; renderSkillBar(); }
-    });
+    el.addEventListener('contextmenu', e => { e.preventDefault(); });
+    // Slots sin tecla numérica (11+, como Drain/Scanning del Rayo): se activan con click
+    if (i >= 10) {
+      el.addEventListener('click', e => {
+        if (Date.now() - lastDragEndAt < 300) return;
+        onSkillKey(i);
+      });
+    }
   }
 }
 
@@ -5827,8 +5842,7 @@ function renderSkillBar() {
     }
     slotEl.classList.remove('locked');
     if (iconEl) {
-      const iconFile = SKILL_ICON_MAP[sk.id];
-      iconEl.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+      iconEl.src = skillIconSrc(sk);
       iconEl.alt = sk.name;
     }
     const cd = skillCooldowns[i];
@@ -5846,8 +5860,7 @@ function renderSkillBar() {
     if (qEl && gear.movement.q) {
       const qIcon = document.getElementById('skillIconQ');
       if (qIcon) {
-        const iconFile = SKILL_ICON_MAP[gear.movement.q.id];
-        qIcon.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+        qIcon.src = skillIconSrc(gear.movement.q);
         qIcon.alt = gear.movement.q.name;
       }
       qEl.querySelector('.skillCooldown').textContent = movementCooldowns.q > 0 ? Math.ceil(movementCooldowns.q) + 's' : '';
@@ -5858,8 +5871,7 @@ function renderSkillBar() {
     if (eEl && gear.movement.e) {
       const eIcon = document.getElementById('skillIconE');
       if (eIcon) {
-        const iconFile = SKILL_ICON_MAP[gear.movement.e.id];
-        eIcon.src = iconFile ? SKILL_ICON_DIR + iconFile : '';
+        eIcon.src = skillIconSrc(gear.movement.e);
         eIcon.alt = gear.movement.e.name;
       }
       eEl.querySelector('.skillCooldown').textContent = movementCooldowns.e > 0 ? Math.ceil(movementCooldowns.e) + 's' : '';
@@ -5900,6 +5912,7 @@ const dragGhost = document.getElementById('dragGhost');
 const skillPanel = document.getElementById('skillPanel');
 const skillPanelGrid = document.getElementById('skillPanelGrid');
 let dragData = null; // { skillId, sourceSlot }
+let lastDragEndAt = 0;
 
 function openSkillPanel() {
   skillPanelOpen = true;
@@ -5923,8 +5936,7 @@ function renderSkillPanel() {
     const div = document.createElement('div');
     div.className = 'skillPanelItem';
     div.dataset.skillId = sk.id;
-    const iconFile = SKILL_ICON_MAP[sk.id];
-    div.innerHTML = `<img class="spiIcon" src="${iconFile ? SKILL_ICON_DIR + iconFile : ''}" alt="${sk.name}"><div class="spiName">${sk.name}</div>`;
+    div.innerHTML = `<img class="spiIcon" src="${skillIconSrc(sk)}" alt="${sk.name}"><div class="spiName">${sk.name}</div>`;
     div.title = sk.name + ': ' + sk.desc + ' (SP: ' + sk.spCost + ', CD: ' + sk.cooldown + 's)';
     // Drag from panel
     div.addEventListener('mousedown', (e) => {
@@ -5969,6 +5981,7 @@ function onDragMove(e) {
 function onDragEnd(e) {
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
+  lastDragEndAt = Date.now();
   dragGhost.style.display = 'none';
   for (let i = 0; i < skillSlots.length; i++) {
     const el = document.getElementById('skillSlot' + i);
@@ -5991,11 +6004,7 @@ function onDragEnd(e) {
     }
   }
   if (droppedOnSlot < 0) {
-    // Dropped outside any slot: empty the source slot if it was a slot drag
-    if (dragData.sourceSlot >= 0) {
-      skillSlots[dragData.sourceSlot] = null;
-      renderSkillBar();
-    }
+    // Soltado fuera de cualquier slot: el skill se queda en su lugar (kit fijo, sin huecos)
     dragData = null;
     return;
   }
