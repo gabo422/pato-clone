@@ -1195,16 +1195,16 @@ const GEAR_CONFIGS = {
     stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 80, accel: 55, boostAccel: 90, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
-      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar' },
-      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada' },
-      { id: 'frenzy', name: 'Frenzy', cat: 'Ataque', spCost: 35, cooldown: 290, duration: 300, desc: '+Daño, +1 Disparo Continuo, +5° ángulo válido' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada', buff: true },
+      { id: 'frenzy', name: 'Frenzy', cat: 'Ataque', spCost: 35, cooldown: 290, duration: 300, desc: '+Daño, +1 Disparo Continuo, +5° ángulo válido', buff: true },
       { id: 'berserker', name: 'Berserker', cat: 'Ataque', spCost: 40, cooldown: 900, duration: 30, desc: '+2 Disparo Continuo, +2 Misiles, -30% Reattack' },
-      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas' },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas', buff: true },
       { id: 'overbooster', name: 'Overbooster', cat: 'Control', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash 600m/s, invulnerable' },
-      { id: 'chainRolling', name: 'Chain Rolling', cat: 'Control', spCost: 25, cooldown: 20, duration: 8, desc: 'Dash lateral encadenado' },
-      { id: 'hyperMoving', name: 'Hyper Moving', cat: 'Atributo', spCost: 30, cooldown: 50, duration: 60, desc: '+10% giro y strafe' },
-      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa' },
-      { id: 'evasionUp', name: 'Evasion Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Evasión' },
+      { id: 'chainRolling', name: 'Chain Rolling', cat: 'Control', spCost: 0, cooldown: 0, duration: 0, spPerSec: 1, desc: 'Dash lateral encadenado (toggle 1 SP/s)' },
+      { id: 'hyperMoving', name: 'Hyper Moving', cat: 'Atributo', spCost: 30, cooldown: 50, duration: 60, desc: '+10% giro y strafe', buff: true },
+      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa', buff: true },
+      { id: 'evasionUp', name: 'Evasion Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Evasión', buff: true },
       { id: 'drain', name: 'Drain', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 20, desc: '+25% HP robado al dañar' },
       { id: 'scanning', name: 'Scanning', cat: 'Atributo', spCost: 15, cooldown: 3, duration: 10, desc: 'Revela enemigos invisibles' },
     ],
@@ -1222,16 +1222,16 @@ const GEAR_CONFIGS = {
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
     stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10, collisionDmgReduction: 0.4, siegeDefenseBonus: 0.5, speedBonus: 0.6 },
     activeSkills: [
-      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar' },
-      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada' },
-      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas' },
-      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 20, duration: 15, desc: 'Torreta inmóvil, +100% daño, +rango' },
-      { id: 'airSiegeMode', name: 'Air Siege Mode', cat: 'Ataque', spCost: 30, cooldown: 22, duration: 12, desc: 'Siege mode en el aire' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada', buff: true },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas', buff: true },
+      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 20, cooldown: 0, duration: 0, spPerSec: 3, desc: 'Torreta inmóvil, +100% daño, +rango (toggle)' },
+      { id: 'airSiegeMode', name: 'Air Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 0, duration: 0, spPerSec: 4, desc: 'Siege mode en el aire (toggle)' },
       { id: 'hyperShot', name: 'Hyper Shot', cat: 'Ataque', spCost: 35, cooldown: 30, duration: 0, desc: 'Disparo AoE que ignora defensa' },
       { id: 'snareShot', name: 'Snare Shot', cat: 'Ataque', spCost: 15, cooldown: 50, duration: 10, desc: 'Disparos ralentizan enemigos 50%' },
-      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa' },
-      { id: 'barrier', name: 'Barrier', cat: 'Defensa', spCost: 30, cooldown: 60, duration: 15, desc: '+5 HP de escudo temporal' },
-      { id: 'reflect', name: 'Reflect', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: 'Refleja daño al recibir golpe' },
+      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa', buff: true },
+      { id: 'barrier', name: 'Barrier', cat: 'Defensa', spCost: 30, cooldown: 60, duration: 15, desc: '+5 HP de escudo temporal', buff: true },
+      { id: 'reflect', name: 'Reflect', cat: 'Defensa', spCost: 30, cooldown: 25, duration: 15, desc: 'Refleja daño al recibir golpe', buff: true },
       { id: 'remedy', name: 'Remedy', cat: 'Defensa', spCost: 10, cooldown: 10, duration: 0, desc: 'Cura efectos negativos' },
     ],
     movement: null,
@@ -1248,15 +1248,15 @@ const GEAR_CONFIGS = {
                advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
     stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7, dmgReduction: 0.25 },
     activeSkills: [
-      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar' },
-      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada' },
-      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas' },
+      { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
+      { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada', buff: true },
+      { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas', buff: true },
       { id: 'groundBombing', name: 'Ground Bombing Mode', cat: 'Ataque', spCost: 0, cooldown: 0, duration: 999, spPerSec: 3, desc: 'Arma avanzada cae al suelo con gravedad' },
       { id: 'airBombing', name: 'Air Bombing Mode', cat: 'Ataque', spCost: 0, cooldown: 0, duration: 999, spPerSec: 3, desc: 'Arma avanzada se lanza hacia adelante y cae' },
       { id: 'chargeShot', name: 'Charging Shot', cat: 'Ataque', spCost: 20, cooldown: 12, duration: 0, desc: 'Arma estándar cargada, alto daño y precisión' },
-      { id: 'multiTarget', name: 'Multi-Target Mode', cat: 'Ataque', spCost: 25, cooldown: 18, duration: 12, desc: 'Misiles atacan múltiples objetivos' },
+      { id: 'multiTarget', name: 'Multi-Target Mode', cat: 'Ataque', spCost: 15, cooldown: 0, duration: 0, spPerSec: 2, desc: 'Misiles atacan 3 objetivos a la vez (toggle)' },
       { id: 'deployChaffs', name: 'Deploy Chaffs', cat: 'Defensa', spCost: 20, cooldown: 120, duration: 60, desc: 'Chaffs absorben hits enemigos' },
-      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa' },
+      { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa', buff: true },
       { id: 'bigBoom', name: 'Big Boom', cat: 'Atributo', spCost: 50, cooldown: 1800, duration: 0, desc: 'Explosión masiva = tu Energy de daño' },
     ],
     movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
@@ -1277,12 +1277,12 @@ const GEAR_CONFIGS = {
       { id: 'energizingField', name: 'Energizing Field', cat: 'Atributo', spCost: 15, cooldown: 1, duration: 15, desc: '+200% regen SP (área)' },
       { id: 'healTarget', name: 'Heal Target', cat: 'Defensa', spCost: 20, cooldown: 1, duration: 0, desc: 'Cura instantánea +3 HP' },
       { id: 'energiseTarget', name: 'Energise Target', cat: 'Atributo', spCost: 10, cooldown: 1, duration: 0, desc: '+30 SP instantáneo' },
-      { id: 'reverseEngine', name: 'Reverse Engine', cat: 'Aire', spCost: 25, cooldown: 0, duration: 0, desc: 'Frena + elimina misiles cercanos' },
+      { id: 'reverseEngine', name: 'Reverse Engine', cat: 'Aire', spCost: 5, cooldown: 0, duration: 0, spPerSec: 2, desc: 'Frena + elimina misiles cercanos (toggle)' },
       { id: 'fullRecovery', name: 'Full Recovery', cat: 'Atributo', spCost: 50, cooldown: 900, duration: 0, desc: 'HP + escudo completos' },
       { id: 'scan', name: 'Scan', cat: 'Atributo', spCost: 15, cooldown: 3, duration: 10, desc: 'Revela enemigos invisibles' },
-      { id: 'ragingFire', name: 'Raging Fire', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Ataque a formación' },
-      { id: 'ragingDefence', name: 'Raging Defence', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Defensa a formación' },
-      { id: 'ragingEvasion', name: 'Raging Evasion', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Evasión a formación' }
+      { id: 'ragingFire', name: 'Raging Fire', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Ataque a formación', buff: true },
+      { id: 'ragingDefence', name: 'Raging Defence', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Defensa a formación', buff: true },
+      { id: 'ragingEvasion', name: 'Raging Evasion', cat: 'Atributo', spCost: 20, cooldown: 410, duration: 420, desc: '+Evasión a formación', buff: true }
     ],
     movement: null,
     modelKey: 'duck', modelBuilder: null
@@ -4101,6 +4101,12 @@ function fireMissile() {
         bombTarget.x += (Math.random() - 0.5) * 100;
         bombTarget.z += (Math.random() - 0.5) * 100;
         if (airBombingActive) bombTarget.y += (Math.random() - 0.5) * 100;
+      } else if (activeSkillEffects['multiTarget']) {
+        const cands = [];
+        for (const e of enemies) {
+          if (e.alive && targetIsAimable(e) && cands.length < 3) cands.push(e);
+        }
+        target = cands.length ? cands[i % cands.length] : (targetIsAimable(currentLockTarget) ? currentLockTarget : null);
       } else {
         target = targetIsAimable(currentLockTarget) ? currentLockTarget : null;
       }
@@ -5340,15 +5346,30 @@ function skillIconSrc(sk) {
 }
 
 // ================= Skill Slot Management =================
+function getBuffSkillIds() {
+  const gear = getGearConfig();
+  if (!gear) return new Set();
+  return new Set((gear.activeSkills || []).filter(s => s.buff).map(s => s.id));
+}
+
+function applyPassiveSkillBuffs() {
+  const gear = getGearConfig();
+  if (!gear) return;
+  for (const sk of gear.activeSkills || []) {
+    if (sk.buff && !activeSkillEffects[sk.id]) applySkillEffect(sk.id, true);
+  }
+}
+
 function initSkillSlots() {
   const gear = getGearConfig();
-  const skills = gear ? (gear.activeSkills || []).slice(0, 14) : [];
+  const skills = gear ? (gear.activeSkills || []).filter(s => !s.buff).slice(0, 14) : [];
   skillSlots = skills.slice();
   skillCooldowns = new Array(skillSlots.length).fill(0);
   skillActiveTimers = {};
   movementCooldowns = { q: 0, e: 0 };
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
+  applyPassiveSkillBuffs();
   buildSkillBarDOM(gear);
   if (skillPanelOpen) renderSkillPanel();
 }
@@ -5502,6 +5523,20 @@ function updateSkills(dt) {
     const sk = skillSlots.find(s => s && s.id === id);
     if (sk && sk.spPerSec) {
       playerSP = Math.max(0, playerSP - sk.spPerSec * dt);
+      if (id === 'reverseEngine') {
+        for (let i = enemyMissiles.length - 1; i >= 0; i--) {
+          if (enemyMissiles[i].mesh.position.distanceTo(ship.position) < 150) {
+            scene.remove(enemyMissiles[i].mesh);
+            enemyMissiles.splice(i, 1);
+          }
+        }
+        speed = Math.max(-30, Math.min(speed, 30));
+      }
+      if (playerSP <= 0) {
+        delete skillActiveTimers[id];
+        applySkillEffect(id, false);
+        continue;
+      }
     }
     skillActiveTimers[id] = remaining - dt;
     if (skillActiveTimers[id] <= 0) {
@@ -5527,7 +5562,7 @@ let energizingFieldSpawnTimer = 0;
 function applySkillEffect(skillId, on) {
   if (!on) {
     delete activeSkillEffects[skillId];
-    if (skillId === 'siegeMode') { isSiegeMode = false; }
+    if ((skillId === 'siegeMode' || skillId === 'airSiegeMode') && !activeSkillEffects['siegeMode'] && !activeSkillEffects['airSiegeMode']) { isSiegeMode = false; }
     if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5 * SHIELD_BLOCK); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
     if (skillId === 'deployChaffs') { delete window._chaffHits; }
     if (skillId === 'healingField') { removeHealingFieldVisual(); }
@@ -5542,6 +5577,7 @@ function applySkillEffect(skillId, on) {
     if (skillId === 'invisible') { ship.traverse(c => { if (c.isMesh && c.material) { c.material.transparent = c.userData._aceOrigTransparent || false; c.material.opacity = c.userData._aceOrigOpacity || 1; } }); }
     return;
   }
+  if (activeSkillEffects[skillId]) return;
   activeSkillEffects[skillId] = true;
 
   // ---- RAYO: Berserker (rage mode) ----
@@ -5563,6 +5599,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- MURO: Siege Mode ----
   if (skillId === 'siegeMode') {
+    if (activeSkillEffects['airSiegeMode']) { delete skillActiveTimers['airSiegeMode']; applySkillEffect('airSiegeMode', false); }
     isSiegeMode = true;
     spawnSkillRing(ship.position, 0xff8800, 1, 25);
     aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
@@ -5571,6 +5608,7 @@ function applySkillEffect(skillId, on) {
   }
   // ---- MURO: Air Siege Mode ----
   if (skillId === 'airSiegeMode') {
+    if (activeSkillEffects['siegeMode']) { delete skillActiveTimers['siegeMode']; applySkillEffect('siegeMode', false); }
     isSiegeMode = true;
     spawnSkillRing(ship.position, 0xff8800, 1, 25);
     aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
@@ -5676,7 +5714,7 @@ function applySkillEffect(skillId, on) {
     aceSpawnParticles(ACE.healTarget.burst, ship.position.clone(), explosions);
   }
   // ---- VIENTO: Energize Target ----
-  if (skillId === 'energizeTarget') {
+  if (skillId === 'energiseTarget' || skillId === 'energizeTarget') {
     playerSP = Math.min(MAX_SP, playerSP + 30);
     spawnSkillRing(ship.position, 0xffd700, 2, 25);
     aceSpawnParticles(ACE.energizeTarget.burst, ship.position.clone(), explosions);
@@ -5850,7 +5888,7 @@ function renderSkillBar() {
     slotEl.classList.toggle('onCooldown', cd > 0);
     slotEl.classList.toggle('active', !!skillActiveTimers[sk.id]);
     const actualCost = getSkillCost(sk);
-    if (spCostEl) spCostEl.textContent = actualCost + ' SP';
+    if (spCostEl) spCostEl.textContent = sk.spPerSec ? (sk.spPerSec + ' SP/s') : (actualCost + ' SP');
     slotEl.title = sk.name + ': ' + sk.desc + ' (SP: ' + actualCost + ', CD: ' + sk.cooldown + 's)';
   }
   // Movement skill display
@@ -6416,7 +6454,10 @@ function startWave() {
   stdOverheated = false; advOverheated = false;
   skillCooldowns = new Array(skillSlots.length).fill(0);
   skillActiveTimers = {};
-  activeSkillEffects = {};
+  const buffIds = getBuffSkillIds();
+  for (const k of Object.keys(activeSkillEffects)) {
+    if (!buffIds.has(k)) delete activeSkillEffects[k];
+  }
   movementCooldowns = { q: 0, e: 0 };
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
@@ -6428,6 +6469,7 @@ function startWave() {
   turnMultiplier = 1.0;
   delete window._chaffHits;
   window._healTimer = 0;
+  applyPassiveSkillBuffs();
   updateAmmoHUD();
   if (isBossWave) {
     spawnBossWave();
@@ -6674,8 +6716,10 @@ function updateBuffRow() {
   const row = document.getElementById('buffRow');
   if (!row) return;
   row.innerHTML = '';
+  const buffIds = getBuffSkillIds();
   const buffNames = { berserker: 'BERSERK', overbooster: 'OVERBOOST', siegeMode: 'SIEGE', barrier: 'BARRIER', healingField: 'HEAL+', energizingField: 'SP+', invisible: 'STEALTH', snareShot: 'SNARE', chargeShot: 'CHARGE', deployChaffs: 'CHAFFS', reverseEngine: 'REVERSE' };
   for (const key in activeSkillEffects) {
+    if (buffIds.has(key)) continue;
     const span = document.createElement('span');
     span.className = 'buffIcon';
     span.textContent = buffNames[key] || key.toUpperCase().slice(0, 6);
