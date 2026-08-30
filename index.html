@@ -1225,7 +1225,7 @@ const GEAR_CONFIGS = {
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
       { id: 'missileShot', name: 'Missile Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma avanzada', buff: true },
       { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas', buff: true },
-      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 20, cooldown: 0, duration: 0, spPerSec: 3, desc: 'Torreta inmóvil, +100% daño, +rango (toggle)' },
+      { id: 'siegeMode', name: 'Siege Mode', cat: 'Ataque', spCost: 20, cooldown: 0, duration: 0, spPerSec: 3, desc: 'Aterrizá como torreta donde estés, +100% daño y rango (toggle)' },
       { id: 'airSiegeMode', name: 'Air Siege Mode', cat: 'Ataque', spCost: 25, cooldown: 0, duration: 0, spPerSec: 4, desc: 'Siege mode en el aire (toggle)' },
       { id: 'hyperShot', name: 'Hyper Shot', cat: 'Ataque', spCost: 35, cooldown: 30, duration: 0, desc: 'Disparo AoE que ignora defensa' },
       { id: 'snareShot', name: 'Snare Shot', cat: 'Ataque', spCost: 15, cooldown: 50, duration: 10, desc: 'Disparos ralentizan enemigos 50%' },
@@ -4858,9 +4858,11 @@ window.addEventListener('keydown', e => {
     if (e.code === 'KeyE') { activateMovementSkill('e'); }
     // C key: land/takeoff toggle (from AO ShuttleChild.cpp DIK_C)
     if (e.code === 'KeyC' && mode === 'FLIGHT' && gameRunning && !gameOver) {
-      if (isLanded) {
-        // Take off always allowed
-        isLanded = false;
+      if (isLanded || siegeGrounded || isSkillActive('siegeMode') || isSkillActive('airSiegeMode')) {
+        // Take off: apaga el siege (el A aterrizó como torreta) y listo para volar
+        if (isSkillActive('siegeMode')) { applySkillEffect('siegeMode', false); delete skillActiveTimers['siegeMode']; }
+        if (isSkillActive('airSiegeMode')) { applySkillEffect('airSiegeMode', false); delete skillActiveTimers['airSiegeMode']; }
+        isSiegeMode = false; siegeGrounded = false; isLanded = false;
         speed = speedMin;
         showWaveBanner('DESPLEGANDO...');
       } else {
@@ -5569,7 +5571,7 @@ let energizingFieldSpawnTimer = 0;
 function applySkillEffect(skillId, on) {
   if (!on) {
     delete activeSkillEffects[skillId];
-    if ((skillId === 'siegeMode' || skillId === 'airSiegeMode') && !activeSkillEffects['siegeMode'] && !activeSkillEffects['airSiegeMode']) { isSiegeMode = false; }
+    if ((skillId === 'siegeMode' || skillId === 'airSiegeMode') && !activeSkillEffects['siegeMode'] && !activeSkillEffects['airSiegeMode']) { isSiegeMode = false; siegeGrounded = false; }
     if (skillId === 'barrier') { shieldMax = Math.max(0, shieldMax - 5 * SHIELD_BLOCK); shield = Math.min(shield, shieldMax); renderShieldHUD(); removeBarrierVisual(); }
     if (skillId === 'deployChaffs') { delete window._chaffHits; }
     if (skillId === 'healingField') { removeHealingFieldVisual(); }
@@ -5604,10 +5606,12 @@ function applySkillEffect(skillId, on) {
     aceSpawnParticles(ACE.overbooster.activate, ship.position.clone(), explosions);
     overboosterTrailTimer = 0;
   }
-  // ---- MURO: Siege Mode ----
+  // ---- MURO: Siege Mode (la especialidad del A: aterrizar como torreta donde sea) ----
   if (skillId === 'siegeMode') {
     if (activeSkillEffects['airSiegeMode']) { delete skillActiveTimers['airSiegeMode']; applySkillEffect('airSiegeMode', false); }
     isSiegeMode = true;
+    siegeGrounded = true;
+    isLanded = false;
     spawnSkillRing(ship.position, 0xff8800, 1, 25);
     aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
@@ -5617,6 +5621,8 @@ function applySkillEffect(skillId, on) {
   if (skillId === 'airSiegeMode') {
     if (activeSkillEffects['siegeMode']) { delete skillActiveTimers['siegeMode']; applySkillEffect('siegeMode', false); }
     isSiegeMode = true;
+    siegeGrounded = false;
+    isLanded = false;
     spawnSkillRing(ship.position, 0xff8800, 1, 25);
     aceSpawnParticles(ACE.siegeMode.activate, ship.position.clone(), explosions);
     siegeAuraTimer = 0;
@@ -6082,6 +6088,7 @@ function onSkillKey(slot) {
 
 // State
 let isSiegeMode = false;
+let siegeGrounded = false;
 let chargeShotActive = false;
 let groundBombingActive = false;
 let airBombingActive = false;
@@ -6471,6 +6478,7 @@ function startWave() {
   movementAnim.turnaround.active = false;
   movementAnim.backMove.active = false;
   isSiegeMode = false;
+  siegeGrounded = false;
   chargeShotActive = false;
   chainRollingBuff = false;
   hyperMovingBuff = false;
@@ -6678,6 +6686,7 @@ function resetGame() {
   rapidFireTimer = 0;
   chargeShotActive = false;
   isSiegeMode = false;
+  siegeGrounded = false;
   Object.keys(activeSkillEffects).forEach(k => delete activeSkillEffects[k]);
   removeBarrierVisual(); removeHealingFieldVisual(); removeEnergizingFieldVisual(); removeSkillAura(); removeChargeShotGlow();
   berserkerAuraTimer = 0; siegeAuraTimer = 0; chargeShotGlowTimer = 0; invisibleShimmerTimer = 0; overboosterTrailTimer = 0; healingFieldSpawnTimer = 0; energizingFieldSpawnTimer = 0;
@@ -6932,10 +6941,10 @@ function animate() {
     // Mouse DIRECTLY controls ship orientation (the feel the user liked)
     // Speed model from AO: W=accel, S/B=brake, Space=boost, auto-cruise
 
-    // Landed state: ship sits on ground, no movement
-    if (isLanded) {
+    // Landed state: ship sits on ground, no movement (helipad o siege del A aterrizado donde sea)
+    if (isLanded || siegeGrounded) {
       speed = 0;
-      ship.position.y = 3;
+      ship.position.y += (3 - ship.position.y) * Math.min(1, 4 * dt);
       const flatEuler = new THREE.Euler(0, lookYaw, 0);
       ship.quaternion.setFromEuler(flatEuler);
       rollAngle *= 0.9;
