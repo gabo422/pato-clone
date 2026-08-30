@@ -1200,7 +1200,7 @@ const GEAR_CONFIGS = {
       { id: 'frenzy', name: 'Frenzy', cat: 'Ataque', spCost: 35, cooldown: 290, duration: 300, desc: '+Daño, +1 Disparo Continuo, +5° ángulo válido', buff: true },
       { id: 'berserker', name: 'Berserker', cat: 'Ataque', spCost: 40, cooldown: 900, duration: 30, desc: '+2 Disparo Continuo, +2 Misiles, -30% Reattack' },
       { id: 'concentration', name: 'Concentration', cat: 'Atributo', spCost: 10, cooldown: 410, duration: 420, desc: '+Accuracy ambas armas', buff: true },
-      { id: 'overbooster', name: 'Overbooster', cat: 'Control', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash 600m/s, invulnerable' },
+      { id: 'overbooster', name: 'Overbooster', cat: 'Control', spCost: 30, cooldown: 25, duration: 3, desc: 'Dash 600m/s, invulnerable, pero sin atacar ni usar skills' },
       { id: 'chainRolling', name: 'Chain Rolling', cat: 'Control', spCost: 0, cooldown: 0, duration: 0, spPerSec: 1, desc: 'Dash lateral encadenado (toggle 1 SP/s)' },
       { id: 'hyperMoving', name: 'Hyper Moving', cat: 'Atributo', spCost: 30, cooldown: 50, duration: 60, desc: '+10% giro y strafe', buff: true },
       { id: 'defenseUp', name: 'Defense Up', cat: 'Defensa', spCost: 10, cooldown: 290, duration: 300, desc: '+Defensa', buff: true },
@@ -3981,6 +3981,7 @@ const bubbleTexture = makeBubbleTexture();
 const projMat = new THREE.SpriteMaterial({ map: bubbleTexture, transparent: true, depthWrite: false });
 function fireProjectile() {
   if (isSkillActive('invisible')) return;
+  if (isSkillActive('overbooster')) return;
   if (stdOverheated || stdFireCooldown > 0) return;
   onPlayerAttack();
   const weapon = getStdWeapon();
@@ -4049,6 +4050,7 @@ let nextMissileSide = -1; // alterna: -1 ala izquierda, 1 ala derecha
 let missileTubeIndex = 0; // alterna entre los 3 tubos de cada pod
 function fireMissile() {
   if (isSkillActive('invisible')) return;
+  if (isSkillActive('overbooster')) return;
   if (advOverheated || advFireCooldown > 0) return;
   onPlayerAttack();
   const weapon = getAdvWeapon();
@@ -5467,6 +5469,7 @@ function activateSkillSlot(slot) {
   const sk = skillSlots[slot];
   if (!sk) return false;
   if (isSkillActive('invisible') && sk.id !== 'invisible') return false;
+  if (isSkillActive('overbooster') && sk.id !== 'overbooster') return false;
   // Toggle off if already active (for bombing modes)
   if (activeSkillEffects[sk.id] && sk.spPerSec) {
     applySkillEffect(sk.id, false);
@@ -5690,7 +5693,9 @@ function applySkillEffect(skillId, on) {
     spawnSkillRing(ship.position, 0xff6600, 2, 80);
     aceSpawnParticles(ACE.bigBoom.shockwave, ship.position.clone(), explosions);
     aceSpawnParticles(ACE.bigBoom.embers, ship.position.clone(), explosions);
-    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 220) registerHit(e, 80, true); }
+    // AO: daño equivalente a tu ENERGÍA (tiny nuke vs ositos 2000-6000 HP; 6000 ≈ un dificil)
+    const boomDmg = 6000;
+    for (const e of enemies) { if (!e.alive) continue; if (e.mesh.position.distanceTo(ship.position) < 220) registerHit(e, boomDmg, true); }
   }
   // ---- TRUENO: Invisible ----
   if (skillId === 'invisible') {
