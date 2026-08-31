@@ -4218,11 +4218,24 @@ function spawnTeddyWave() {
       udDirect: 0, udCurrent: 0, udChangeBase: 3 + Math.random() * 3, udChangeRandom: 3, udChangeLimit: 3,
       turnAngle: 2.2 + Math.random() * 2.5,       // AO MonsterInfo->TurnAngle (límite de giro por tick)
       quickTurnTimer: 0, quickTurnTerm: 1.1 + Math.random() * 1.2, // AO QuickTurnTerm
+      // AO MonsterInfo->QuickTurnAngle: define cuán brusco teje. Mayor = giros más amplios.
+      aoQTA: (mob.behavior === 'rush') ? 6 + Math.random() * 4
+            : (mob.behavior === 'kite') ? 14 + Math.random() * 6
+            : (mob.behavior === 'elite') ? 12 + Math.random() * 5
+            : 8 + Math.random() * 4,
       weaveSeed: Math.random() * 1000,
       alive: true, hp: mobHp, maxHp: mobHp, isBoss: false,
       state: 'patrol',                            // patrol | chase | giveup
       detectRadius: mob.detectRadius,
       fireRange: mob.fireRange,
+      // AO MONSTER_MIN_ATTACK_DISTANCE = 100: distancia donde el mob detiene su avance y "trabaja"
+      // el objetivo. Los rushers embisten hasta contacto (más cerca), los shooters se quedan más lejos.
+      // SIEMPRE debe quedar por debajo de fireRange para que el mob pueda atacar desde su distancia.
+      minAttackDist: (mob.behavior === 'rush') ? 14
+                    : (mob.behavior === 'kite') ? 70
+                    : (mob.behavior === 'elite') ? 40
+                    : (typeKey === 'tank') ? 30
+                    : 42,
       attackCooldown: 0.8 + Math.random() * 0.8,
       attackInterval: mob.attackInterval,
       defense: mob.defense,
@@ -8066,43 +8079,55 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
     }
     const inRange = distToPlayer <= enemy.fireRange;
 
-    // ---- AO UpdateMoveInfoAttack: comportamiento de combate ----
-    // El mob SIEMPRE se dirige hacia el jugador (chase). En combate hace QuickTurns de ángulo
-    // pequeño que revierten de lado (LRDirect) para tejer/derrapar un poco mientras carga,
-    // como en AO (rotación horizontal pequeña sobre el vector hacia el objetivo), NUNCA orbita.
+    // ---- AO UpdateMoveInfoAttack: comportamiento de combate REAL, diferenciado por rol ----
+    // Revisado en CNPCMonster.cpp + GNPCRotateTargetVectorHorizontal:
+    //  * El mob NUNCA orbita. Siempre se dirige hacia el jugador (TargetVector).
+    //  * En combate hace QuickTurns: rota su vector de avance un ángulo aleatorio y carga hacia ahí,
+    //    reversando de lado (LRDirect). Cuanto MÁS CERCA, más probable el QuickTurn
+    //    (>2×100 → 15%, 100-200 → 40%, <100 → 70-80%).
+    //  * Los rushers/bodieslam embisten DE FRENTE sin tejer. Los ranged se mantienen a distancia.
+    //  * MONSTER_MIN_ATTACK_DISTANCE: límite donde detienen el avance (y si quedan pegadísimos y
+    //    de espaldas, revierten a BACK y retroceden).
+    const bhvMOB = enemy.behavior || 'basic';
+    const minDist = enemy.minAttackDist || 55;               // AO MONSTER_MIN_ATTACK_DISTANCE por rol
+    const isBodieslam = (bhvMOB === 'rush');                 // AO ORBIT_BODYSLAM: embiste directo
+
+    // VECTOR hacia el jugador (chase): la base del movimiento.
     let steer = want.clone(); steer.y = 0;
     if (steer.lengthSq() < 0.0001) steer.set(1, 0, 0); else steer.normalize();
-    steerToward(enemy, steer, dt);
 
-    // --- Trama de dirección en combate (AO MOVEINFO + QuickTurn) ---
-    // El vector de avance apunta al jugador, y el QuickTurn lo desvía un ángulo CHICO hacia un
-    // lado u otro (LRDirect), que revierte periódicamente. Resultado: carga hacia vos con
-    // zigzagueados cortos, no círculos.
     if (enemy.state === 'chase') {
-      enemy.lrCurrent++;                              // AO LRCurrentCount
-      enemy.udCurrent++;
+      // Contadores de reversa AO (LRDirect/UDDirect)
+      enemy.lrCurrent++;
       if (enemy.lrCurrent > enemy.lrChangeLimit) {
         enemy.lrCurrent = 0;
         enemy.lrDirect *= -1;
         enemy.lrChangeLimit = enemy.lrChangeBase + Math.floor(Math.random() * enemy.lrChangeRandom);
       }
-      if (enemy.udCurrent > enemy.udChangeLimit) {
-        enemy.udCurrent = 0;
-        enemy.udChangeLimit = enemy.udChangeBase + Math.floor(Math.random() * enemy.udChangeRandom);
-      }
-      // QuickTurn: de vez en cuando desvía un poco el vector hacia el jugador (AO nPercent).
-      // Cuanto más cerca, más probable (más "teje" al estar pegado), como en AO.
+
+      // --- Probabilidad y ángulo de QuickTurn escalonados por cercanía (AO nPercent) ---
       enemy.quickTurnTimer -= dt;
       if (enemy.quickTurnTimer <= 0) {
-        const near = distToPlayer < enemy.fireRange * 0.6;
-        const chance = near ? 0.55 : 0.2;
+        let chance;
+        if (distToPlayer > minDist * 2) chance = 0.15;       // muy lejos → teje poco
+        else if (distToPlayer > minDist) chance = 0.40;      // medio
+        else chance = 0.75;                                  // pegado → teje mucho
+        // El bodieslam (rush) casi nunca teje: embiste recto de frente.
+        if (isBodieslam) chance *= 0.08;
+
         if (Math.random() < chance) {
-          const a = enemy.lrDirect * (0.18 + Math.random() * 0.25); // ángulo pequeño (10-25°)
+          // Ángulo del giro: cerca = giro más amplio (QuickTurnAngle), lejos = giro chico (~10°).
+          const base = distToPlayer < minDist ? (0.30 + (enemy.aoQTA || 8) / 40)
+                                              : (0.10 + Math.random() * 0.12);
+          const a = enemy.lrDirect * base;
           rotateY(enemy.moveDir, a);
         }
-        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.6 + Math.random() * 0.8);
+        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.5 + Math.random() * 1.0);
       }
     }
+
+    // Aplicar la dirección resultante (apunta al jugador, rotada por los QuickTurns)
+    steerToward(enemy, steer, dt);
 
     // --- Leash duro: si se salió del radio del punto de aparición, no puede seguir de largo ---
     if (enemy.state === 'chase') {
@@ -8111,20 +8136,30 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
     }
 
     // --- Velocidad AO: acelera/frena hacia la velocidad de estado (UpdateCurrentSpeed) ---
-    // El mob NO se mete encima: mantiene una distancia mínima de combate (AO MONSTER_MIN_ATTACK_DISTANCE)
-    // y cuando la alcanza frrena y se queda pegando/bordeando un poco (sin orbitar en círculos).
+    // El mob se acerca hasta su distancia mínima de combate (MONSTER_MIN_ATTACK_DISTANCE) y ahí
+    // afloja (los ranged se detienen antes, los rushers entran hasta el contacto). Si queda
+    // PEGADÍSIMO y de espaldas, revierte a BACK y retrocede (AO regla nivel ≥5 / FBDirect).
     let targetSpeed = 0;
-    const minDist = Math.max(10, Math.min(enemy.fireRange * 0.4, 26));
     if (enemy.state === 'chase') {
-      if (distToPlayer < minDist * 0.85) {
-        targetSpeed = -enemy.speed * 0.5;              // quedó muy pegado → alejarse un poco
-        const away = enemy.mesh.position.clone().sub(ship.position); away.y = 0;
-        if (away.lengthSq() < 0.0001) away.set(0, 0, 1); else away.normalize();
-        steerToward(enemy, away, dt);                  // apuntar y moverse alejándose
+      const gold = distToPlayer < minDist * 0.5;             // quedó más pegado que la mitad del límite
+      if (gold) {
+        // De espaldas al jugador (ABC > 120°)? → revierte y retrocede (AO MSD_BACK)
+        const toP = ship.position.clone().sub(enemy.mesh.position); toP.y = 0; toP.normalize();
+        const ang = Math.acos(Math.max(-1, Math.min(1, enemy.moveDir.x * toP.x + enemy.moveDir.z * toP.z)));
+        if (ang > (2 * Math.PI) / 3) {
+          targetSpeed = -enemy.speed * 0.5;                  // retroceder para salir
+          const away = enemy.mesh.position.clone().sub(ship.position); away.y = 0;
+          if (away.lengthSq() < 0.0001) away.set(0, 0, 1); else away.normalize();
+          steerToward(enemy, away, dt);
+        } else {
+          targetSpeed = enemy.speed * 0.30;                  // pegado y de frente → afloja (no atraviesa)
+        }
       } else if (distToPlayer < minDist) {
-        targetSpeed = enemy.speed * 0.25;              // en distancia de combate → casi quieto/teje
+        // En distancia de combate afloja y "trabaja" el objetivo (teje). El rush embistió hasta
+        // acá y frena (AO: al alcanzar al objetivo SetCurrentSpeed=distance para no atravesarlo).
+        targetSpeed = enemy.speed * 0.30;
       } else {
-        targetSpeed = enemy.speed * 1.0;               // lejos → persigue (ya apunta al jugador)
+        targetSpeed = enemy.speed * 1.0;                     // lejos → persigue a fondo
       }
     }
     else if (enemy.state === 'giveup') targetSpeed = enemy.speed * 1.4;   // regreso más rápido
