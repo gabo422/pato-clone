@@ -4482,6 +4482,18 @@ function approachSpeed(cur, target, dt) {
   if (cur < target) return Math.min(target, cur + rate);
   return Math.max(target, cur - rate);
 }
+// AO SiegeTarget auto-aim: calcula el punto donde conviene apuntar la torreta para acertar,
+// "adelantando"/prediciendo la posición del objetivo (leading) en base a su velocidad, porque
+// la bala tarda volar dist/vel en llegar y el mob se mueve/teje.
+function getSiegeAimPoint(target, shipPos) {
+  const bulletSpeed = 220; // velocidad de la bala del Muro (std ~200) para el tiempo de vuelo
+  const dist = target.mesh.position.distanceTo(shipPos);
+  const tof = dist / bulletSpeed;                 // tiempo de vuelo estimado
+  const lead = (target.vel && target.vel.lengthSq() > 1) ? target.vel.clone().multiplyScalar(tof) : new THREE.Vector3();
+  // no dejar que el leading se coma todo el rango
+  if (lead.length() > dist * 0.6) lead.setLength(dist * 0.6);
+  return target.mesh.position.clone().add(new THREE.Vector3(0, 1.8, 0)).add(lead);
+}
 function fireTeddyProjectile(enemy) {
   const mesh = new THREE.Mesh(teddyProjGeo, teddyProjMat);
   const spawnPos = enemy.mesh.position.clone().add(new THREE.Vector3(0, 1.8, 0));
@@ -7483,10 +7495,11 @@ function animate() {
         groundSpeedVar = 0;
         ship.position.y -= Math.min(45 * dt, Math.max(0, ship.position.y - 3));
         if (isSiegeMode && currentLockTarget && currentLockTarget.alive) {
-          // AO SiegeTarget: autoaim — la torreta apunta sola al objetivo enganchado
-          const dx = currentLockTarget.mesh.position.x - ship.position.x;
-          const dy = currentLockTarget.mesh.position.y - ship.position.y;
-          const dz = currentLockTarget.mesh.position.z - ship.position.z;
+          // AO SiegeTarget: autoaim — la torreta apunta sola al objetivo enganchado (con leading)
+          const aimPt = getSiegeAimPoint(currentLockTarget, ship.position);
+          const dx = aimPt.x - ship.position.x;
+          const dy = aimPt.y - ship.position.y;
+          const dz = aimPt.z - ship.position.z;
           const len = Math.hypot(dx, dy, dz);
           if (len > 0.001) {
             const tYaw = Math.atan2(dx, dz);
@@ -7519,11 +7532,12 @@ function animate() {
     // ---- Mouse DIRECTLY sets orientation (old feel that worked) ----
     let pitchClamped = Math.max(-1.2, Math.min(1.2, lookPitch));
     if (isSiegeMode) {
-      // AO SiegeTarget: en siege aéreo la torreta apunta al objetivo enganchado
+      // AO SiegeTarget: en siege aéreo la torreta apunta al objetivo enganchado (con leading)
       if (currentLockTarget && currentLockTarget.alive) {
-        const dx = currentLockTarget.mesh.position.x - ship.position.x;
-        const dy = currentLockTarget.mesh.position.y - ship.position.y;
-        const dz = currentLockTarget.mesh.position.z - ship.position.z;
+        const aimPt = getSiegeAimPoint(currentLockTarget, ship.position);
+        const dx = aimPt.x - ship.position.x;
+        const dy = aimPt.y - ship.position.y;
+        const dz = aimPt.z - ship.position.z;
         const len = Math.hypot(dx, dy, dz);
         if (len > 0.001) {
           const tYaw = Math.atan2(dx, dz);
@@ -8005,7 +8019,11 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       }
       const spdP = Math.min(enemy.speed, dP / 4 || enemy.speed);
       enemy.currentSpeed = approachSpeed(enemy.currentSpeed, spdP, dt);
+      const prevPosB = enemy.mesh.position.clone();
       enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * (enemy.snareTimer > 0 ? 0.5 : 1));
+      const instVelB = enemy.mesh.position.clone().sub(prevPosB).multiplyScalar(1 / (dt || 0.016));
+      if (!enemy.vel) enemy.vel = new THREE.Vector3();
+      enemy.vel.lerp(instVelB, Math.min(1, 4 * dt));
       const faceT = ship.position.clone().sub(enemy.mesh.position); faceT.y = 0;
       if (faceT.lengthSq() > 0.0001) enemy.mesh.lookAt(enemy.mesh.position.clone().add(faceT.normalize()));
       enemy.fireCooldown -= dt;
@@ -8046,9 +8064,26 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
     }
     const inRange = distToPlayer <= enemy.fireRange;
 
-    // --- Steering AO: se rota moveDir hacia el objetivo con un ángulo máximo por tick
-    //     (GNPCGetMaxTargetVector usa MonsterInfo->TurnAngle). El enemigo NO gira instantáneo. ---
+    // ---- AO UpdateMoveInfoAttack: comportamiento de combate ----
+    // Fuera de alcance → persigue directo hacia el jugador.
+    // Dentro de alcance → orbita/strafea TANGENCIALMENTE alrededor del jugador (no se mete encima),
+    // revirtiendo dirección (LRDirect/UDDirect) y haciendo QuickTurns. Si quedan muy pegados, retroceden.
     let steer = want.clone(); steer.y = 0;
+    if (enemy.state === 'chase' && inRange) {
+      // Vector horizontal hacia el jugador y su perpendicular (strafe lateral)
+      let toH = ship.position.clone().sub(enemy.mesh.position); toH.y = 0;
+      toH.normalize();
+      const perp = new THREE.Vector3(-toH.z, 0, toH.x); // perpendicular en el plano
+      // Si están demasiado cerca (dentro del radio mínimo), se alejan hacia afuera.
+      const minDist = Math.max(10, enemy.fireRange * 0.45);
+      let combatDir;
+      if (distToPlayer < minDist) {
+        combatDir = toH.clone().negate();            // retroceder (kite/abrir distancia)
+      } else {
+        combatDir = perp.multiplyScalar(enemy.lrDirect); // strafe lateral para dar vueltas
+      }
+      steer = combatDir;
+    }
     if (steer.lengthSq() < 0.0001) steer.set(1, 0, 0); else steer.normalize();
     steerToward(enemy, steer, dt);
 
@@ -8061,18 +8096,22 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
         enemy.lrCurrent = 0;
         enemy.lrDirect *= -1;
         enemy.lrChangeLimit = enemy.lrChangeBase + Math.floor(Math.random() * enemy.lrChangeRandom);
-        rotateY(enemy.moveDir, enemy.lrDirect * (0.35 + Math.random() * 0.5));
       }
       if (enemy.udCurrent > enemy.udChangeLimit) {
         enemy.udCurrent = 0;
         enemy.udChangeLimit = enemy.udChangeBase + Math.floor(Math.random() * enemy.udChangeRandom);
         const d = Math.random() < 0.5 ? 1 : -1;
-        tiltX(enemy.moveDir, d * (0.3 + Math.random() * 0.35));
+        tiltX(enemy.moveDir, d * (0.25 + Math.random() * 0.3));
       }
+      // QuickTurn: ocasional giro brusco para "tejer" y no quedar predecible (AO nPercent por cercanía)
       enemy.quickTurnTimer -= dt;
-      if (enemy.quickTurnTimer <= 0 && distToPlayer < 30) {
-        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.4 + Math.random() * 0.8);
-        rotateY(enemy.moveDir, enemy.lrDirect * (0.9 + Math.random() * 0.8));
+      if (enemy.quickTurnTimer <= 0) {
+        const near = distToPlayer < enemy.fireRange * 0.6;
+        const chance = near ? 0.5 : 0.18;
+        if (Math.random() < chance) {
+          rotateY(enemy.moveDir, enemy.lrDirect * (0.8 + Math.random() * 0.9));
+        }
+        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.5 + Math.random() * 1.0);
       }
     }
 
@@ -8089,6 +8128,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
     else targetSpeed = enemy.speed * 0.45;                                 // patrulla lenta
     enemy.currentSpeed = approachSpeed(enemy.currentSpeed, targetSpeed, dt);
     const speedMul = (enemy.snareTimer > 0 ? (enemy.snareFactor || 0.5) : 1);
+    const prevPos = enemy.mesh.position.clone();
     if (enemy.currentSpeed > 0.01) {
       enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * speedMul);
       // Iguala la altura del jugador/patrulla suavemente (mob vuela en su altura objetivo)
@@ -8096,6 +8136,10 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       const stepY = Math.max(-40 * dt, Math.min(40 * dt, wantY - enemy.mesh.position.y));
       enemy.mesh.position.y += stepY;
     }
+    // Velocidad estimada (suavizada) para que el auto-aim de la torreta pueda "tirotear" (leading)
+    const instVel = enemy.mesh.position.clone().sub(prevPos).multiplyScalar(1 / (dt || 0.016));
+    if (!enemy.vel) enemy.vel = new THREE.Vector3();
+    enemy.vel.lerp(instVel, Math.min(1, 4 * dt));
     enemy.center.copy(enemy.mesh.position);
 
     // --- Ataque por comportamiento (sigue igual, sin la órbita) ---
@@ -8114,10 +8158,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
         enemy.lunge = 0.22;
       }
     }
-    // Shooter (kite) se mantiene a distancia: retrocede si quedó muy pegado
-    if (bhv === 'kite' && enemy.state === 'chase' && distToPlayer < enemy.fireRange * 0.45) {
-      rotateY(enemy.moveDir, Math.PI);
-    }
+    // Shooter (kite) mantiene distancia: el movimiento tangencial de arriba ya lo aleja si quedó muy pegado.
     const faceDir = ship.position.clone().sub(enemy.mesh.position); faceDir.y = 0;
     if (faceDir.lengthSq() > 0.0001) enemy.mesh.lookAt(enemy.mesh.position.clone().add(faceDir.normalize()));
 
