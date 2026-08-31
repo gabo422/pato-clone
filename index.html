@@ -1388,12 +1388,16 @@ function applyGearSelection(gearKey) {
 
   // Reconstruir el modelo 3D del jugador según el Gear elegido
   while (ship.children.length) ship.remove(ship.children[0]);
-  const builders = { duck: buildDuck, teddy: buildTeddy };
+  const builders = { duck: buildDuck, teddy: buildTeddy, mecano: buildMuro, crimson: buildDuck }; 
   const builder = builders[cfg.modelKey] || buildDuck;
   const newModel = builder();
   ship.add(newModel);
   ship.add(flameGroup);
   if (newModel.userData.wingMissilePoints) ship.userData.wingMissilePoints = newModel.userData.wingMissilePoints;
+  // Propagar referencias del rig articulado (Muro) al userData del ship para animar en animate()
+  for (const k of ['legs', 'turret', 'barrel', 'mecChassis']) {
+    if (newModel.userData && newModel.userData[k]) ship.userData[k] = newModel.userData[k];
+  }
   // Re-aplicar el modelo custom si existe (el .glb precargado)
   swapModelIfReady();
 
@@ -3711,6 +3715,107 @@ function buildDuck() {
   return group;
 }
 
+// ================= Muro / A-Gear: robot articulado (base + torreta + 4 patas que caminan) =================
+// El Mecano.glb es una pieza rígida, así que lo montamos como decoración del chasis y animamos
+// nuestro propio rig: la base (con las patas) y una torreta con cañón independientes.
+function buildMuro() {
+  const group = new THREE.Group();
+  const hull = new THREE.MeshStandardMaterial({ color: 0x6f8296, roughness: 0.55, metalness: 0.35 });
+  const hullDark = new THREE.MeshStandardMaterial({ color: 0x3a4654, roughness: 0.55, metalness: 0.4 });
+  const armor = new THREE.MeshStandardMaterial({ color: 0x9fb3c8, roughness: 0.5, metalness: 0.3 });
+  const accent = new THREE.MeshStandardMaterial({ color: 0xd5a233, roughness: 0.4, metalness: 0.2 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x232a33, roughness: 0.5, metalness: 0.4 });
+  const glow = new THREE.MeshStandardMaterial({ color: 0x8fd0ff, emissive: 0x2a6fbf, emissiveIntensity: 1.2, roughness: 0.4 });
+
+  // ---- Chasis central (base) ----
+  const base = new THREE.Group();
+  const mecChassis = new THREE.Group();
+  mecChassis.position.set(0, 1.6, -0.4);
+  base.add(mecChassis);
+  base.userData = { legs: [], turret: null, barrel: null, mecChassis };
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.1, 3.4), hull);
+  body.position.y = 1.3;
+  addToonOutline(body, 0x1a2230);
+  base.add(body);
+  // Faldón acorazado que cubre las caderas
+  const skirt = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.5, 3.6), hullDark);
+  skirt.position.y = 0.8;
+  addToonOutline(skirt, 0x101418);
+  base.add(skirt);
+  // Cabina / núcleo brillante al frente
+  const core = new THREE.Mesh(new THREE.CircleGeometry(0.5, 14), glow);
+  core.position.set(0, 1.4, 1.76);
+  base.add(core);
+  const coreRing = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.12, 8, 16), accent);
+  coreRing.position.set(0, 1.4, 1.72);
+  base.add(coreRing);
+  // Paneles laterales
+  for (const side of [-1, 1]) {
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.9, 2.6), armor);
+    panel.position.set(side * 1.45, 1.35, 0);
+    addToonOutline(panel, 0x242c36);
+    base.add(panel);
+  }
+
+  // ---- 4 patas articuladas (caminan) ----
+  const legGeo = new THREE.BoxGeometry(0.5, 1.3, 0.5);
+  const footGeo = new THREE.BoxGeometry(0.6, 0.28, 1.1);
+  const hipSpots = [[-1.0, -0.5], [1.0, -0.5], [-1.0, 0.5], [1.0, 0.5]];
+  for (const [hx, hz] of hipSpots) {
+    // Pivot en el hombro: girando esta caja en X la pierna patea hacia adelante/atrás
+    const pivot = new THREE.Group();
+    pivot.position.set(hx, 1.1, hz);
+    const thigh = new THREE.Mesh(legGeo, hullDark);
+    thigh.position.y = -0.65;
+    addToonOutline(thigh, 0x101418);
+    pivot.add(thigh);
+    const foot = new THREE.Mesh(footGeo, dark);
+    foot.position.set(0, -1.25, 0.15);
+    addToonOutline(foot, 0x0c0e12);
+    pivot.add(foot);
+    const joint = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), accent);
+    joint.position.y = 0.05;
+    pivot.add(joint);
+    base.add(pivot);
+    base.userData.legs.push(pivot);
+  }
+
+  // ---- Torreta + cañón (independiente de la base) ----
+  const turret = new THREE.Group();
+  turret.position.set(0, 2.05, -0.3);
+  const turretHull = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.9, 2.2), hull);
+  turretHull.position.y = 0.35;
+  addToonOutline(turretHull, 0x1a2230);
+  turret.add(turretHull);
+  // Cañón montado en un pivot para elevación
+  const barrel = new THREE.Group();
+  barrel.position.set(0, 0.75, 0.5);
+  const barrelMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.4, 2.6, 10), hullDark);
+  barrelMesh.rotation.x = Math.PI / 2;
+  barrelMesh.position.z = 1.0;
+  addToonOutline(barrelMesh, 0x101418);
+  barrel.add(barrelMesh);
+  const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.5, 10), dark);
+  muzzle.rotation.x = Math.PI / 2;
+  muzzle.position.z = 2.2;
+  barrel.add(muzzle);
+  const barrelDot = new THREE.Mesh(new THREE.CircleGeometry(0.28, 12), glow);
+  barrelDot.position.z = 2.45;
+  barrel.add(barrelDot);
+  const muzzleGlow = new THREE.PointLight(0x8fd0ff, 0, 8);
+  muzzleGlow.position.set(0, 0, 2.6);
+  barrel.add(muzzleGlow);
+  turret.add(barrel);
+  base.add(turret);
+  base.userData.turret = turret;
+  base.userData.barrel = barrel;
+
+  group.add(base);
+  group.userData = base.userData;
+  group.userData.base = base;
+  return group;
+}
+
 const ship = buildDuck();
 ship.position.set(0, 60, 0);
 scene.add(ship);
@@ -3757,12 +3862,23 @@ function swapModelIfReady() {
   if (!cfg) return;
   const key = cfg.modelKey;
   if (!MODEL_CACHE[key]) return;
-  while (ship.children.length) ship.remove(ship.children[0]);
   const lib = MODEL_LIBRARY[key];
   const instance = MODEL_CACHE[key].clone(true);
   instance.scale.setScalar(lib.scale);
   instance.rotation.y = lib.rotationY;
   instance.position.set(lib.offset.x, lib.offset.y, lib.offset.z);
+  // A-Gear (Muro): el modelo Mecano es una pieza rígida compacta; lo montamos como decoración
+  // del chasis del robot articulado en vez de reemplazar el rig (que es el que camina y apunta).
+  if (key === 'mecano' && ship.userData && ship.userData.mecChassis) {
+    const chassis = ship.userData.mecChassis;
+    while (chassis.children.length) chassis.remove(chassis.children[0]);
+    instance.scale.setScalar(lib.scale * 0.6);
+    instance.rotation.y = Math.PI;
+    instance.position.set(0, 0, 0);
+    chassis.add(instance);
+    return;
+  }
+  while (ship.children.length) ship.remove(ship.children[0]);
   ship.add(instance);
   ship.add(flameGroup);
   if (lib.wingMissilePoints) ship.userData.wingMissilePoints = lib.wingMissilePoints;
@@ -7305,8 +7421,9 @@ function animate() {
             lookPitch += (tPitch - lookPitch) * Math.min(1, 6 * dt);
           }
         }
-        // Turret angle caps (AO AGEAR_SIEGEMODE_MAX/MIN_ANGLE): ni clavado al piso ni vertical
-        lookPitch = Math.max(-0.5, Math.min(1.1, lookPitch));
+        // Turret angle caps (AO AGEAR_SIEGEMODE_MAX/MIN_ANGLE): ni clavado al piso ni vertical.
+        // Subimos el techo de elevación (~83°) para poder apuntar a mobs que están más arriba.
+        lookPitch = Math.max(-0.8, Math.min(1.45, lookPitch));
         ship.quaternion.setFromEuler(new THREE.Euler(-lookPitch, lookYaw, 0, 'YXZ'));
         rollAngle *= 0.9;
       }
@@ -7341,7 +7458,7 @@ function animate() {
           lookPitch += (tPitch - lookPitch) * Math.min(1, 6 * dt);
         }
       }
-      lookPitch = Math.max(-0.5, Math.min(1.1, lookPitch));
+      lookPitch = Math.max(-0.8, Math.min(1.45, lookPitch));
       pitchClamped = lookPitch;
     }
     const euler = new THREE.Euler(-pitchClamped, lookYaw, 0, 'YXZ');
@@ -7467,6 +7584,59 @@ function animate() {
   checkWallCollision();
   checkFixtureCollisions();
   updateBoundaryWarning();
+
+  // ---- A-Gear (Muro): robot articulado — patas que caminan + torreta que apunta ----
+  if (selectedGear === 'muro' && ship.userData && ship.userData.legs) {
+    const legData = ship.userData.legs;
+    const turret = ship.userData.turret;
+    const barrel = ship.userData.barrel;
+    // Velocidad efectiva de avance (tanto en el suelo como en el aire)
+    const moveAmt = Math.abs(groundSpeedVar) + Math.abs(speed) * (mode === 'FLIGHT' ? 1 : 0.5);
+    const isLandedNow = !!isLanded || !!siegeGrounded || !!isSiegeMode;
+    if (isLandedNow) {
+      // Aterrizado / siege: las patas caminan al ritmo de la velocidad de conducción
+      const stepSpeed = Math.min(12, 2 + moveAmt * 0.35);
+      const legPhase = (performance.now() / 1000) * stepSpeed;
+      const stride = Math.min(0.85, 0.25 + moveAmt * 0.02);
+      const antis = [[0, 0], [1, 0], [0, 1], [1, 1]];
+      for (let li = 0; li < legData.length && li < 4; li++) {
+        const l = legData[li];
+        const anti = antis[li] || [0, 0];
+        const ph = legPhase + (anti[0] ? Math.PI : 0) + (anti[1] ? Math.PI / 2 : 0);
+        // Alternancia diagonal para que parezca caminar de verdad
+        l.rotation.x = Math.sin(ph) * stride;
+        // El pie sube/baja ligeramente con el balanceo
+        l.children[1] && (l.children[1].position.y = -1.25 - Math.max(0, Math.sin(ph)) * 0.15);
+      }
+    } else {
+      // En vuelo: patas recogidas (modo mecha volador)
+      for (const l of legData) { l.rotation.x *= (1 - Math.min(1, 6 * (1 / 60))); }
+    }
+    // Torreta: apunta al objetivo enganchado (independiente de la base) o hacia adelante
+    if (turret && barrel) {
+      let tYawRelative = 0, tPitch = 0;
+      if (currentLockTarget && currentLockTarget.alive) {
+        const dx = currentLockTarget.mesh.position.x - ship.position.x;
+        const dy = currentLockTarget.mesh.position.y - (ship.position.y + 1.6);
+        const dz = currentLockTarget.mesh.position.z - ship.position.z;
+        const len = Math.hypot(dx, dy, dz);
+        if (len > 0.001) {
+          const worldYaw = Math.atan2(dx, dz);
+          tYawRelative = worldYaw - lookYaw;
+          while (tYawRelative > Math.PI) tYawRelative -= 2 * Math.PI;
+          while (tYawRelative < -Math.PI) tYawRelative += 2 * Math.PI;
+          tPitch = Math.asin(Math.max(-1, Math.min(1, dy / len)));
+        }
+      }
+      // Suavizado de la torreta (el yaw es relativo a la orientación del ship)
+      turret.rotation.y += (tYawRelative - turret.rotation.y) * Math.min(1, 8 * dt);
+      // Elevación del cañón relativa al ship: tPitch - lookPitch (el ship ya se inclina con lookPitch).
+      // Esto permite apuntar a mobs muy arriba/a muy abajo sin que el quaternion del ship lo claves.
+      const relPitch = (currentLockTarget && currentLockTarget.alive) ? (tPitch - lookPitch) : 0;
+      const targetPitch = Math.max(-0.6, Math.min(1.4, relPitch));
+      barrel.rotation.x += (targetPitch - barrel.rotation.x) * Math.min(1, 8 * dt);
+    }
+  }
 
   // Atravesar el portal cuando el nivel está limpio y te acercás a la puerta iluminada
   if (portalActive && currentLevel < MAX_LEVEL && ship && doorGroup) {
@@ -7764,8 +7934,17 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
 
     if (enemy.state === 'chase') {
       const toPlayer = ship.position.clone().sub(enemy.mesh.position);
-      toPlayer.y = 0;
-      if (toPlayer.lengthSq() > 0.0001) toPlayer.normalize();
+      const horizLen = Math.sqrt(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
+      // AO: los mobs también viajan en vertical para igualar la altura del jugador
+      // (p.ej. si el pato baja de altura, los que quedan "encima" se acercan en Y y vuelven a ser atacables)
+      const vertSpeed = enemy.chaseSpeed * 1.1;
+      const wantY = ship.position.y;
+      const dy = wantY - enemy.mesh.position.y;
+      const maxStep = vertSpeed * dt;
+      const stepY = Math.max(-maxStep, Math.min(maxStep, dy));
+      // Dirección horizontal hacia el jugador
+      let horiz = toPlayer.clone(); horiz.y = 0;
+      if (horiz.lengthSq() > 0.0001) horiz.normalize();
       // Obstacle avoidance: steer away from worldColliders
       const avoidDir = new THREE.Vector3();
       for (const c of worldColliders) {
@@ -7778,14 +7957,33 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
           avoidDir.add(toObstacle.normalize().multiplyScalar(strength * 40));
         }
       }
-      const finalDir = toPlayer.clone().add(avoidDir);
+      const finalDir = horiz.clone().add(avoidDir);
       if (finalDir.lengthSq() > 0.0001) finalDir.normalize();
-      let chaseMult = 1;
-      if (enemy.snareTimer > 0) { chaseMult = enemy.snareFactor || 0.5; enemy.snareTimer -= dt; }
+      // AO "da vueltas" alrededor del jugador estando en combate: orbitan en un radio fijo
+      // en vez de apilarse encima, y mantienen la altura del jugador para poder atacarse mutuamente.
+      const combatRadius = Math.max(enemy.fireRange * 0.55, 12);
+      if (distToPlayer < combatRadius * 1.1) {
+        // Está dentro del radio de combate → orbita alrededor del jugador
+        enemy.orbitAngle += enemy.orbitSpeed * (enemy.behavior === 'kite' ? 1.6 : 1) * dt;
+        const ox = ship.position.x + Math.cos(enemy.orbitAngle) * combatRadius;
+        const oz = ship.position.z + Math.sin(enemy.orbitAngle) * combatRadius;
+        enemy.mesh.position.x += (ox - enemy.mesh.position.x) * Math.min(1, 5 * dt);
+        enemy.mesh.position.z += (oz - enemy.mesh.position.z) * Math.min(1, 5 * dt);
+        enemy.mesh.position.y += stepY;
+        // No acercar más horizontalmente en combate (ya está orbitando)
+      } else {
+        // Fuera del radio de combate → se acerca, viajando también en vertical
+        let moveX = finalDir.x * enemy.chaseSpeed * dt;
+        let moveZ = finalDir.z * enemy.chaseSpeed * dt;
+        if (enemy.snareTimer > 0) { const m = enemy.snareFactor || 0.5; moveX *= m; moveZ *= m; }
+        enemy.mesh.position.x += moveX;
+        enemy.mesh.position.z += moveZ;
+        enemy.mesh.position.y += stepY;
+      }
+      enemy.center.copy(enemy.mesh.position);
       const bhv = enemy.behavior || 'basic';
       if (bhv === 'rush') {
-        // Rushers cierran la distancia sin frenar — embisten
-        enemy.mesh.position.addScaledVector(finalDir, enemy.chaseSpeed * chaseMult * dt);
+        // Rushers cierran la distancia sin frenar — embisten (ignoran la órbita)
         if (distToPlayer < 8) {
           enemy.attackCooldown -= dt;
           if (enemy.attackCooldown <= 0 && !enemy.invisible) {
@@ -7795,11 +7993,9 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
           }
         }
       } else if (bhv === 'kite') {
-        // Shooters mantienen distancia — retroceden si el player está muy cerca
+        // Shooters mantienen distancia — si el orbit los acercó, retroceden un poco
         if (distToPlayer < enemy.fireRange * 0.5) {
-          enemy.mesh.position.addScaledVector(finalDir.clone().negate(), enemy.chaseSpeed * chaseMult * dt);
-        } else if (distToPlayer > enemy.fireRange) {
-          enemy.mesh.position.addScaledVector(finalDir, enemy.chaseSpeed * chaseMult * dt);
+          enemy.mesh.position.addScaledVector(finalDir.clone().negate(), enemy.chaseSpeed * dt);
         }
         enemy.attackCooldown -= dt;
         if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !enemy.invisible) {
@@ -7808,10 +8004,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
           enemy.lunge = 0.22;
         }
       } else {
-        // Basic / tank / elite: movimiento estándar
-        if (distToPlayer > enemy.fireRange) {
-          enemy.mesh.position.addScaledVector(finalDir, enemy.chaseSpeed * chaseMult * dt);
-        }
+        // Basic / tank / elite: atacan al estar en rango (ya orbitando)
         enemy.attackCooldown -= dt;
         if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !enemy.invisible) {
           fireTeddyProjectile(enemy);
@@ -7820,7 +8013,6 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
         }
       }
       enemy.mesh.lookAt(ship.position.x, enemy.mesh.position.y, ship.position.z);
-      enemy.center.copy(enemy.mesh.position);
     } else {
       enemy.orbitAngle += enemy.orbitSpeed * dt;
       enemy.mesh.position.x = enemy.center.x + Math.cos(enemy.orbitAngle) * enemy.orbitRadius;
