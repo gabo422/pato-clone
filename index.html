@@ -4381,13 +4381,17 @@ function fireProjectile() {
   onPlayerAttack();
   const weapon = getStdWeapon();
   if (!weapon) return;
-  stdHeat += HEAT_PER_SHOT_STD;
   const berserkerAtkReduction = isSkillActive('berserker') ? 0.7 : 1;
-  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime * REATTACK_SPEEDUP * berserkerAtkReduction || 0.14);
+  const effAtk = (rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime * REATTACK_SPEEDUP * berserkerAtkReduction || 0.14));
+  // Overheat calibrado por arma: el arma calienta de modo que a "overheatTime" segundos de
+  // fuego continuo (a su reattack real) la barra llegue a 100, igual que en Ace Online.
+  const ovH = weapon.overheatTime || OVERHEAT_LOCKOUT;
+  stdHeat += 100 * effAtk / ovH;
+  stdFireCooldown = effAtk;
   if (stdHeat >= 100) {
     stdHeat = 100;
     stdOverheated = true;
-    stdOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
+    stdOverheatTimer = OVERHEAT_LOCKOUT;
   }
   // Fire pattern (+2 volleys Berserker, +1 Frenzy "Disparo Continuo")
   const berserkerVolleyBonus = (isSkillActive('berserker')) ? 2 : 0;
@@ -4451,12 +4455,15 @@ function fireMissile() {
   onPlayerAttack();
   const weapon = getAdvWeapon();
   if (!weapon) return;
-  advHeat += HEAT_PER_SHOT_ADV;
-  advFireCooldown = (weapon.reattackTime || 0.9) * REATTACK_SPEEDUP * (isSkillActive('berserker') ? 0.7 : 1);
+  const advEffAtk = (weapon.reattackTime || 0.9) * REATTACK_SPEEDUP * (isSkillActive('berserker') ? 0.7 : 1);
+  // Overheat calibrado por arma (misma lógica que el arma estándar): sobrecalienta a los overheatTime s.
+  const advOvH = weapon.overheatTime || OVERHEAT_LOCKOUT;
+  advHeat += 100 * advEffAtk / advOvH;
+  advFireCooldown = advEffAtk;
   if (advHeat >= 100) {
     advHeat = 100;
     advOverheated = true;
-    advOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
+    advOverheatTimer = OVERHEAT_LOCKOUT;
   }
   const pattern = weapon.pattern || [1, 1];
   // AO: GBM skill adds pfp_MULTINUM_02 to MultiNum — more missiles per volley
