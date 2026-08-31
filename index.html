@@ -4172,7 +4172,7 @@ function fireProjectile() {
   if (!weapon) return;
   stdHeat += HEAT_PER_SHOT_STD;
   const berserkerAtkReduction = isSkillActive('berserker') ? 0.7 : 1;
-  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime * berserkerAtkReduction || 0.14);
+  stdFireCooldown = rapidFireTimer > 0 ? 0.05 : (weapon.reattackTime * REATTACK_SPEEDUP * berserkerAtkReduction || 0.14);
   if (stdHeat >= 100) {
     stdHeat = 100;
     stdOverheated = true;
@@ -4241,7 +4241,7 @@ function fireMissile() {
   const weapon = getAdvWeapon();
   if (!weapon) return;
   advHeat += HEAT_PER_SHOT_ADV;
-  advFireCooldown = (weapon.reattackTime || 0.9) * (isSkillActive('berserker') ? 0.7 : 1);
+  advFireCooldown = (weapon.reattackTime || 0.9) * REATTACK_SPEEDUP * (isSkillActive('berserker') ? 0.7 : 1);
   if (advHeat >= 100) {
     advHeat = 100;
     advOverheated = true;
@@ -5422,6 +5422,7 @@ let stdOverheatTimer = 0;   // tiempo restante de sobrecalentamiento
 let advOverheatTimer = 0;
 let stdFireCooldown = 0;    // cooldown entre ráfagas (reattackTime)
 let advFireCooldown = 0;
+const REATTACK_SPEEDUP = 0.5;   // reattack de TODAS las armas bajado un 50%
 const HEAT_PER_SHOT_STD = 12;  // calor que genera cada disparo del arma estándar
 const HEAT_PER_SHOT_ADV = 18;  // calor que genera cada disparo del arma avanzada
 const HEAT_DECAY_RATE = 25;    // puntos de calor que se pierden por segundo al no disparar
