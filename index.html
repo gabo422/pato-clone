@@ -4723,8 +4723,15 @@ function makeAceParticleTexture() {
 }
 const aceParticleTexture = makeAceParticleTexture();
 
+// ---- DIAGNÓSTICO "fuego blanco" del Muro ----
+// true → se apaga TODO el sistema de partículas/auras/rings (skills, boost, proyectiles),
+// dejando solo el robot y sus stats. Sirve para aislar si el "fuego blanco en el cuerpo"
+// es VFX de partículas o un mesh del robot.
+let MECH_DIAG_VFX_OFF = true;
+
 // ---- Generic Ace particle spawner: creates a Points object from preset params ----
 function aceSpawnParticles(preset, position, targetArray) {
+  if (MECH_DIAG_VFX_OFF) return;
   const count = preset.count;
   const posArr = new Float32Array(count * 3);
   const vels = [];
@@ -4762,6 +4769,7 @@ function aceSpawnParticles(preset, position, targetArray) {
 
 // ---- Muzzle flash: creates a bright billboard at weapon hardpoints ----
 function aceMuzzleFlash(position) {
+  if (MECH_DIAG_VFX_OFF) return;
   const count = 4;
   const posArr = new Float32Array(count * 3);
   const vels = [];
@@ -4879,6 +4887,7 @@ function spawnLevelUpEffect() {
 // ---- Skill rings (expanding rings for various effects) ----
 const skillRings = [];
 function spawnSkillRing(pos, color, startRadius, expandSpeed) {
+  if (MECH_DIAG_VFX_OFF) return;
   const geo = new THREE.RingGeometry(startRadius, startRadius + 1.5, 32);
   const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false });
   const ring = new THREE.Mesh(geo, mat);
