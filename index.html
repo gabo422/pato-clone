@@ -4202,16 +4202,26 @@ function spawnTeddyWave() {
     mesh.position.set(spot.x, 40 + Math.random() * 60, spot.z);
     scene.add(mesh);
     const mobHp = Math.round(baseHp * mob.hp);
+    // AO: los mobs patrullan alrededor de su punto de aparición (m_CreatedPosition).
+    // En combate persiguen/tejen alrededor del jugador cambiando de dirección con giros aleatorios
+    // (CNPCMonster::MoveTargetVector + LR/UD strafe + QuickTurn), NO orbitan en un radio fijo.
     enemies.push({
-      mesh, center: mesh.position.clone(),
+      mesh, center: mesh.position.clone(),      // punto de aparición = leash (AO m_CreatedPosition)
+      spawnPos: mesh.position.clone(),
       mobType: typeKey,
-      orbitRadius: orbR,
-      orbitSpeed: mob.orbitSpeed[0] + Math.random() * (mob.orbitSpeed[1] - mob.orbitSpeed[0]),
-      orbitAngle: Math.random() * Math.PI * 2,
+      moveDir: new THREE.Vector3(1, 0, 0),       // AO m_MoveTargetVector (dirección de avance, se rota gradualmente)
+      speed: (35 + Math.random() * 15) * mob.speed,
+      currentSpeed: 0,                            // AO m_CurrentSpeed (acelera/frena suavemente)
+      // AO MOVEINFO: sentido de avance/retroceso y de strafe lateral x vertical con contadores que revierten dirección
+      fbdirect: 1, fbCurrent: 0, fbChangeCount: 1,
+      lrDirect: Math.random() < 0.5 ? -1 : 1, lrCurrent: 0, lrChangeBase: 2 + Math.random() * 2, lrChangeRandom: 3, lrChangeLimit: 2,
+      udDirect: 0, udCurrent: 0, udChangeBase: 3 + Math.random() * 3, udChangeRandom: 3, udChangeLimit: 3,
+      turnAngle: 2.2 + Math.random() * 2.5,       // AO MonsterInfo->TurnAngle (límite de giro por tick)
+      quickTurnTimer: 0, quickTurnTerm: 1.1 + Math.random() * 1.2, // AO QuickTurnTerm
+      weaveSeed: Math.random() * 1000,
       alive: true, hp: mobHp, maxHp: mobHp, isBoss: false,
-      state: 'orbit',
+      state: 'patrol',                            // patrol | chase | giveup
       detectRadius: mob.detectRadius,
-      chaseSpeed: (35 + Math.random() * 15) * mob.speed,
       fireRange: mob.fireRange,
       attackCooldown: 0.8 + Math.random() * 0.8,
       attackInterval: mob.attackInterval,
@@ -4238,10 +4248,19 @@ function spawnBossWave() {
   const bossEvasion = currentLevel >= 15 ? 7 : (currentLevel >= 7 ? 6 : 5);
   enemies.push({
     mesh, center: mesh.position.clone(),
-    orbitRadius: 150 + bossEncounters * 20,
-    orbitSpeed: 0.18 + bossEncounters * 0.03,
-    orbitAngle: 0,
+    spawnPos: mesh.position.clone(),
+    moveDir: new THREE.Vector3(1, 0, 0),
+    speed: 28 + bossEncounters * 4,
+    currentSpeed: 0,
+    fbdirect: 1, fbCurrent: 0, fbChangeCount: 1,
+    lrDirect: 1, lrCurrent: 0, lrChangeBase: 3, lrChangeRandom: 3, lrChangeLimit: 3,
+    udDirect: 0, udCurrent: 0, udChangeBase: 4, udChangeRandom: 3, udChangeLimit: 4,
+    turnAngle: 1.5,
+    quickTurnTimer: 0, quickTurnTerm: 1.5,
+    weaveSeed: Math.random() * 1000,
     alive: true, hp, maxHp: hp, isBoss: true,
+    state: 'patrol',
+    fireRange: 150,
     defense: bossDefense,
     evasion: bossEvasion,
     fireCooldown: 1.5, fireInterval: Math.max(0.5, 2.3 - bossEncounters * 0.25 - currentLevel * 0.05)
@@ -4427,6 +4446,42 @@ const enemyMissiles = []; // del boss -> dañan al jugador
 const teddyProjectiles = []; // de los ositos -> dañan al jugador (a distancia, ya no cuerpo a cuerpo)
 const teddyProjGeo = new THREE.SphereGeometry(0.4, 10, 8);
 const teddyProjMat = new THREE.MeshStandardMaterial({ color: 0xd4453a, emissive: 0x5a1510, roughness: 0.4 });
+// ===== Helpers de movimiento AO (CNPCMonster) =====
+// Rotación de un vector alrededor del eje X (tilt vertical) / Y (giro horizontal / strafe).
+function rotateVec(v, axis, angle) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  if (axis === 'y') {
+    const x = v.x * c + v.z * s, z = -v.x * s + v.z * c;
+    v.x = x; v.z = z;
+  } else {
+    const y = v.y * c - v.z * s, z = v.y * s + v.z * c;
+    v.y = y; v.z = z;
+  }
+}
+function rotateY(v, angle) { rotateVec(v, 'y', angle); }
+function tiltX(v, angle) { rotateVec(v, 'x', angle); }
+// AO GNPCGetMaxTargetVector: rota moveDir hacia la dirección deseada con un ángulo máximo
+// por tick (MonsterInfo->TurnAngle). Si el giro requerido es menor al límite, apunta directo.
+function steerToward(enemy, wantDir, dt) {
+  const cur = enemy.moveDir;
+  const dot = Math.max(-1, Math.min(1, cur.dot(wantDir)));
+  const need = Math.acos(dot);
+  const max = (enemy.turnAngle || 2.0) * dt * 2.2;
+  if (need <= max) { cur.copy(wantDir); return; }
+  const axis = new THREE.Vector3().crossVectors(cur, wantDir);
+  axis.y = 0;
+  const ayl = axis.length();
+  if (ayl < 1e-5) { cur.copy(wantDir); return; }
+  axis.normalize();
+  const dir = cur.clone().cross(axis).dot(wantDir) >= 0 ? 1 : -1;
+  cur.applyAxisAngle(axis, dir * max);
+}
+// AO UpdateCurrentSpeed: aproxima la velocidad actual hacia la objetivo sin saltos.
+function approachSpeed(cur, target, dt) {
+  const rate = 40 * dt; // aceleración/frenado gradual
+  if (cur < target) return Math.min(target, cur + rate);
+  return Math.max(target, cur - rate);
+}
 function fireTeddyProjectile(enemy) {
   const mesh = new THREE.Mesh(teddyProjGeo, teddyProjMat);
   const spawnPos = enemy.mesh.position.clone().add(new THREE.Vector3(0, 1.8, 0));
@@ -6735,7 +6790,7 @@ function registerHit(enemy, dmg, isMissile) {
 
   // Snare Shot: slow on hit (skill 50% / pasiva de tarjeta)
   const snareVal = isSkillActive('snareShot') ? 0.5 : Math.max(getPassive('snareEffect'), 0);
-  if (snareVal > 0 && enemy.chaseSpeed) {
+  if (snareVal > 0 && enemy.speed) {
     enemy.snareTimer = 2;
     enemy.snareFactor = 1 - snareVal;
   }
@@ -7930,15 +7985,29 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
         }
       }
 
-      enemy.orbitAngle += enemy.orbitSpeed * dt;
-      enemy.mesh.position.x = enemy.center.x + Math.cos(enemy.orbitAngle) * enemy.orbitRadius;
-      enemy.mesh.position.z = enemy.center.z + Math.sin(enemy.orbitAngle) * enemy.orbitRadius;
-      enemy.mesh.position.y = enemy.center.y + Math.sin(enemy.orbitAngle * 2) * 6;
-      enemy.mesh.lookAt(
-        enemy.center.x + Math.cos(enemy.orbitAngle + 0.1) * enemy.orbitRadius,
-        enemy.mesh.position.y,
-        enemy.center.z + Math.sin(enemy.orbitAngle + 0.1) * enemy.orbitRadius
-      );
+      // Boss AO: vuela hacia el jugador con giro gradual (GNPCGetMaxTargetVector) y teje
+      // cambiando de dirección (QuickTurn) alrededor del objetivo en combate.
+      const toP = ship.position.clone().sub(enemy.mesh.position);
+      const dP = toP.length();
+      const dirP = toP.normalize();
+      steerToward(enemy, dirP, dt);
+      // Leash: si el boss se alejó mucho del punto de aparición, regresa (AO CheckMoveRange)
+      const cP = enemy.spawnPos.clone().sub(enemy.mesh.position); cP.y = 0;
+      if (cP.length() > 320) { const back = cP.normalize().multiplyScalar(enemy.speed); enemy.moveDir.set(back.x, 0, back.z).normalize(); }
+      // Trama de dirección: QuickTurn ocasional alrededor del jugador
+      enemy.quickTurnTimer -= dt;
+      const inCombatP = dP < enemy.fireRange * 1.3;
+      if (inCombatP && enemy.quickTurnTimer <= 0) {
+        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.5 + Math.random() * 1);
+        const lrS = enemy.lrDirect;
+        const ang = (lrS * (1.1 + Math.random() * 0.9));
+        rotateY(enemy.moveDir, ang);
+      }
+      const spdP = Math.min(enemy.speed, dP / 4 || enemy.speed);
+      enemy.currentSpeed = approachSpeed(enemy.currentSpeed, spdP, dt);
+      enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * (enemy.snareTimer > 0 ? 0.5 : 1));
+      const faceT = ship.position.clone().sub(enemy.mesh.position); faceT.y = 0;
+      if (faceT.lengthSq() > 0.0001) enemy.mesh.lookAt(enemy.mesh.position.clone().add(faceT.normalize()));
       enemy.fireCooldown -= dt;
       if (enemy.fireCooldown <= 0) {
         fireBossCannons(enemy);
@@ -7947,102 +8016,110 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       continue;
     }
 
-    // ---- Ositos: persiguen si el pato está cerca, si no orbitan su punto de aparición ----
+    // ---- Ositos: AO CNPCMonster — patrullan su punto de aparición, persiguen al detectar,
+    //      y en combate tejen/alrededor del objetivo cambiando de dirección con giros. ----
     const distToPlayer = enemy.mesh.position.distanceTo(ship.position);
-    if (distToPlayer < enemy.detectRadius) enemy.state = 'chase';
-    else if (distToPlayer > enemy.detectRadius * 1.4) enemy.state = 'orbit';
-
-    if (enemy.state === 'chase') {
-      const toPlayer = ship.position.clone().sub(enemy.mesh.position);
-      const horizLen = Math.sqrt(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
-      // AO: los mobs también viajan en vertical para igualar la altura del jugador
-      // (p.ej. si el pato baja de altura, los que quedan "encima" se acercan en Y y vuelven a ser atacables)
-      const vertSpeed = enemy.chaseSpeed * 1.1;
-      const wantY = ship.position.y;
-      const dy = wantY - enemy.mesh.position.y;
-      const maxStep = vertSpeed * dt;
-      const stepY = Math.max(-maxStep, Math.min(maxStep, dy));
-      // Dirección horizontal hacia el jugador
-      let horiz = toPlayer.clone(); horiz.y = 0;
-      if (horiz.lengthSq() > 0.0001) horiz.normalize();
-      // Obstacle avoidance: steer away from worldColliders
-      const avoidDir = new THREE.Vector3();
-      for (const c of worldColliders) {
-        const toObstacle = enemy.mesh.position.clone().sub(c.pos);
-        toObstacle.y = 0;
-        const dist = toObstacle.length();
-        const avoidRadius = c.radius + 15;
-        if (dist < avoidRadius && dist > 0.01) {
-          const strength = (avoidRadius - dist) / avoidRadius;
-          avoidDir.add(toObstacle.normalize().multiplyScalar(strength * 40));
-        }
-      }
-      const finalDir = horiz.clone().add(avoidDir);
-      if (finalDir.lengthSq() > 0.0001) finalDir.normalize();
-      // AO "da vueltas" alrededor del jugador estando en combate: orbitan en un radio fijo
-      // en vez de apilarse encima, y mantienen la altura del jugador para poder atacarse mutuamente.
-      const combatRadius = Math.max(enemy.fireRange * 0.55, 12);
-      if (distToPlayer < combatRadius * 1.1) {
-        // Está dentro del radio de combate → orbita alrededor del jugador
-        enemy.orbitAngle += enemy.orbitSpeed * (enemy.behavior === 'kite' ? 1.6 : 1) * dt;
-        const ox = ship.position.x + Math.cos(enemy.orbitAngle) * combatRadius;
-        const oz = ship.position.z + Math.sin(enemy.orbitAngle) * combatRadius;
-        enemy.mesh.position.x += (ox - enemy.mesh.position.x) * Math.min(1, 5 * dt);
-        enemy.mesh.position.z += (oz - enemy.mesh.position.z) * Math.min(1, 5 * dt);
-        enemy.mesh.position.y += stepY;
-        // No acercar más horizontalmente en combate (ya está orbitando)
-      } else {
-        // Fuera del radio de combate → se acerca, viajando también en vertical
-        let moveX = finalDir.x * enemy.chaseSpeed * dt;
-        let moveZ = finalDir.z * enemy.chaseSpeed * dt;
-        if (enemy.snareTimer > 0) { const m = enemy.snareFactor || 0.5; moveX *= m; moveZ *= m; }
-        enemy.mesh.position.x += moveX;
-        enemy.mesh.position.z += moveZ;
-        enemy.mesh.position.y += stepY;
-      }
-      enemy.center.copy(enemy.mesh.position);
-      const bhv = enemy.behavior || 'basic';
-      if (bhv === 'rush') {
-        // Rushers cierran la distancia sin frenar — embisten (ignoran la órbita)
-        if (distToPlayer < 8) {
-          enemy.attackCooldown -= dt;
-          if (enemy.attackCooldown <= 0 && !enemy.invisible) {
-            fireTeddyProjectile(enemy);
-            enemy.attackCooldown = enemy.attackInterval;
-            enemy.lunge = 0.22;
-          }
-        }
-      } else if (bhv === 'kite') {
-        // Shooters mantienen distancia — si el orbit los acercó, retroceden un poco
-        if (distToPlayer < enemy.fireRange * 0.5) {
-          enemy.mesh.position.addScaledVector(finalDir.clone().negate(), enemy.chaseSpeed * dt);
-        }
-        enemy.attackCooldown -= dt;
-        if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !enemy.invisible) {
-          fireTeddyProjectile(enemy);
-          enemy.attackCooldown = enemy.attackInterval;
-          enemy.lunge = 0.22;
-        }
-      } else {
-        // Basic / tank / elite: atacan al estar en rango (ya orbitando)
-        enemy.attackCooldown -= dt;
-        if (distToPlayer <= enemy.fireRange && enemy.attackCooldown <= 0 && !enemy.invisible) {
-          fireTeddyProjectile(enemy);
-          enemy.attackCooldown = enemy.attackInterval;
-          enemy.lunge = 0.22;
-        }
-      }
-      enemy.mesh.lookAt(ship.position.x, enemy.mesh.position.y, ship.position.z);
-    } else {
-      enemy.orbitAngle += enemy.orbitSpeed * dt;
-      enemy.mesh.position.x = enemy.center.x + Math.cos(enemy.orbitAngle) * enemy.orbitRadius;
-      enemy.mesh.position.z = enemy.center.z + Math.sin(enemy.orbitAngle) * enemy.orbitRadius;
-      enemy.mesh.lookAt(
-        enemy.center.x + Math.cos(enemy.orbitAngle + 0.1) * enemy.orbitRadius,
-        enemy.mesh.position.y,
-        enemy.center.z + Math.sin(enemy.orbitAngle + 0.1) * enemy.orbitRadius
-      );
+    if (distToPlayer < enemy.detectRadius) {
+      // AO: si está lejos del leash y detecta al jugador → persigue (MSS_CHASE). Si se aleja demasiado
+      // del punto de aparición, suelta el aguijón y regresa (CheckMoveRange / leash).
+      const leash = enemy.spawnPos.clone().sub(enemy.mesh.position); leash.y = 0;
+      enemy.state = (enemy.state === 'chase' && leash.length() > enemy.detectRadius * 2.4) ? 'giveup' : 'chase';
+    } else if (distToPlayer > enemy.detectRadius * 1.5) {
+      enemy.state = 'patrol';
     }
+
+    // --- Dirección objetivo (Vector hacia jugador o hacia punto de patrulla / leash) ---
+    let want = new THREE.Vector3();
+    if (enemy.state === 'chase' || enemy.state === 'giveup') {
+      want = enemy.state === 'giveup'
+        ? enemy.spawnPos.clone().sub(enemy.mesh.position)      // regresar al leash
+        : ship.position.clone().sub(enemy.mesh.position);
+    } else {
+      // PATROL (AO: vaga alrededor del punto de aparición)
+      if (!enemy.patrolPt || enemy.mesh.position.distanceTo(enemy.patrolPt) < 12) {
+        const r = 30 + Math.random() * (enemy.detectRadius * 0.5);
+        const a = Math.random() * Math.PI * 2;
+        enemy.patrolPt = enemy.spawnPos.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+        enemy.patrolPt.y = Math.max(12, 40 + Math.random() * 40);
+      }
+      want = enemy.patrolPt.clone().sub(enemy.mesh.position);
+    }
+    const inRange = distToPlayer <= enemy.fireRange;
+
+    // --- Steering AO: se rota moveDir hacia el objetivo con un ángulo máximo por tick
+    //     (GNPCGetMaxTargetVector usa MonsterInfo->TurnAngle). El enemigo NO gira instantáneo. ---
+    let steer = want.clone(); steer.y = 0;
+    if (steer.lengthSq() < 0.0001) steer.set(1, 0, 0); else steer.normalize();
+    steerToward(enemy, steer, dt);
+
+    // --- Trama de dirección en combate (AO MOVEINFO): strafe lateral x/vertical revierte
+    //     dirección periódicamente (LRDirect/UDDirect *= -1) y rotan el vector de avance. ---
+    if (enemy.state === 'chase' && inRange) {
+      enemy.lrCurrent++;                              // AO LRCurrentCount
+      enemy.udCurrent++;
+      if (enemy.lrCurrent > enemy.lrChangeLimit) {
+        enemy.lrCurrent = 0;
+        enemy.lrDirect *= -1;
+        enemy.lrChangeLimit = enemy.lrChangeBase + Math.floor(Math.random() * enemy.lrChangeRandom);
+        rotateY(enemy.moveDir, enemy.lrDirect * (0.35 + Math.random() * 0.5));
+      }
+      if (enemy.udCurrent > enemy.udChangeLimit) {
+        enemy.udCurrent = 0;
+        enemy.udChangeLimit = enemy.udChangeBase + Math.floor(Math.random() * enemy.udChangeRandom);
+        const d = Math.random() < 0.5 ? 1 : -1;
+        tiltX(enemy.moveDir, d * (0.3 + Math.random() * 0.35));
+      }
+      enemy.quickTurnTimer -= dt;
+      if (enemy.quickTurnTimer <= 0 && distToPlayer < 30) {
+        enemy.quickTurnTimer = enemy.quickTurnTerm * (0.4 + Math.random() * 0.8);
+        rotateY(enemy.moveDir, enemy.lrDirect * (0.9 + Math.random() * 0.8));
+      }
+    }
+
+    // --- Leash duro: si se salió del radio del punto de aparición, no puede seguir de largo ---
+    if (enemy.state === 'chase') {
+      const kept = enemy.spawnPos.clone().sub(enemy.mesh.position); kept.y = 0;
+      if (kept.length() > enemy.detectRadius * 2.2) enemy.state = 'giveup';
+    }
+
+    // --- Velocidad AO: acelera/frena hacia la velocidad de estado (UpdateCurrentSpeed) ---
+    let targetSpeed = 0;
+    if (enemy.state === 'chase') targetSpeed = enemy.speed * 1.0;
+    else if (enemy.state === 'giveup') targetSpeed = enemy.speed * 1.4;   // regreso más rápido
+    else targetSpeed = enemy.speed * 0.45;                                 // patrulla lenta
+    enemy.currentSpeed = approachSpeed(enemy.currentSpeed, targetSpeed, dt);
+    const speedMul = (enemy.snareTimer > 0 ? (enemy.snareFactor || 0.5) : 1);
+    if (enemy.currentSpeed > 0.01) {
+      enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * speedMul);
+      // Iguala la altura del jugador/patrulla suavemente (mob vuela en su altura objetivo)
+      const wantY = (enemy.state === 'chase') ? ship.position.y : (enemy.patrolPt ? enemy.patrolPt.y : 40);
+      const stepY = Math.max(-40 * dt, Math.min(40 * dt, wantY - enemy.mesh.position.y));
+      enemy.mesh.position.y += stepY;
+    }
+    enemy.center.copy(enemy.mesh.position);
+
+    // --- Ataque por comportamiento (sigue igual, sin la órbita) ---
+    const bhv = enemy.behavior || 'basic';
+    const canShoot = () => !enemy.invisible;
+    if (bhv === 'rush') {
+      if (distToPlayer < 8) {
+        enemy.attackCooldown -= dt;
+        if (enemy.attackCooldown <= 0 && canShoot()) { fireTeddyProjectile(enemy); enemy.attackCooldown = enemy.attackInterval; enemy.lunge = 0.22; }
+      }
+    } else {
+      enemy.attackCooldown -= dt;
+      if (inRange && enemy.attackCooldown <= 0 && canShoot()) {
+        fireTeddyProjectile(enemy);
+        enemy.attackCooldown = enemy.attackInterval * (bhv === 'kite' && distToPlayer < enemy.fireRange * 0.5 ? 1.5 : 1);
+        enemy.lunge = 0.22;
+      }
+    }
+    // Shooter (kite) se mantiene a distancia: retrocede si quedó muy pegado
+    if (bhv === 'kite' && enemy.state === 'chase' && distToPlayer < enemy.fireRange * 0.45) {
+      rotateY(enemy.moveDir, Math.PI);
+    }
+    const faceDir = ship.position.clone().sub(enemy.mesh.position); faceDir.y = 0;
+    if (faceDir.lengthSq() > 0.0001) enemy.mesh.lookAt(enemy.mesh.position.clone().add(faceDir.normalize()));
 
     // Pulso visual al atacar (zarpazo)
     if (enemy.lunge > 0) {
