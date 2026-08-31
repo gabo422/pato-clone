@@ -4816,9 +4816,9 @@ function updateMissileTrail(m, dt) {
 const explosions = [];
 function spawnExplosion(position, big) {
   const cfg = big ? ACE.explosionBig : ACE.explosionSmall;
-  aceSpawnParticles(cfg.fireball, position, explosions);
-  aceSpawnParticles(cfg.sparks, position, explosions);
-  aceSpawnParticles(cfg.smoke, position, explosions);
+  aceSpawnParticles(cfg.fireball, position, explosions, true);
+  aceSpawnParticles(cfg.sparks, position, explosions, true);
+  aceSpawnParticles(cfg.smoke, position, explosions, true);
   // Shockwave ring
   const rc = cfg.ring;
   const ringGeo = new THREE.RingGeometry(rc.startR, rc.startR + 1.5, 32);
@@ -4836,9 +4836,9 @@ function spawnExplosion(position, big) {
 // ====================================================================
 function spawnImpactSpark(position) {
   const cfg = ACE.impactSpark;
-  aceSpawnParticles(cfg.sparks, position, explosions);
-  aceSpawnParticles(cfg.sparks2, position, explosions);
-  aceSpawnParticles(cfg.debris, position, explosions);
+  aceSpawnParticles(cfg.sparks, position, explosions, true);
+  aceSpawnParticles(cfg.sparks2, position, explosions, true);
+  aceSpawnParticles(cfg.debris, position, explosions, true);
 }
 
 // ---- Damage numbers flotantes ----
