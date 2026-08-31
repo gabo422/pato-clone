@@ -4876,6 +4876,12 @@ window.addEventListener('keydown', e => {
           ship.position.y = 3;
           showWaveBanner('ATERRIZANDO...');
           if (typeof toggleInventory === 'function') toggleInventory();
+        } else if (selectedGear === 'muro') {
+          // Especialidad del A (AO ShuttleChild TryLandingState: IS_DT && m_bIsAir):
+          // estando en el aire puede aterrizar donde quiera, no solo en el helipad.
+          isLanded = true;
+          speed = 0;
+          showWaveBanner('ATERRIZANDO...');
         } else {
           showWaveBanner('Buscá la zona de aterrizaje (H verde)');
         }
@@ -6941,10 +6947,11 @@ function animate() {
     // Mouse DIRECTLY controls ship orientation (the feel the user liked)
     // Speed model from AO: W=accel, S/B=brake, Space=boost, auto-cruise
 
-    // Landed state: ship sits on ground, no movement (helipad o siege del A aterrizado donde sea)
+    // Landed state: ship sits on ground, no movement (helipad o siege del A aterrizado donde sea).
+    // Desciende a ritmo constante (AO AGEAR_LANDING_SPEED = 45.0f, no é instántaneo).
     if (isLanded || siegeGrounded) {
       speed = 0;
-      ship.position.y += (3 - ship.position.y) * Math.min(1, 4 * dt);
+      ship.position.y -= Math.min(45 * dt, Math.max(0, ship.position.y - 3));
       const flatEuler = new THREE.Euler(0, lookYaw, 0);
       ship.quaternion.setFromEuler(flatEuler);
       rollAngle *= 0.9;
@@ -7952,7 +7959,7 @@ var TUTORIAL_STEPS = [
   { icon: '🕹️', title: 'Volar', text: '<b>W</b> acelera, <b>S</b> frena y <b>B</b> es freno aéreo. <b>A/D</b> giran (strafe) y <b>Espacio</b> es el boost. <b>Shift</b> suelta la mira. <b>Enter</b> confirma. <b>Tocá A o D dos veces rápido</b> para hacer un <b>barrel roll</b>: te hace invulnerable un instante y esquiva misiles. ¡Muy útil!' },
   { icon: '🔫', title: 'Disparar', text: '<b>Click izquierdo</b> dispara (arma estándar) y <b>Click derecho</b> lanza (arma avanzada). <b>Rayo y Trueno</b> dependen de la avanzada; <b>Viento y Muro</b> de la estándar.' },
   { icon: '⚡', title: 'Habilidades', text: 'Presioná <b>K</b> para abrir el panel de skills y <b>1-4</b> para activarlas. Cada Juguete tiene habilidades de ataque, defensa y soporte.' },
-  { icon: '🛬', title: 'Aterrizar e inventario', text: 'Buscá la <b>zona de aterrizaje</b> (helipad verde, tecla <b>C</b>). Al aterrizar se abre el <b>inventario</b> donde equipás las cartas mágicas que caen de los enemigos.' },
+  { icon: '🛬', title: 'Aterrizar e inventario', text: 'En el <b>helipad verde</b> (tecla <b>C</b>) abrís el <b>inventario</b> para equipar las cartas mágicas que caen de los enemigos. El <b>A (Muro)</b> además puede aterrizar como torreta en cualquier lado con <b>C</b> (es su especialidad).' },
   { icon: '🃏', title: 'Cartas de encantamiento', text: 'Los enemigos sueltan <b>cartas</b> (Común → Legendaria). Aterrizá para abrir el inventario y equiparlas: suman daño, precisión, defensa, etc. Al recargar partida se guardan.' },
   { icon: '🏆', title: 'Objetivo', text: 'Superá todas las oleadas, derrotá a los Jefes y sumá puntos para el ranking. ¡Buena suerte, piloto! 🚀' }
 ];
