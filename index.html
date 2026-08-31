@@ -4730,8 +4730,10 @@ const aceParticleTexture = makeAceParticleTexture();
 let MECH_DIAG_VFX_OFF = true;
 
 // ---- Generic Ace particle spawner: creates a Points object from preset params ----
-function aceSpawnParticles(preset, position, targetArray) {
-  if (MECH_DIAG_VFX_OFF) return;
+// El 4º parámetro `ignoreDiag` (optional) permite emitir aunque MECH_DIAG_VFX_OFF esté activo.
+// Se usa para aislar el "fuego blanco" reactivando las fuentes de VFX de a una.
+function aceSpawnParticles(preset, position, targetArray, ignoreDiag) {
+  if (MECH_DIAG_VFX_OFF && !ignoreDiag) return;
   const count = preset.count;
   const posArr = new Float32Array(count * 3);
   const vels = [];
@@ -5004,8 +5006,8 @@ let boostFlameTimer = 0;
 function spawnBoostFlame() {
   const worldPos = ship.localToWorld(BOOST_FLAME_LOCAL.clone());
   const cfg = ACE.boostFlame;
-  aceSpawnParticles(cfg.core, worldPos, explosions);
-  if (Math.random() < 0.6) aceSpawnParticles(cfg.glow, worldPos, explosions);
+  aceSpawnParticles(cfg.core, worldPos, explosions, true);
+  if (Math.random() < 0.6) aceSpawnParticles(cfg.glow, worldPos, explosions, true);
 }
 
 // ================= Arena: sin interacción con agua =================
