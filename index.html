@@ -3715,7 +3715,7 @@ function buildDuck() {
   return group;
 }
 
-// ================= Muro / A-Gear: robot articulado (base + torreta + 4 patas que caminan) =================
+// ================= Muro / A-Gear: tanque articulado (base + torreta + 4 patas/cadenas que caminan) =================
 // El Mecano.glb es una pieza rígida, así que lo montamos como decoración del chasis y animamos
 // nuestro propio rig: la base (con las patas) y una torreta con cañón independientes.
 function buildMuro() {
@@ -3868,7 +3868,7 @@ function swapModelIfReady() {
   instance.rotation.y = lib.rotationY;
   instance.position.set(lib.offset.x, lib.offset.y, lib.offset.z);
   // A-Gear (Muro): el modelo Mecano.glb ya NO se monta como decoración del chasis.
-  // El robot articulado de buildMuro() es una pieza completa, coloreada y animable por sí sola.
+  // El tanque articulado de buildMuro() es una pieza completa, coloreada y animable por sí sola.
   // El .glb (7.8MB, con texturas JPEG incrustadas) era la ÚNICA pieza dependiente de texturas
   // del A: si sus texturas fallaban al cargar, el modelo se renderizaba BLANCO sin textura y
   // tapaba el gear como una "niebla/spray blanco" (solo pasaba jugando con el A). Se elimina.
@@ -4780,8 +4780,8 @@ const aceParticleTexture = makeAceParticleTexture();
 
 // ---- DIAGNÓSTICO "fuego blanco" del Muro ----
 // true → se apaga TODO el sistema de partículas/auras/rings (skills, boost, proyectiles),
-// dejando solo el robot y sus stats. Sirve para aislar si el "fuego blanco en el cuerpo"
-// es VFX de partículas o un mesh del robot.
+// dejando solo el tanque y sus stats. Sirve para aislar si el "fuego blanco en el cuerpo"
+// es VFX de partículas o un mesh del tanque.
 let MECH_DIAG_VFX_OFF = true;
 // Aislar el "fuego blanco": true → deja emitir el muzzle flash (destello blanco de disparo)
 // aunque MECH_DIAG_VFX_OFF esté activo. Se usa para probar si el blanco es el destello del cañón.
@@ -7660,7 +7660,7 @@ function animate() {
   checkFixtureCollisions();
   updateBoundaryWarning();
 
-  // ---- A-Gear (Muro): robot articulado — patas que caminan + torreta que apunta ----
+  // ---- A-Gear (Muro): tanque articulado — patas que caminan + torreta que apunta ----
   if (selectedGear === 'muro' && ship.userData && ship.userData.legs) {
     const legData = ship.userData.legs;
     const turret = ship.userData.turret;
