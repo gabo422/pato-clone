@@ -4163,6 +4163,101 @@ function makeBubbleTexture() {
 }
 const bubbleTexture = makeBubbleTexture();
 const projMat = new THREE.SpriteMaterial({ map: bubbleTexture, transparent: true, depthWrite: false });
+
+// ================= Proyectiles por gear (animaciones independientes) =================
+// Cada gear tiene su propio estilo visual. El jabón cuadradito queda SOLO para el pato/Viento (M).
+// Se usa un cache por gear para no recrear geometría/materiales en cada disparo.
+const PROJ_BY_GEAR = {};
+
+function getProjBuilders() {
+  if (PROJ_BY_GEAR[selectedGear]) return PROJ_BY_GEAR[selectedGear];
+  let builders;
+  switch (selectedGear) {
+    case 'muro': {
+      // Cañón (estándar): bala anaranjada con cola de fuego
+      const stdGeo = new THREE.SphereGeometry(0.7, 10, 8);
+      const stdMat = new THREE.MeshStandardMaterial({ color: 0xff7722, emissive: 0xff4400, emissiveIntensity: 0.6, roughness: 0.4 });
+      // Mass Drive (avanzada): proyectil pesado de acero con cabeza cónica
+      const advGroup = new THREE.Group();
+      const advBody = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0x9aa5b1, roughness: 0.35, metalness: 0.6 }));
+      advBody.rotation.x = -Math.PI / 2;
+      advGroup.add(advBody);
+      const advTip = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0xd05a3a, roughness: 0.4 }));
+      advTip.rotation.x = -Math.PI / 2;
+      advTip.position.z = 1.9;
+      advGroup.add(advTip);
+      const advGlow = new THREE.PointLight(0xff5500, 1.2, 6);
+      advGlow.position.z = -1.2;
+      advGroup.add(advGlow);
+      builders = {
+        std: () => new THREE.Mesh(stdGeo, stdMat),
+        adv: () => advGroup.clone(true)
+      };
+      break;
+    }
+    case 'trueno': {
+      // Gatling (estándar): carga de energía dorada brillante
+      const stdGeo = new THREE.SphereGeometry(0.55, 10, 8);
+      const stdMat = new THREE.MeshStandardMaterial({ color: 0xffdd33, emissive: 0xffaa00, emissiveIntensity: 0.9, roughness: 0.3 });
+      // Bawoo (avanzada): bomba con aletas verdes
+      const advGroup = new THREE.Group();
+      const advBody = new THREE.Mesh(new THREE.SphereGeometry(0.9, 10, 8), new THREE.MeshStandardMaterial({ color: 0x3a6e44, emissive: 0x112211, roughness: 0.5 }));
+      advGroup.add(advBody);
+      for (const side of [-1, 1]) {
+        const fin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.12, 0.5), new THREE.MeshStandardMaterial({ color: 0x2c4e33, roughness: 0.5 }));
+        fin.position.set(side * 1.1, 0, -0.4);
+        fin.rotation.z = side * 0.3;
+        advGroup.add(fin);
+      }
+      const advGlow = new THREE.PointLight(0xff5500, 1.5, 7);
+      advGroup.add(advGlow);
+      builders = {
+        std: () => new THREE.Mesh(stdGeo, stdMat),
+        adv: () => advGroup.clone(true)
+      };
+      break;
+    }
+    case 'rayo': {
+      // Gatling (estándar): bala roja de energía veloz
+      const stdGeo = new THREE.SphereGeometry(0.5, 8, 6);
+      const stdMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xcc0000, emissiveIntensity: 0.9, roughness: 0.3 });
+      // Arrow (avanzada): misil afilado rojo con alitas
+      const advGroup = new THREE.Group();
+      const advBody = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.8, 8), new THREE.MeshStandardMaterial({ color: 0xdd2222, emissive: 0x660000, roughness: 0.4 }));
+      advBody.rotation.x = -Math.PI / 2;
+      advGroup.add(advBody);
+      const advTip = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.0, 8), new THREE.MeshStandardMaterial({ color: 0xffcc33, emissive: 0x886600, roughness: 0.4 }));
+      advTip.rotation.x = -Math.PI / 2;
+      advTip.position.z = 1.9;
+      advGroup.add(advTip);
+      for (const side of [-1, 1]) {
+        const wing = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.1, 0.6), new THREE.MeshStandardMaterial({ color: 0xaa1111, roughness: 0.5 }));
+        wing.position.set(side * 0.9, 0, -0.3);
+        wing.rotation.z = side * 0.15;
+        advGroup.add(wing);
+      }
+      const advGlow = new THREE.PointLight(0xff8800, 1.2, 6);
+      advGroup.add(advGlow);
+      builders = {
+        std: () => new THREE.Mesh(stdGeo, stdMat),
+        adv: () => advGroup.clone(true)
+      };
+      break;
+    }
+    case 'viento':
+    default: {
+      // Pato/Viento (M): SÍ usa el jabón cuadrado original (burbuja) y jabón azul de misil
+      builders = {
+        std: () => { const s = new THREE.Sprite(projMat); s.scale.set(1.3, 1.3, 1); return s; },
+        adv: () => buildSoapBar()
+      };
+      break;
+    }
+  }
+  PROJ_BY_GEAR[selectedGear] = builders;
+  return builders;
+}
+
 function fireProjectile() {
   if (isSkillActive('invisible')) return;
   if (isSkillActive('overbooster')) return;
@@ -4189,7 +4284,7 @@ function fireProjectile() {
   for (let i = 0; i < bullets.length; i++) {
     setTimeout(() => {
       if (!gameRunning) return;
-      const mesh = new THREE.Sprite(projMat);
+      const mesh = getProjBuilders().std();
       mesh.scale.set(1.3, 1.3, 1);
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
       const spread = (Math.random() - 0.5) * 0.06 * bullets.length; // dispersión por ráfaga
@@ -4279,7 +4374,7 @@ function fireMissile() {
     setTimeout(() => {
       if (!gameRunning) return;
       const localPt = wingPoints[nextMissileSide === -1 ? 'left' : 'right'][tubeIdx];
-      const mesh = buildSoapBar();
+      const mesh = getProjBuilders().adv();
       const spawnPos = ship.localToWorld(localPt.clone());
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(ship.quaternion);
       mesh.position.copy(spawnPos);
