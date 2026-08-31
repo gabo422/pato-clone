@@ -4484,6 +4484,28 @@ const ACE = {
 // ---- Shared particle geometry (reused across all effects) ----
 const aceParticleGeo = new THREE.BufferGeometry();
 
+// ---- Textura circular suave para TODAS las partículas ----
+// Sin `map`, three.js dibuja cada punto como un CUADRADO (gl.POINTS). Con esta
+// textura gradiente los puntos se ven redondos y suaves (estilo Juego Madre),
+// eliminando los "cuadrados blancos" que aparecían sobre el gear y en el camino.
+function makeAceParticleTexture() {
+  const s = 64;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = s;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.25, 'rgba(255,255,255,0.8)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+  g.addColorStop(0.75, 'rgba(255,255,255,0.08)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  const tex = new THREE.CanvasTexture(cv);
+  return tex;
+}
+const aceParticleTexture = makeAceParticleTexture();
+
 // ---- Generic Ace particle spawner: creates a Points object from preset params ----
 function aceSpawnParticles(preset, position, targetArray) {
   const count = preset.count;
@@ -4508,6 +4530,7 @@ function aceSpawnParticles(preset, position, targetArray) {
   const mat = new THREE.PointsMaterial({
     color: preset.color,
     size: preset.size,
+    map: aceParticleTexture,
     transparent: true,
     opacity: 1,
     depthWrite: false,
@@ -4532,7 +4555,7 @@ function aceMuzzleFlash(position) {
   }
   const geo = aceParticleGeo.clone();
   geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 3.0, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
+  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 3.0, map: aceParticleTexture, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
   const points = new THREE.Points(geo, mat);
   scene.add(points);
   explosions.push({ points, velocities: vels, life: 0.12, maxLife: 0.12, endColor: 0xffcc44, startSize: 3.0, endSize: 0.5, gravity: 0 });
@@ -4622,7 +4645,7 @@ function spawnLevelUpEffect() {
     velocities.push(new THREE.Vector3(Math.cos(angle) * 30, 15 + Math.random() * 20, Math.sin(angle) * 30));
   }
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xffd700, size: 2.5, transparent: true, opacity: 1 });
+  const mat = new THREE.PointsMaterial({ color: 0xffd700, size: 2.5, map: aceParticleTexture, transparent: true, opacity: 1 });
   const points = new THREE.Points(geo, mat);
   scene.add(points);
   explosions.push({ points, velocities, life: 1.2, maxLife: 1.2 });
