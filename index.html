@@ -4133,9 +4133,10 @@ function fireProjectile() {
     stdOverheated = true;
     stdOverheatTimer = weapon.overheatTime || OVERHEAT_LOCKOUT;
   }
-  // Fire pattern (+2 volleys if Berserker active)
+  // Fire pattern (+2 volleys Berserker, +1 Frenzy "Disparo Continuo")
   const berserkerVolleyBonus = (isSkillActive('berserker')) ? 2 : 0;
-  const pattern = [weapon.pattern[0], (weapon.pattern[1] || 1) + berserkerVolleyBonus];
+  const frenzyVolleyBonus = (isSkillActive('frenzy')) ? 1 : 0;
+  const pattern = [weapon.pattern[0], (weapon.pattern[1] || 1) + berserkerVolleyBonus + frenzyVolleyBonus];
   const chargeMult = chargeShotActive ? 3 : 1;
   if (chargeShotActive) chargeShotActive = false;
   const baseDamage = Math.round(weapon.baseDamage * getStdDmgMultiplier() * chargeMult);
@@ -4195,7 +4196,7 @@ function fireMissile() {
   const weapon = getAdvWeapon();
   if (!weapon) return;
   advHeat += HEAT_PER_SHOT_ADV;
-  advFireCooldown = weapon.reattackTime || 0.9;
+  advFireCooldown = (weapon.reattackTime || 0.9) * (isSkillActive('berserker') ? 0.7 : 1);
   if (advHeat >= 100) {
     advHeat = 100;
     advOverheated = true;
@@ -4205,7 +4206,10 @@ function fireMissile() {
   // AO: GBM skill adds pfp_MULTINUM_02 to MultiNum — more missiles per volley
   const baseMultiNum = pattern[0];
   const multiNumBonus = groundBombingActive ? Math.ceil(baseMultiNum * 0.6) : 0;
-  const missilesPerVolley = baseMultiNum + multiNumBonus;
+  // Berserker: +2 misiles (Disparo Continuo); Multi-Target: 3 misiles simultáneos a targets (AO MultiNum)
+  const zerkVolleyBonus = isSkillActive('berserker') ? 2 : 0;
+  const mtNum = activeSkillEffects['multiTarget'] ? Math.max(0, 3 - baseMultiNum - multiNumBonus - zerkVolleyBonus) : 0;
+  const missilesPerVolley = baseMultiNum + multiNumBonus + zerkVolleyBonus + mtNum;
   // AO: GBM also adds damage bonus (skill ArrParameterValue)
   const gbmDmgMul = groundBombingActive ? 1.25 : 1;
   const damage = Math.round(weapon.baseDamage * getAdvDmgMultiplier() * gbmDmgMul);
@@ -4248,7 +4252,7 @@ function fireMissile() {
       } else if (activeSkillEffects['multiTarget']) {
         const cands = [];
         for (const e of enemies) {
-          if (e.alive && targetIsAimable(e) && cands.length < 3) cands.push(e);
+          if (e.alive && targetIsAimable(e) && cands.length < missilesPerVolley) cands.push(e);
         }
         target = cands.length ? cands[i % cands.length] : (targetIsAimable(currentLockTarget) ? currentLockTarget : null);
       } else {
@@ -6429,8 +6433,8 @@ function registerHit(enemy, dmg, isMissile) {
   enemy.hp -= finalDmg;
   showHitmarker();
 
-  // Snare Shot passive: slow enemy on hit
-  const snareVal = getPassive('snareEffect');
+  // Snare Shot: slow on hit (skill 50% / pasiva de tarjeta)
+  const snareVal = isSkillActive('snareShot') ? 0.5 : Math.max(getPassive('snareEffect'), 0);
   if (snareVal > 0 && enemy.chaseSpeed) {
     enemy.snareTimer = 2;
     enemy.snareFactor = 1 - snareVal;
