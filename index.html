@@ -3867,15 +3867,14 @@ function swapModelIfReady() {
   instance.scale.setScalar(lib.scale);
   instance.rotation.y = lib.rotationY;
   instance.position.set(lib.offset.x, lib.offset.y, lib.offset.z);
-  // A-Gear (Muro): el modelo Mecano es una pieza rígida compacta; lo montamos como decoración
-  // del chasis del robot articulado en vez de reemplazar el rig (que es el que camina y apunta).
+  // A-Gear (Muro): el modelo Mecano.glb ya NO se monta como decoración del chasis.
+  // El robot articulado de buildMuro() es una pieza completa, coloreada y animable por sí sola.
+  // El .glb (7.8MB, con texturas JPEG incrustadas) era la ÚNICA pieza dependiente de texturas
+  // del A: si sus texturas fallaban al cargar, el modelo se renderizaba BLANCO sin textura y
+  // tapaba el gear como una "niebla/spray blanco" (solo pasaba jugando con el A). Se elimina.
   if (key === 'mecano' && ship.userData && ship.userData.mecChassis) {
     const chassis = ship.userData.mecChassis;
     while (chassis.children.length) chassis.remove(chassis.children[0]);
-    instance.scale.setScalar(lib.scale * 0.6);
-    instance.rotation.y = Math.PI;
-    instance.position.set(0, 0, 0);
-    chassis.add(instance);
     return;
   }
   while (ship.children.length) ship.remove(ship.children[0]);
