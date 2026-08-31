@@ -4728,6 +4728,9 @@ const aceParticleTexture = makeAceParticleTexture();
 // dejando solo el robot y sus stats. Sirve para aislar si el "fuego blanco en el cuerpo"
 // es VFX de partículas o un mesh del robot.
 let MECH_DIAG_VFX_OFF = true;
+// Aislar el "fuego blanco": true → deja emitir el muzzle flash (destello blanco de disparo)
+// aunque MECH_DIAG_VFX_OFF esté activo. Se usa para probar si el blanco es el destello del cañón.
+let MECH_DIAG_MUZZLE_ON = true;
 
 // ---- Generic Ace particle spawner: creates a Points object from preset params ----
 // El 4º parámetro `ignoreDiag` (optional) permite emitir aunque MECH_DIAG_VFX_OFF esté activo.
@@ -4771,7 +4774,7 @@ function aceSpawnParticles(preset, position, targetArray, ignoreDiag) {
 
 // ---- Muzzle flash: creates a bright billboard at weapon hardpoints ----
 function aceMuzzleFlash(position) {
-  if (MECH_DIAG_VFX_OFF) return;
+  if (MECH_DIAG_VFX_OFF && !MECH_DIAG_MUZZLE_ON) return;
   const count = 4;
   const posArr = new Float32Array(count * 3);
   const vels = [];
@@ -8170,7 +8173,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
   if (isSkillActive('siegeMode') || isSkillActive('airSiegeMode')) {
     siegeAuraTimer -= dt;
     if (siegeAuraTimer <= 0) {
-      aceSpawnParticles(ACE.siegeMode.aura, ship.position.clone(), explosions);
+      aceSpawnParticles(ACE.siegeMode.aura, ship.position.clone(), explosions, true);
       siegeAuraTimer = 0.2;
     }
   }
