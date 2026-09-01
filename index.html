@@ -1391,6 +1391,9 @@ function applyGearSelection(gearKey) {
   const builders = { duck: buildDuck, teddy: buildTeddy, mecano: buildMuro, crimson: buildDuck }; 
   const builder = builders[cfg.modelKey] || buildDuck;
   const newModel = builder();
+  // Gear Rayo: avión agrandado un 50% por pedido (el modelo del pato es compartido,
+  // así que aplicamos el zoom extra SOLO al avión de este gear).
+  if (cfg.modelKey === 'crimson') newModel.scale.multiplyScalar(1.5);
   ship.add(newModel);
   ship.add(flameGroup);
   if (newModel.userData.wingMissilePoints) ship.userData.wingMissilePoints = newModel.userData.wingMissilePoints;
@@ -3878,6 +3881,8 @@ function swapModelIfReady() {
     return;
   }
   while (ship.children.length) ship.remove(ship.children[0]);
+  // Gear Rayo: avión agrandado un 50% (aplicado también cuando se intercambia el modelo)
+  if (cfg.modelKey === 'crimson') instance.scale.multiplyScalar(1.5);
   ship.add(instance);
   ship.add(flameGroup);
   if (lib.wingMissilePoints) ship.userData.wingMissilePoints = lib.wingMissilePoints;
@@ -4365,8 +4370,8 @@ function getProjBuilders() {
       break;
     }
     case 'rayo': {
-      // Gatling (estándar): bala roja de energía veloz (agrandada 50% por pedido)
-      const stdGeo = new THREE.SphereGeometry(0.75, 8, 6);
+      // Gatling (estándar): bala roja de energía veloz
+      const stdGeo = new THREE.SphereGeometry(0.5, 8, 6);
       const stdMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xcc0000, emissiveIntensity: 0.9, roughness: 0.3 });
       // Arrow (avanzada): misil afilado rojo con alitas
       const advGroup = new THREE.Group();
@@ -4895,7 +4900,7 @@ function aceMuzzleFlash(position) {
   }
   const geo = aceParticleGeo.clone();
   geo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 3.0, map: aceParticleTexture, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
+  const mat = aceGetParticleMat(0xffffff, 3.0);
   const points = new THREE.Points(geo, mat);
   scene.add(points);
   explosions.push({ points, velocities: vels, life: 0.12, maxLife: 0.12, endColor: 0xffcc44, startSize: 3.0, endSize: 0.5, gravity: 0 });
