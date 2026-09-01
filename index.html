@@ -1191,7 +1191,7 @@ const GEAR_CONFIGS = {
     name: 'Rayo', role: 'Interceptor', icon: '⚡',
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 220, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false } },
+               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false, turn: 5.5 } },
     stats: { maxSpeed: 110, boostMaxSpeed: 280, speedMin: 80, accel: 55, boostAccel: 90, defense: 2, evasion: 8, shield: 2, hp: 4 },
     passives: [],
     activeSkills: [
@@ -1219,7 +1219,7 @@ const GEAR_CONFIGS = {
     name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal. Siege mode y defensa.',
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 180, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 90, pierce: true },
-               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true } },
+               advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true, turn: 0.35 } },
     stats: { maxSpeed: 55, boostMaxSpeed: 140, speedMin: 40, accel: 20, boostAccel: 40, defense: 8, evasion: 1, shield: 8, hp: 10, collisionDmgReduction: 0.4, siegeDefenseBonus: 0.5, speedBonus: 0.6 },
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
@@ -1245,7 +1245,7 @@ const GEAR_CONFIGS = {
     name: 'Trueno', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 210, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
-               advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30 } },
+               advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30, turn: 5.5 } },
     stats: { maxSpeed: 80, boostMaxSpeed: 180, speedMin: 60, accel: 45, boostAccel: 75, defense: 5, evasion: 3, shield: 5, hp: 7, dmgReduction: 0.25 },
     activeSkills: [
       { id: 'fireShot', name: 'Fire Shot', cat: 'Ataque', spCost: 10, cooldown: 410, duration: 420, desc: '+Daño arma estándar', buff: true },
@@ -1271,7 +1271,7 @@ const GEAR_CONFIGS = {
     name: 'Viento', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo. Curación y buffs.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 52, speed: 220, reattackTime: 0.60, overheatTime: 15, accuracy: 95, pierce: false },
-               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false } },
+               advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false, turn: 5.5 } },
     stats: { maxSpeed: 65, boostMaxSpeed: 150, speedMin: 45, accel: 30, boostAccel: 55, defense: 6, evasion: 5, shield: 6, hp: 7, stdDmgBonus: 0.3, spCostReduction: 0.3 },
     activeSkills: [
       { id: 'healingField', name: 'Healing Field', cat: 'Defensa', spCost: 20, cooldown: 1, duration: 15, desc: '+1 HP cada 3s (área)' },
@@ -4611,6 +4611,7 @@ function fireMissile() {
         trailTimer: 0,
         damage,
         aoeRadius: weapon.aoeRadius || 25,
+        turn: (weapon.turn == null ? 4.2 : weapon.turn),
         pierce: weapon.pierce || false
       });
     }, i * 0.12 * 1000);
@@ -7892,7 +7893,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       if (m.target && !targetStillOnScreen(m.target)) m.target = null;
       if (m.target && m.target.alive) {
         const toTarget = m.target.mesh.position.clone().sub(m.mesh.position).normalize();
-        m.velocity.lerp(toTarget.multiplyScalar(m.speed), Math.min(1, 4.2 * dt));
+        m.velocity.lerp(toTarget.multiplyScalar(m.speed), Math.min(1, (m.turn || 4.2) * dt));
         m.mesh.lookAt(m.mesh.position.clone().add(m.velocity));
       }
     }
@@ -8169,8 +8170,11 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
     const prevPos = enemy.mesh.position.clone();
     if (enemy.currentSpeed > 0.01) {
       enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * speedMul);
-      // Iguala la altura del jugador/patrulla suavemente (mob vuela en su altura objetivo)
-      const wantY = (enemy.state === 'chase') ? ship.position.y : (enemy.patrolPt ? enemy.patrolPt.y : 40);
+      // Vuelo propio con tope: el mob mantiene su altura de crucero BAJA (patrol) y NO te
+      // acompaña cuando subís de altitud (solo persigue en X/Z). Si volás muy alto se queda
+      // esperando abajo; si descendés a su zona baja/acompaña hasta el piso.
+      const cruiseY = (enemy.patrolPt ? enemy.patrolPt.y : 40);
+      const wantY = (enemy.state === 'chase') ? Math.min(ship.position.y, cruiseY) : cruiseY;
       const stepY = Math.max(-40 * dt, Math.min(40 * dt, wantY - enemy.mesh.position.y));
       enemy.mesh.position.y += stepY;
     }
