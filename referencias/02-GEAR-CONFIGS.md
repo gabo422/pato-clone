@@ -7,7 +7,7 @@
 # Cada gear tiene: name, role, icon, desc, weapons, stats, passives, activeSkills, movement, modelKey
 
 # ═══════════════════════════════════════════════════════════════
-# I-GEAR (Rayo / Crimson) — Interceptor
+# I-GEAR (CrimsonAttack) — Interceptor
 # ═══════════════════════════════════════════════════════════════
 # Model: Crimson.glb | modelKey: 'crimson'
 # Role: "El más rápido del campo de batalla. Daño y evasión."
@@ -44,7 +44,7 @@
 # E: Back Move Mach (cd:15) — Retroceso 1000m a 600m/s
 
 # ═══════════════════════════════════════════════════════════════
-# A-GEAR (Muro / Mecano) — Tanque / Asedio
+# A-GEAR (MecanoTank) — Tanque / Asedio
 # ═══════════════════════════════════════════════════════════════
 # Model: Mecano.glb | modelKey: 'mecano'
 # Role: "Pesado y letal. Siege mode y defensa."
@@ -80,7 +80,7 @@
 # Movement: null (no tiene)
 
 # ═══════════════════════════════════════════════════════════════
-# B-GEAR (Trueno / oso) — Bombardero
+# B-GEAR (TeddyBomb) — Bombardero
 # ═══════════════════════════════════════════════════════════════
 # Model: oso.glb (teddy bear) | modelKey: 'teddy'
 # Role: "Versátil y destructivo. Daño masivo de una sola ráfaga."
@@ -116,7 +116,7 @@
 # E: Back Move Mach (cd:15) — Retroceso 1000m a 600m/s
 
 # ═══════════════════════════════════════════════════════════════
-# M-GEAR (Viento / pato) — Soporte
+# M-GEAR (HealDuck) — Soporte
 # ═══════════════════════════════════════════════════════════════
 # Model: pato.glb (duck) | modelKey: 'duck'
 # Role: "La columna vertebral del equipo. Curación y buffs."

@@ -24,11 +24,11 @@
 - **OpenAO:** `C:\Users\gmullin.ITPRO\Downloads\OpenAO\OpenAo-master\`
 
 ## Modelos 3D (Draco-compressed)
-- `D:\Pato-Clone\modelos\pato.glb` (27MB) — M-Gear (Viento)
-- `D:\Pato-Clone\modelos\oso.glb` (10MB) — B-Gear (Trueno) / teddy bear
+- `D:\Pato-Clone\modelos\pato.glb` (27MB) — M-Gear (HealDuck)
+- `D:\Pato-Clone\modelos\oso.glb` (10MB) — B-Gear (TeddyBomb) / teddy bear
 - `D:\Pato-Clone\modelos\boat.glb` (7MB) — bote
-- `D:\Pato-Clone\modelos\Crimson.glb` (19MB) — I-Gear (Rayo)
-- `D:\Pato-Clone\modelos\Mecano.glb` (7.5MB) — A-Gear (Muro)
+- `D:\Pato-Clone\modelos\Crimson.glb` (19MB) — I-Gear (CrimsonAttack)
+- `D:\Pato-Clone\modelos\Mecano.glb` (7.5MB) — A-Gear (MecanoTank)
 - DRACOLoader desde CDN: `three@0.128.0/examples/js/loaders/DRACOLoader.js`
 - Git LFS NO funciona con GitHub Pages (solo sirve pointer files)
 

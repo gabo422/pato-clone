@@ -15,7 +15,7 @@
 # - Kind: 50=SKILL_ATTACK, 51=SKILL_DEFENSE, 52=SKILL_SUPPORT, 53=SKILL_ATTRIBUTE
 
 # ═══════════════════════════════════════════════════════════════
-# I-GEAR (Rayo) — BaseNums 783xxxx
+# I-GEAR (CrimsonAttack) — BaseNums 783xxxx
 # ═══════════════════════════════════════════════════════════════
 
 # --- Buff Skills (Duration activa + Cooldown) ---
@@ -40,7 +40,7 @@ Drain                 | 20s      | 20s      | +25% HP robado al dañar
 Scanning              | 10s      | 3s       | Revela enemigos invisibles (DES_SKILL_SCANNING=144)
 
 # ═══════════════════════════════════════════════════════════════
-# A-GEAR (Muro) — BaseNums 782xxxx
+# A-GEAR (MecanoTank) — BaseNums 782xxxx
 # ═══════════════════════════════════════════════════════════════
 Fire Shot             | 420s     | 410s     | +Daño arma estándar
 Missile Shot          | 420s     | 410s     | +Daño arma avanzada
@@ -56,7 +56,7 @@ Reflect               | 15s      | 25s      | Refleja daño al recibir golpe
 Ground Accelerator    | 180s     | 170s     | +60% velocidad (passive en nuestro juego)
 
 # ═══════════════════════════════════════════════════════════════
-# B-GEAR (Trueno) — BaseNums 780xxxx
+# B-GEAR (TeddyBomb) — BaseNums 780xxxx
 # ═══════════════════════════════════════════════════════════════
 Fire Shot             | 420s     | 410s     | +Daño arma estándar
 Missile Shot          | 420s     | 410s     | +Daño arma avanzada
@@ -71,7 +71,7 @@ Multi-Target Mode     | 12s      | 18s      | Misiles atacan múltiples objetivo
 Big Boom              | -        | 1800s    | Explosión masiva
 
 # ═══════════════════════════════════════════════════════════════
-# M-GEAR (Viento) — BaseNums 781xxxx
+# M-GEAR (HealDuck) — BaseNums 781xxxx
 # ═══════════════════════════════════════════════════════════════
 Fire Shot             | 420s     | 410s     | +Daño arma estándar
 Missile Shot          | 420s     | 410s     | +Daño arma avanzada

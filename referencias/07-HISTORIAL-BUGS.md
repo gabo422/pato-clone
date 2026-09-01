@@ -19,10 +19,10 @@
 # 4. 57c962c - "feat: Updated all skills to AO high-level values"
 #    - TODOS los skills de TODOS los gears actualizados con stats reales de AO
 #    - Data source: omi.tex parseado del cliente EP46
-#    - Incluyó Viento raging skills
+#    - Incluyó HealDuck raging skills
 
-# 5. 2898769 - "feat: Updated M-Gear (Viento) skills to AO high-level values"
-#    - Viento: healingField, energizingField, healTarget, energiseTarget, reverseEngine, fullRecovery, scan
+# 5. 2898769 - "feat: Updated M-Gear (HealDuck) skills to AO high-level values"
+#    - HealDuck: healingField, energizingField, healTarget, energiseTarget, reverseEngine, fullRecovery, scan
 
 # ═══════════════════════════════════════════════════════════════
 # BUG FIXES HISTÓRICOS (verificados en código)

@@ -99,10 +99,10 @@
 # ═══════════════════════════════════════════════════════════════
 # MAPEO DE ReqUnitKind A GEARS
 # ═══════════════════════════════════════════════════════════════
-# Bit 0 (1) = B-GEAR (BT/Trueno)
-# Bit 1 (2) = M-GEAR (OT/Viento)
-# Bit 2 (4) = I-GEAR (ST/Rayo)
-# Bit 3 (8) = A-GEAR (DT/Muro)
+# Bit 0 (1) = B-GEAR (BT/TeddyBomb)
+# Bit 1 (2) = M-GEAR (OT/HealDuck)
+# Bit 2 (4) = I-GEAR (ST/CrimsonAttack)
+# Bit 3 (8) = A-GEAR (DT/MecanoTank)
 
 # ═══════════════════════════════════════════════════════════════
 # EXCEL-SERVER (alternate parsing)
