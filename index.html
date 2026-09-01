@@ -4495,6 +4495,19 @@ function approachSpeed(cur, target, dt) {
   if (cur < target) return Math.min(target, cur + rate);
   return Math.max(target, cur - rate);
 }
+// Mantiene a un enemigo DENTRO de las paredes del cuarto (bota el vector de avance si
+// choca con un muro, para que los ositos no se atraviesen las paredes). Los cuartos son
+// rectángulos de ±roomW/2 y ±roomD/2 con centro en el origen.
+function clampEnemyToRoom(enemy) {
+  const margin = 10;
+  const hw = Math.max(24, roomW / 2 - margin);
+  const hd = Math.max(24, roomD / 2 - margin);
+  const pos = enemy.mesh.position;
+  if (pos.x < -hw) { pos.x = -hw; if (enemy.moveDir.x < 0) enemy.moveDir.x *= -1; }
+  else if (pos.x > hw) { pos.x = hw; if (enemy.moveDir.x > 0) enemy.moveDir.x *= -1; }
+  if (pos.z < -hd) { pos.z = -hd; if (enemy.moveDir.z < 0) enemy.moveDir.z *= -1; }
+  else if (pos.z > hd) { pos.z = hd; if (enemy.moveDir.z > 0) enemy.moveDir.z *= -1; }
+}
 // AO SiegeTarget auto-aim: calcula el punto donde conviene apuntar la torreta para acertar,
 // "adelantando"/prediciendo la posición del objetivo (leading) en base a su velocidad, porque
 // la bala tarda volar dist/vel en llegar y el mob se mueve/teje.
@@ -4620,9 +4633,18 @@ function fireMissile() {
 }
 function fireBossCannons(boss) {
   if (isSkillActive('invisible')) return;
-  const points = boss.mesh.userData.cannonPoints;
-  for (const localPt of points) {
-    const worldPt = boss.mesh.localToWorld(localPt.clone());
+  // Origen de los disparos: SIEMPRE sobre el propio barco, a ambos costados del casco
+  // (offset en el plano XZ), en unidades de mundo que escalan con el tamaño del jefe.
+  // Se calcula en mundo para no depender de cannonPoints locales que, con el scale enorme
+  // del jefe vía localToWorld, quedaban dispersos lejos del barco ("dispara de todos lados").
+  const s = boss.mesh.scale.x || 1;
+  const p = boss.mesh.position;
+  const sides = [
+    new THREE.Vector3(-7 * s, 2 * s, 0),
+    new THREE.Vector3( 7 * s, 2 * s, 0)
+  ];
+  for (const off of sides) {
+    const worldPt = new THREE.Vector3(p.x + off.x, p.y + off.y, p.z + off.z);
     const mesh = buildSoapBar();
     mesh.position.copy(worldPt);
     const dir = ship.position.clone().sub(worldPt).normalize();
@@ -8017,7 +8039,9 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       // cambiando de dirección (QuickTurn) alrededor del objetivo en combate.
       const toP = ship.position.clone().sub(enemy.mesh.position);
       const dP = toP.length();
-      const dirP = toP.normalize();
+      const dirP = toP.clone().normalize();
+      dirP.y = 0; // el jefe mantiene su altura de crucero, NO persigue en vertical
+      if (dirP.lengthSq() < 0.0001) dirP.set(1, 0, 0);
       steerToward(enemy, dirP, dt);
       // Leash: si el boss se alejó mucho del punto de aparición, regresa (AO CheckMoveRange)
       const cP = enemy.spawnPos.clone().sub(enemy.mesh.position); cP.y = 0;
@@ -8037,6 +8061,9 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       enemy.currentSpeed = approachSpeed(enemy.currentSpeed, spdP, dt);
       const prevPosB = enemy.mesh.position.clone();
       enemy.mesh.position.addScaledVector(enemy.moveDir, enemy.currentSpeed * dt * (enemy.snareTimer > 0 ? 0.5 : 1));
+      // Jamás se hunde bajo el piso: mantiene al menos 12u de altura sobre el suelo
+      enemy.mesh.position.y = Math.max(12, enemy.mesh.position.y);
+      clampEnemyToRoom(enemy);
       const instVelB = enemy.mesh.position.clone().sub(prevPosB).multiplyScalar(1 / (dt || 0.016));
       if (!enemy.vel) enemy.vel = new THREE.Vector3();
       enemy.vel.lerp(instVelB, Math.min(1, 4 * dt));
@@ -8186,6 +8213,7 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
       const cruiseY = (enemy.patrolPt ? enemy.patrolPt.y : 40);
       const stepY = Math.max(-40 * dt, Math.min(40 * dt, cruiseY - enemy.mesh.position.y));
       enemy.mesh.position.y += stepY;
+      clampEnemyToRoom(enemy);
     }
     // Velocidad estimada (suavizada) para que el auto-aim de la torreta pueda "tirotear" (leading)
     const instVel = enemy.mesh.position.clone().sub(prevPos).multiplyScalar(1 / (dt || 0.016));
