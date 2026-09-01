@@ -13,13 +13,18 @@
 - Esperando feedback de Gabriel tras el push `b921671` (avión CrimsonAttack grande + FPS).
   - Confirmar en su navegador (Ctrl+F5) que el avión del CrimsonAttack se ve más grande y que los otros 3 gears no cambiaron.
   - Confirmar que al disparar misiles ya no baja el FPS.
+- Pulido de interacción/roturas: verificado en harness que los destructibles SÍ desaparecen (5 niveles, 0 fails). Agregado flash de impacto recursivo (antes no flasheaban). Commit: `d29a588` (renombre) + este.
+- Versión del juego: indicador `v1.2.1.1` abajo a la derecha; subir `GAME_VERSION` (=v1.2.1.1) al inicio del script en cada cambio publicado.
 
 ## NEXT (pendientes propuestos, NO empezados)
 - (Según reportes de Gabriel) agrandar avión de OTRO gear si lo pide.
 - Si Gabriel percibe que la bala estándar del CrimsonAttack quedó chica, decidir si agrandarla (de momento quedó en 0.5 por su aclaración).
+- Si Gabriel confirma que un objeto destructible NO desaparece en su navegador, verificar qué versión está viendo (Ctrl+F5) y en qué nivel.
 - documentar en los harness CDP en el repo si Gabriel pide reproducibilidad (hoy están en TEMP).
 
 ## Log de últimos commits
+- `d29a588` — renombre de gears (Rayo→CrimsonAttack, Muro→MecanoTank, Trueno→TeddyBomb, Viento→HealDuck) en código y memory bank.
+- `019fb00` — eliminar nombres viejos de referencias/.
 - `b921671` — avión CrimsonAttack ×1.5 + FPS muzzle flash cache + revert bala a 0.5.
 - `ed82921` — estela misil barata + cache material (estela) + bala 0.75 (luego revertido).
 - `af37ef7` — boss 3 fixes.

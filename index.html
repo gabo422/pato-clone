@@ -439,6 +439,11 @@
   body.mobile-active #touchTurnBtns {
     display: flex; position: absolute; left: 22px; bottom: 12px; gap: 10px; z-index: 12;
   }
+  #versionTag {
+    position: fixed; right: 10px; bottom: 5px; z-index: 9999;
+    font-size: 10px; color: rgba(180,200,220,0.5); letter-spacing: 1px;
+    pointer-events: none; user-select: none; font-family: 'Segoe UI', Arial, sans-serif;
+  }
   body.mobile-active #touchButtons {
     display: flex; position: absolute; right: 16px; bottom: 16px; gap: 10px;
     align-items: flex-end; z-index: 7;
@@ -1141,12 +1146,17 @@
   </div>
 </div>
 
+<div id="versionTag">v1.2.1.1</div>
 <script src="enchants.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script>
+// ================= VERSIÓN DEL JUEGO =================
+// Subir acá el número en cada cambio publicado (ej. 1.2.1.1 → 1.2.2.1). Se muestra abajo a la derecha.
+const GAME_VERSION = '1.2.1.1';
+document.getElementById('versionTag').textContent = 'v' + GAME_VERSION;
 // ================= Detección de mobile/táctil =================
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (('ontouchstart' in window) && window.innerWidth < 900);
 if (isMobile) document.body.classList.add('mobile-active');
@@ -7404,11 +7414,31 @@ function spawnDestructible(x, z) {
   scene.add(mesh);
   destructibles.push({ mesh, hp: 3, alive: true });
 }
+function flashMeshWhite(obj) {
+  // Aplica un flash blanco a TODOS los mesh del grupo (los destructibles son Group sin .material propio)
+  const targets = [];
+  obj.traverse((o) => { if (o.isMesh && o.material) targets.push(o); });
+  if (!targets.length) return;
+  for (const t of targets) {
+    const mats = Array.isArray(t.material) ? t.material : [t.material];
+    for (const m of mats) {
+      if (m.emissive) m.emissive.set(0xffffff);
+    }
+  }
+  setTimeout(() => {
+    for (const t of targets) {
+      const mats = Array.isArray(t.material) ? t.material : [t.material];
+      for (const m of mats) {
+        if (m.emissive) m.emissive.set(0x000000);
+      }
+    }
+  }, 80);
+}
 function hitDestructible(d, dmg) {
   if (!d.alive) return;
   d.hp -= dmg;
   // Flash impacto
-  if (d.mesh.material) { d.mesh.material.emissive.set(0xffffff); setTimeout(() => { if (d.mesh.material) d.mesh.material.emissive.set(0x000000); }, 80); }
+  flashMeshWhite(d.mesh);
   if (d.hp <= 0) {
     d.alive = false;
     scene.remove(d.mesh);
@@ -7448,7 +7478,7 @@ function resetDestructibles() {
 function hitWorldCollider(c, dmg) {
   if (!c.hp || c.hp <= 0) return false;
   c.hp -= dmg;
-  if (c.mesh && c.mesh.material) { c.mesh.material.emissive.set(0xffffff); setTimeout(() => { if (c.mesh && c.mesh.material) c.mesh.material.emissive.set(0x000000); }, 80); }
+  if (c.mesh) flashMeshWhite(c.mesh);
   if (c.hp <= 0 && c.mesh) {
     const pos = c.mesh.position.clone();
     if (c.type === 'cardboard') {
