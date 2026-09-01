@@ -80,7 +80,7 @@ function generateRunSeed() {
 
 function calculateDrop(seed, waveNumber, gearKey, bossEncounters) {
   const rarityRoll = (seed + waveNumber * 7 + bossEncounters * 31) % 100;
-  const gearMod = { rayo: 0, muro: 1, trueno: 2, viento: 3 };
+  const gearMod = { crimsonAttack: 0, mecanoTank: 1, teddyBomb: 2, healDuck: 3 };
   const typeRoll = (seed + waveNumber * 3 + (gearMod[gearKey] || 0) * 13) % 7;
 
   const rarity = getRarityFromRoll(rarityRoll);
@@ -119,10 +119,10 @@ var playerInventory = {
 };
 
 var gearEnchants = {
-  rayo:   [null, null],
-  muro:   [null, null],
-  trueno: [null, null],
-  viento: [null, null]
+  crimsonAttack: [null, null],
+  mecanoTank:    [null, null],
+  teddyBomb:     [null, null],
+  healDuck:      [null, null]
 };
 
 // ================= 4. PERSISTENCIA =================
@@ -258,7 +258,7 @@ function tryDropCard(enemy, wave, gear, bossEnc) {
 
   if (enemy.isBoss) {
     var seed = (currentRunSeed + wave * 7 + bossEnc * 31) % 100;
-    var gearMod = { rayo: 0, muro: 1, trueno: 2, viento: 3 };
+    var gearMod = { crimsonAttack: 0, mecanoTank: 1, teddyBomb: 2, healDuck: 3 };
     var typeRoll = (currentRunSeed + wave * 3 + (gearMod[gear] || 0) * 13) % 7;
     var rarityRoll = Math.max(seed, 45);
 
@@ -477,8 +477,8 @@ function openEquipModal(cardId) {
   var slotsContainer = document.getElementById('equipModalSlots');
   if (slotsContainer) {
     slotsContainer.innerHTML = '';
-    var gears = ['rayo', 'muro', 'trueno', 'viento'];
-    var gearNames = { rayo: 'Rayo', muro: 'Muro', trueno: 'Trueno', viento: 'Viento' };
+    var gears = ['crimsonAttack', 'mecanoTank', 'teddyBomb', 'healDuck'];
+    var gearNames = { crimsonAttack: 'CrimsonAttack', mecanoTank: 'MecanoTank', teddyBomb: 'TeddyBomb', healDuck: 'HealDuck' };
 
     for (var g = 0; g < gears.length; g++) {
       var gk = gears[g];
@@ -523,7 +523,7 @@ function renderEnchantSlots() {
   if (!container) return;
 
   container.innerHTML = '';
-  var gear = selectedGear || 'rayo';
+  var gear = selectedGear || 'crimsonAttack';
   var enchants = gearEnchants[gear] || [];
 
   for (var i = 0; i < enchants.length; i++) {

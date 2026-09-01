@@ -14,4 +14,4 @@ Gabriel quiere revivir la experiencia de Ace Online en el navegador. Sin memoria
 - Cambios concretos y probados; feedback en su idioma y con instrucciones simples (Ctrl+F5).
 
 ## Trampa conocida
-Cuando Gabriel pide agrandar/algo de "el rayo", preguntar a QUÉ se refiere exactamente: el **avión (gear)**, la **bala estándar**, o el **misil**. En su última aclaración: "el gear, el misil ya está grande" → agrandar el **avión**.
+Cuando Gabriel pide agrandar/algo de un gear (ej. "el CrimsonAttack"), preguntar a QUÉ se refiere exactamente: el **avión (gear)**, la **bala estándar**, o el **misil**. En su última aclaración: "el gear, el misil ya está grande" → agrandar el **avión**.

@@ -14,13 +14,13 @@
 - **Por qué:** fixes verificados con harness cdp_bossfix.js.
 
 ## D4. Arma ADV con homing por gear (commit 43990ee)
-- **Qué:** `GEAR_CONFIGS` tiene campo `turn` por arma. Mass Drive del Muro `0.35` (recto), Arrow/Bawoo `5.5` (homing fuerte).
+- **Qué:** `GEAR_CONFIGS` tiene campo `turn` por arma. Mass Drive del MecanoTank `0.35` (recto), Arrow/Bawoo `5.5` (homing fuerte).
 - **Por qué:** fiel al AO, antes todos homing-eaban igual (4.2).
 
-## D5. Avión del gear Rayo agrandado 50% — SOLO Rayo (commit b921671)
-- **Qué:** se escala el modelo del pato del gear Rayo ×1.5. Duck `lib.scale` 2.9 → 4.35. Se aplica en **dos** puntos: el cambio de gear (bloque builders ~1396) y `swapModelIfReady` (cuando se intercambia el .glb, ~3885).
-- **Cómo elegir el gear:** la condición es `cfg.modelKey === 'crimson'`, único al gear Rayo → **no afecta a Muro/Trueno/Viento**.
-- **Por qué / historia:** Gabriel primero pidió "agrandar el rayo" y el asistente agrandó la bala estándar (0.5→0.75). Gabriel aclaró que quería el **avión**, no el arma. Se revirtió la bala a 0.5 y se agrandó el avión. Verificado en harness: `rayoPlaneScaleX=4.350`, `stdRadius=0.5`.
+## D5. Avión del gear CrimsonAttack agrandado 50% — SOLO CrimsonAttack (commit b921671)
+- **Qué:** se escala el modelo del pato del gear CrimsonAttack ×1.5. Duck `lib.scale` 2.9 → 4.35. Se aplica en **dos** puntos: el cambio de gear (bloque builders ~1396) y `swapModelIfReady` (cuando se intercambia el .glb, ~3885).
+- **Cómo elegir el gear:** la condición es `cfg.modelKey === 'crimson'`, único al gear CrimsonAttack → **no afecta a los otros 3 gears**.
+- **Por qué / historia:** Gabriel primero pidió "agrandar el CrimsonAttack" y el asistente agrandó la bala estándar (0.5→0.75). Gabriel aclaró que quería el **avión**, no el arma. Se revirtió la bala a 0.5 y se agrandó el avión. Verificado en harness: `crimsonPlaneScaleX=4.350`, `stdRadius=0.5`.
 
 ## D6. Optimización FPS de partículas — cache de material (fix general, commits af37ef7/b921671)
 - **Qué:** nuevo `aceGetParticleMat(color,size)` que cachea el `PointsMaterial` por color+tamaño. Se usa en `aceSpawnParticles`, `aceMuzzleFlash`, y la estela de misiles. Antes se creaba un PointsMaterial NUEVO en cada emisión = bajón de FPS (más con voleas de misiles).

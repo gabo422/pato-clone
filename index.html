@@ -1037,9 +1037,9 @@
     <h2>Elegí tu Juguete</h2>
     <p class="subtitle">Cada Juguete tiene armas, habilidades y stats únicos</p>
     <div id="gearCards">
-      <div class="gearCard" data-gear="rayo">
+      <div class="gearCard" data-gear="crimsonAttack">
         <div class="gearIcon">⚡</div>
-        <div class="gearName">RAYO</div>
+        <div class="gearName">CRIMSONATTACK</div>
         <div class="gearRole">Caza Veloz</div>
         <div class="gearDesc">El más rápido del campo de batalla. Esquiva con facilidad y destruye con ráfagas precisas.</div>
         <div class="gearWeapons">Vulcan + Rifle</div>
@@ -1050,9 +1050,9 @@
           <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:85%"></div></div></div>
         </div>
       </div>
-      <div class="gearCard" data-gear="muro">
+      <div class="gearCard" data-gear="mecanoTank">
         <div class="gearIcon">🛡️</div>
-        <div class="gearName">MURO</div>
+        <div class="gearName">MECANOTANK</div>
         <div class="gearRole">Tanque / Asedio</div>
         <div class="gearDesc">Pesado y letal. En modo asedio se convierte en una torreta imparable.</div>
         <div class="gearWeapons">Cañón + Mass Drive</div>
@@ -1063,9 +1063,9 @@
           <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:15%"></div></div></div>
         </div>
       </div>
-      <div class="gearCard" data-gear="trueno">
+      <div class="gearCard" data-gear="teddyBomb">
         <div class="gearIcon">💣</div>
-        <div class="gearName">TRUENO</div>
+        <div class="gearName">TEDDYBOMB</div>
         <div class="gearRole">Bombardero</div>
         <div class="gearDesc">Versátil y destructivo. Bombardea con patrones de área que liquidan grupos.</div>
         <div class="gearWeapons">Gatling + Misiles</div>
@@ -1076,9 +1076,9 @@
           <div class="gearStat"><span class="gearStatLabel">Eva</span><div class="gearStatBar"><div class="gearStatFill evasion" style="width:40%"></div></div></div>
         </div>
       </div>
-      <div class="gearCard" data-gear="viento">
+      <div class="gearCard" data-gear="healDuck">
         <div class="gearIcon">💚</div>
-        <div class="gearName">VIENTO</div>
+        <div class="gearName">HEALDUCK</div>
         <div class="gearRole">Soporte</div>
         <div class="gearDesc">La columna vertebral del equipo. Cura, protege y buffea a todos.</div>
         <div class="gearWeapons">Rifle + Misiles</div>
@@ -1183,12 +1183,12 @@ const DIFFICULTY_HINTS = {
 
 // ================= Selección de Juguete =================
 const GEAR_CONFIGS = {
-  // ===== I-GEAR (Rayo / Interceptor) — BaseNums 783xxxx =====
+  // ===== I-GEAR (CrimsonAttack / Interceptor) — BaseNums 783xxxx =====
   // AO real: Vulcan 4x1, 30-68 dmg (avg 49), 0.60s reattack, 65% accuracy, 15s overheat, 520m range
   // AO real: Rifle 1x1, 123-165 dmg (avg 144), 0.70s reattack, 85% accuracy, 24s overheat, 520m range
   // AO real: Fastest gear (560m/s boost), highest evasion, glass cannon
-  rayo: {
-    name: 'Rayo', role: 'Interceptor', icon: '⚡',
+  crimsonAttack: {
+    name: 'CrimsonAttack', role: 'Interceptor', icon: '⚡',
     desc: 'El más rápido del campo de batalla. Daño y evasión.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 220, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false, turn: 5.5 } },
@@ -1211,12 +1211,12 @@ const GEAR_CONFIGS = {
     movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
     modelKey: 'crimson', modelBuilder: null
   },
-  // ===== A-GEAR (Muro / Tank) — BaseNums 782xxxx =====
+  // ===== A-GEAR (MecanoTank / Tank) — BaseNums 782xxxx =====
   // AO real: Cannon 1x1, 149-194 dmg (avg 172), 0.45s reattack, 85% accuracy, 28s overheat, 1100m range
   // AO real: MassDrive 1x1, 124-165 dmg (avg 145), 0.43s reattack, 95% accuracy, 28s overheat, 1000m range
   // AO real: Siege mode = massive stationary DPS. Slowest gear, highest defense/shield
-  muro: {
-    name: 'Muro', role: 'Tanque / Asedio', icon: '🛡️',
+  mecanoTank: {
+    name: 'MecanoTank', role: 'Tanque / Asedio', icon: '🛡️',
     desc: 'Pesado y letal. Siege mode y defensa.',
     weapons: { standard: { name: 'Cañón', type: 'cannon', pattern: [1,1], baseDamage: 180, speed: 180, reattackTime: 0.45, overheatTime: 28, accuracy: 90, pierce: true },
                advanced: { name: 'Mass Drive', type: 'massdrive', pattern: [1,1], baseDamage: 157, speed: 240, reattackTime: 0.43, overheatTime: 28, accuracy: 95, pierce: true, turn: 0.35 } },
@@ -1237,12 +1237,12 @@ const GEAR_CONFIGS = {
     movement: null,
     modelKey: 'mecano', modelBuilder: null
   },
-  // ===== B-GEAR (Trueno / Bomber) — BaseNums 780xxxx =====
+  // ===== B-GEAR (TeddyBomb / Bomber) — BaseNums 780xxxx =====
   // AO real: Gatling 4x1, 24-43 dmg (avg 33), 0.50s reattack, 80% accuracy, 11s overheat, 520m range
   // AO real: Missiles 1x4, 159-210 dmg (avg 185), 1.80s reattack, 100% accuracy, 20s overheat, 4000m range
   // AO real: Balanced speed between I and A
-  trueno: {
-    name: 'Trueno', role: 'Bombardero', icon: '💣',
+  teddyBomb: {
+    name: 'TeddyBomb', role: 'Bombardero', icon: '💣',
     desc: 'Versátil y destructivo. Daño masivo de una sola ráfaga.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 34, speed: 210, reattackTime: 0.50, overheatTime: 11, accuracy: 80, pierce: false },
                advanced: { name: 'Bawoo', type: 'bawoo', pattern: [2,1], baseDamage: 576, speed: 80, reattackTime: 4.0, overheatTime: 20, accuracy: 100, pierce: false, aoeRadius: 30, turn: 5.5 } },
@@ -1263,12 +1263,12 @@ const GEAR_CONFIGS = {
     movement: { q: { id: 'turnaround', name: 'Turnaround', desc: 'Giro 180° instantáneo', cooldown: 8 }, e: { id: 'backMoveMach', name: 'Back Move Mach', desc: 'Retroceso 1000m a 600m/s', cooldown: 15 } },
     modelKey: 'teddy', modelBuilder: null
   },
-  // ===== M-GEAR (Meadow Burgle) — Soporte =====
+  // ===== M-GEAR (HealDuck) — Soporte =====
   // AO real: Rifle 1x1, 123-165 dmg (avg 144), 0.70s reattack, 85% accuracy, 24s overheat, 520m range
   // AO real: Missiles 1x4, 159-210 dmg (avg 185), 1.80s reattack, 100% accuracy, 20s overheat, 4000m range
   // AO real: Support class - healing fields, buffs, scan, reverse engine
-  viento: {
-    name: 'Viento', role: 'Soporte', icon: '💚',
+  healDuck: {
+    name: 'HealDuck', role: 'Soporte', icon: '💚',
     desc: 'La columna vertebral del equipo. Curación y buffs.',
     weapons: { standard: { name: 'Gatling', type: 'gatling', pattern: [4,1], baseDamage: 52, speed: 220, reattackTime: 0.60, overheatTime: 15, accuracy: 95, pierce: false },
                advanced: { name: 'Arrow', type: 'missiles', pattern: [1,2], baseDamage: 474, speed: 130, reattackTime: 1.8, overheatTime: 20, accuracy: 75, pierce: false, turn: 5.5 } },
@@ -1388,16 +1388,16 @@ function applyGearSelection(gearKey) {
 
   // Reconstruir el modelo 3D del jugador según el Gear elegido
   while (ship.children.length) ship.remove(ship.children[0]);
-  const builders = { duck: buildDuck, teddy: buildTeddy, mecano: buildMuro, crimson: buildDuck }; 
+  const builders = { duck: buildDuck, teddy: buildTeddy, mecano: buildMecanoTank, crimson: buildDuck }; 
   const builder = builders[cfg.modelKey] || buildDuck;
   const newModel = builder();
-  // Gear Rayo: avión agrandado un 50% por pedido (el modelo del pato es compartido,
+  // Gear CrimsonAttack: avión agrandado un 50% por pedido (el modelo del pato es compartido,
   // así que aplicamos el zoom extra SOLO al avión de este gear).
   if (cfg.modelKey === 'crimson') newModel.scale.multiplyScalar(1.5);
   ship.add(newModel);
   ship.add(flameGroup);
   if (newModel.userData.wingMissilePoints) ship.userData.wingMissilePoints = newModel.userData.wingMissilePoints;
-  // Propagar referencias del rig articulado (Muro) al userData del ship para animar en animate()
+  // Propagar referencias del rig articulado (MecanoTank) al userData del ship para animar en animate()
   for (const k of ['legs', 'turret', 'barrel', 'mecChassis']) {
     if (newModel.userData && newModel.userData[k]) ship.userData[k] = newModel.userData[k];
   }
@@ -3718,10 +3718,10 @@ function buildDuck() {
   return group;
 }
 
-// ================= Muro / A-Gear: tanque articulado (base + torreta + 4 patas/cadenas que caminan) =================
+// ================= MecanoTank / A-Gear: tanque articulado (base + torreta + 4 patas/cadenas que caminan) =================
 // El Mecano.glb es una pieza rígida, así que lo montamos como decoración del chasis y animamos
 // nuestro propio rig: la base (con las patas) y una torreta con cañón independientes.
-function buildMuro() {
+function buildMecanoTank() {
   const group = new THREE.Group();
   const hull = new THREE.MeshStandardMaterial({ color: 0x6f8296, roughness: 0.55, metalness: 0.35 });
   const hullDark = new THREE.MeshStandardMaterial({ color: 0x3a4654, roughness: 0.55, metalness: 0.4 });
@@ -3870,8 +3870,8 @@ function swapModelIfReady() {
   instance.scale.setScalar(lib.scale);
   instance.rotation.y = lib.rotationY;
   instance.position.set(lib.offset.x, lib.offset.y, lib.offset.z);
-  // A-Gear (Muro): el modelo Mecano.glb ya NO se monta como decoración del chasis.
-  // El tanque articulado de buildMuro() es una pieza completa, coloreada y animable por sí sola.
+  // A-Gear (MecanoTank): el modelo Mecano.glb ya NO se monta como decoración del chasis.
+  // El tanque articulado de buildMecanoTank() es una pieza completa, coloreada y animable por sí sola.
   // El .glb (7.8MB, con texturas JPEG incrustadas) era la ÚNICA pieza dependiente de texturas
   // del A: si sus texturas fallaban al cargar, el modelo se renderizaba BLANCO sin textura y
   // tapaba el gear como una "niebla/spray blanco" (solo pasaba jugando con el A). Se elimina.
@@ -3881,7 +3881,7 @@ function swapModelIfReady() {
     return;
   }
   while (ship.children.length) ship.remove(ship.children[0]);
-  // Gear Rayo: avión agrandado un 50% (aplicado también cuando se intercambia el modelo)
+  // Gear CrimsonAttack: avión agrandado un 50% (aplicado también cuando se intercambia el modelo)
   if (cfg.modelKey === 'crimson') instance.scale.multiplyScalar(1.5);
   ship.add(instance);
   ship.add(flameGroup);
@@ -4145,8 +4145,8 @@ let playerPierce = 0; // % de defensa que ignoran las armas del jugador (sube co
 // Vida de los ositos según dificultad: calibrada para que el sistema de daño tenga peso.
 // Vida de los ositos: "cuarto de AO nivel 81" (mobs AO lv81 = 7.5k-25k HP) → 2000/3200/6000.
 // Cada gear mata con su arma PRINCIPAL:
-//   I/Rayo & B/Trueno → arma AVANZADA (Arrow 474/1.8s, Bawoo 576/4s)
-//   M/Viento & A/Muro → arma ESTÁNDAR (Gatling 52/0.6s, Cañón 180/0.45s)
+//   I/CrimsonAttack & B/TeddyBomb → arma AVANZADA (Arrow 474/1.8s, Bawoo 576/4s)
+//   M/HealDuck & A/MecanoTank → arma ESTÁNDAR (Gatling 52/0.6s, Cañón 180/0.45s)
 // A nivel medio un osito normal (3200) muere en ~3-12s según el gear (ritmo arcade fiel).
 const TEDDY_HP_BY_DIFFICULTY = { facil: 2000, normal: 3200, dificil: 6000, sniper: 3200 };
 function getTeddyHp() { return (TEDDY_HP_BY_DIFFICULTY[difficulty] ?? TEDDY_HP_BY_DIFFICULTY.normal) * getLevelHpScale(); }
@@ -4317,7 +4317,7 @@ const bubbleTexture = makeBubbleTexture();
 const projMat = new THREE.SpriteMaterial({ map: bubbleTexture, transparent: true, depthWrite: false });
 
 // ================= Proyectiles por gear (animaciones independientes) =================
-// Cada gear tiene su propio estilo visual. El jabón cuadradito queda SOLO para el pato/Viento (M).
+// Cada gear tiene su propio estilo visual. El jabón cuadradito queda SOLO para el pato/HealDuck (M).
 // Se usa un cache por gear para no recrear geometría/materiales en cada disparo.
 const PROJ_BY_GEAR = {};
 
@@ -4325,7 +4325,7 @@ function getProjBuilders() {
   if (PROJ_BY_GEAR[selectedGear]) return PROJ_BY_GEAR[selectedGear];
   let builders;
   switch (selectedGear) {
-    case 'muro': {
+    case 'mecanoTank': {
       // Cañón (estándar): bala anaranjada con cola de fuego
       const stdGeo = new THREE.SphereGeometry(0.7, 10, 8);
       const stdMat = new THREE.MeshStandardMaterial({ color: 0xff7722, emissive: 0xff4400, emissiveIntensity: 0.6, roughness: 0.4 });
@@ -4347,7 +4347,7 @@ function getProjBuilders() {
       };
       break;
     }
-    case 'trueno': {
+    case 'teddyBomb': {
       // Gatling (estándar): carga de energía dorada brillante
       const stdGeo = new THREE.SphereGeometry(0.55, 10, 8);
       const stdMat = new THREE.MeshStandardMaterial({ color: 0xffdd33, emissive: 0xffaa00, emissiveIntensity: 0.9, roughness: 0.3 });
@@ -4369,7 +4369,7 @@ function getProjBuilders() {
       };
       break;
     }
-    case 'rayo': {
+    case 'crimsonAttack': {
       // Gatling (estándar): bala roja de energía veloz
       const stdGeo = new THREE.SphereGeometry(0.5, 8, 6);
       const stdMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0xcc0000, emissiveIntensity: 0.9, roughness: 0.3 });
@@ -4396,9 +4396,9 @@ function getProjBuilders() {
       };
       break;
     }
-    case 'viento':
+    case 'healDuck':
     default: {
-      // Pato/Viento (M): SÍ usa el jabón cuadrado original (burbuja) y jabón azul de misil
+      // Pato/HealDuck (M): SÍ usa el jabón cuadrado original (burbuja) y jabón azul de misil
       builders = {
         std: () => { const s = new THREE.Sprite(projMat); s.scale.set(1.3, 1.3, 1); return s; },
         adv: () => buildSoapBar()
@@ -4517,7 +4517,7 @@ function clampEnemyToRoom(enemy) {
 // "adelantando"/prediciendo la posición del objetivo (leading) en base a su velocidad, porque
 // la bala tarda volar dist/vel en llegar y el mob se mueve/teje.
 function getSiegeAimPoint(target, shipPos) {
-  const bulletSpeed = 220; // velocidad de la bala del Muro (std ~200) para el tiempo de vuelo
+  const bulletSpeed = 220; // velocidad de la bala del MecanoTank (std ~200) para el tiempo de vuelo
   const dist = target.mesh.position.distanceTo(shipPos);
   const tof = dist / bulletSpeed;                 // tiempo de vuelo estimado
   const lead = (target.vel && target.vel.lengthSq() > 1) ? target.vel.clone().multiplyScalar(tof) : new THREE.Vector3();
@@ -4831,7 +4831,7 @@ function makeAceParticleTexture() {
 }
 const aceParticleTexture = makeAceParticleTexture();
 
-// ---- DIAGNÓSTICO "fuego blanco" del Muro ----
+// ---- DIAGNÓSTICO "fuego blanco" del MecanoTank ----
 // true → se apaga TODO el sistema de partículas/auras/rings (skills, boost, proyectiles),
 // dejando solo el tanque y sus stats. Sirve para aislar si el "fuego blanco en el cuerpo"
 // es VFX de partículas o un mesh del tanque.
@@ -5433,7 +5433,7 @@ window.addEventListener('keydown', e => {
           ship.position.y = 3;
           showWaveBanner('ATERRIZANDO...');
           if (typeof toggleInventory === 'function') toggleInventory();
-        } else if (selectedGear === 'muro') {
+        } else if (selectedGear === 'mecanoTank') {
           // Especialidad del A (AO ShuttleChild TryLandingState: IS_DT && m_bIsAir):
           // estando en el aire puede aterrizar donde quiera, no solo en el helipad.
           if (ship.position.y - 3 >= 180) {
@@ -5856,14 +5856,14 @@ function getPassive(stat) {
 // Maps skill IDs → Ace Online icon filenames (from icons/skills_ace/)
 // To replace an icon: put your PNG in icons/skills_ace/ with the same filename
 const SKILL_ICON_MAP = {
-  // I-GEAR (Rayo) — 0783xxxx
+  // I-GEAR (CrimsonAttack) — 0783xxxx
   frenzy:            '07830030.png', // 7830030
   berserker:         '07833050.png', // 7833050
   overbooster:       '07832030.png', // 7832030
   hyperMoving:       '07833010.png', // 7833010
   silence:           '07833040.png', // 7833040
   chainRolling:      '07832040.png', // 7832040
-  // A-GEAR (Muro) — 0782xxxx
+  // A-GEAR (MecanoTank) — 0782xxxx
   siegeMode:         '07820050.png', // 7820050
   airSiegeMode:      '07820060.png', // 7820060
   hyperShot:         '07823060.png', // 7823060
@@ -5874,7 +5874,7 @@ const SKILL_ICON_MAP = {
   collisionAbsorption: '07821030.png', // 7821030
   siegeDefense:      '07821040.png', // 7821040
   groundAccelerator: '07822010.png', // 7822010
-  // B-GEAR (Trueno) — 0780xxxx
+  // B-GEAR (TeddyBomb) — 0780xxxx
   groundBombing:     '07800040.png', // 7800040
   airBombing:        '07800070.png', // 7800070
   chargeShot:        '07800060.png', // 7800060
@@ -5883,7 +5883,7 @@ const SKILL_ICON_MAP = {
   bigBoom:           '07803040.png', // 7803040
   invisible:         '07803030.png', // 7803030
   reduceDamage:      '07801030.png', // 7801030
-  // M-GEAR (Viento) — 0781xxxx
+  // M-GEAR (HealDuck) — 0781xxxx
   healingField:      '07811030.png', // 7811030
   energizingField:   '07811050.png', // 7811050
   healTarget:        '07811040.png', // 7811040
@@ -5897,7 +5897,7 @@ const SKILL_ICON_MAP = {
   invincible:        '07811100.png', // 7811100
   smartSP:           '07813020.png', // 7813020
   elevation:         '07810040.png', // 7810040
-  // Rayo Scanning comparte el icono del Scan de Viento (misma familia)
+  // CrimsonAttack Scanning comparte el icono del Scan de HealDuck (misma familia)
   scanning:          '07813060.png', // 7813060 (Scanning)
   // Shared skills — B-Gear versions used as fallback
   fireShot:          '07800010.png', // 7800010 (all gears)
@@ -6008,7 +6008,7 @@ function bindSkillBarEvents() {
       document.addEventListener('mouseup', onDragEnd);
     });
     el.addEventListener('contextmenu', e => { e.preventDefault(); });
-    // Slots sin tecla numérica (11+, como Drain/Scanning del Rayo): se activan con click
+    // Slots sin tecla numérica (11+, como Drain/Scanning del CrimsonAttack): se activan con click
     if (i >= 10) {
       el.addEventListener('click', e => {
         if (Date.now() - lastDragEndAt < 300) return;
@@ -6422,7 +6422,7 @@ function getAdvDmgMultiplier() {
 }
 function getDefenseMultiplier() {
   let m = getLevelDefenseBonus() + getPassive('defenseBonus');
-  if (isSkillActive('siegeMode') && selectedGear === 'muro') m += getPassive('siegeDefenseBonus');
+  if (isSkillActive('siegeMode') && selectedGear === 'mecanoTank') m += getPassive('siegeDefenseBonus');
   if (isSkillActive('berserker')) m *= 0.7;
   if (isSkillActive('defenseUp')) m += 0.4;
   if (isSkillActive('ragingDefence')) m += 0.2;
@@ -7722,8 +7722,8 @@ function animate() {
   checkFixtureCollisions();
   updateBoundaryWarning();
 
-  // ---- A-Gear (Muro): tanque articulado — patas que caminan + torreta que apunta ----
-  if (selectedGear === 'muro' && ship.userData && ship.userData.legs) {
+  // ---- A-Gear (MecanoTank): tanque articulado — patas que caminan + torreta que apunta ----
+  if (selectedGear === 'mecanoTank' && ship.userData && ship.userData.legs) {
     const legData = ship.userData.legs;
     const turret = ship.userData.turret;
     const barrel = ship.userData.barrel;
@@ -8788,9 +8788,9 @@ try {
 var TUTORIAL_STEPS = [
   { icon: '🎮', title: 'Bienvenido, piloto', text: 'Estás controlando un Juguete (tu nave de combate). Tu objetivo: sobrevivir olas de enemigos y derrotar a los Jefes. <b>No te preocupes:</b> mientras leés esta guía el juego va en cámara lenta y tu Juguete es <b>invencible</b>.' },
   { icon: '🕹️', title: 'Volar', text: '<b>W</b> acelera, <b>S</b> frena y <b>B</b> es freno aéreo. <b>A/D</b> giran (strafe) y <b>Espacio</b> es el boost. <b>Shift</b> suelta la mira. <b>Enter</b> confirma. <b>Tocá A o D dos veces rápido</b> para hacer un <b>barrel roll</b>: te hace invulnerable un instante y esquiva misiles. ¡Muy útil!' },
-  { icon: '🔫', title: 'Disparar', text: '<b>Click izquierdo</b> dispara (arma estándar) y <b>Click derecho</b> lanza (arma avanzada). <b>Rayo y Trueno</b> dependen de la avanzada; <b>Viento y Muro</b> de la estándar.' },
+  { icon: '🔫', title: 'Disparar', text: '<b>Click izquierdo</b> dispara (arma estándar) y <b>Click derecho</b> lanza (arma avanzada). <b>CrimsonAttack y TeddyBomb</b> dependen de la avanzada; <b>HealDuck y MecanoTank</b> de la estándar.' },
   { icon: '⚡', title: 'Habilidades', text: 'Presioná <b>K</b> para abrir el panel de skills y <b>1-4</b> para activarlas. Cada Juguete tiene habilidades de ataque, defensa y soporte.' },
-  { icon: '🛬', title: 'Aterrizar e inventario', text: 'En el <b>helipad verde</b> (tecla <b>C</b>) abrís el <b>inventario</b> para equipar las cartas mágicas que caen de los enemigos. El <b>A (Muro)</b> además puede aterrizar como torreta en cualquier lado con <b>C</b> (es su especialidad).' },
+  { icon: '🛬', title: 'Aterrizar e inventario', text: 'En el <b>helipad verde</b> (tecla <b>C</b>) abrís el <b>inventario</b> para equipar las cartas mágicas que caen de los enemigos. El <b>A (MecanoTank)</b> además puede aterrizar como torreta en cualquier lado con <b>C</b> (es su especialidad).' },
   { icon: '🃏', title: 'Cartas de encantamiento', text: 'Los enemigos sueltan <b>cartas</b> (Común → Legendaria). Aterrizá para abrir el inventario y equiparlas: suman daño, precisión, defensa, etc. Al recargar partida se guardan.' },
   { icon: '🏆', title: 'Objetivo', text: 'Superá todas las oleadas, derrotá a los Jefes y sumá puntos para el ranking. ¡Buena suerte, piloto! 🚀' }
 ];

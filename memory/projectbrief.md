@@ -5,7 +5,7 @@ Un clon web (Three.js + HTML) del juego *Ace Online* (AO), sola página `index.h
 
 ## Alcance / objetivo
 Recrear lo más fielmente posible el comportamiento del AO:
-- 4 gears jugables (Rayo, Muro, Trueno, Viento).
+- 4 gears jugables (CrimsonAttack, MecanoTank, TeddyBomb, HealDuck).
 - Armas estándar y avanzada por gear, con homing/turn diferenciados.
 - Mobs y boss con IA de movimiento/ataque fiel al AO (no orbitan, distancias de ataque, media vuelta, etc.).
 - Publicado en GitHub Pages para que Gabriel juegue.

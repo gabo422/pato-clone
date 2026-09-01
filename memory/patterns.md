@@ -9,8 +9,8 @@
 - Three.js: meshes, grupos, `new THREE.Group()`, materiales `MeshStandardMaterial`/`MeshBasicMaterial`/`PointsMaterial`.
 - Patrón de un solo juego con 4 gears vía `GEAR_CONFIGS` (cada gear: name, role, weapons, stats, skills, modelKey).
 - `builders = { duck, teddy, mecano, crimson }` (línea ~1391) elige el builder del modelo por `modelKey`.
-- Gear Rayo usa `modelKey: 'crimson'` (único a ese gear). Muro=`mecano`, Trueno=`teddy`, Viento=`duck`.
-- Proyectiles: `PROJ_BY_GEAR` + `getProjBuilders()` (línea ~4317); la bala estándar del Rayo es `SphereGeometry(0.5,...)`.
+- Gear CrimsonAttack usa `modelKey: 'crimson'` (único a ese gear). MecanoTank=`mecano`, TeddyBomb=`teddy`, HealDuck=`duck`.
+- Proyectiles: `PROJ_BY_GEAR` + `getProjBuilders()` (línea ~4317); la bala estándar del CrimsonAttack es `SphereGeometry(0.5,...)`.
 - Partículas: `aceSpawnParticles(preset, position, array)` centraliza la emisión. **Usar SIEMPRE `aceGetParticleMat(color,size)` para el material** (cache, evita crear PointsMaterial nuevo por llamada → evita bajón de FPS). No volver a crear `new THREE.PointsMaterial` inline en emisores frecuentes.
 - Constantes del motor nuevos se registran en `ACE` (ej: `ACE.missileTrail` para estela de misiles).
 - Los helpers de harness de prueba viven en TEMP (`C:\Users\GMULLI~1.ITP\AppData\Local\Temp\opencode\`), NO en el repo salvo que se pidan.

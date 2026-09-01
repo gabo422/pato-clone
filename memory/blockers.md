@@ -1,13 +1,13 @@
 # Blockers / Gotchas — cosas que ya costaron tiempo (leer antes de tocar)
 
-## B1. "El rayo" es ambiguo → SIEMPRE preguntar
-Cuando Gabriel pide agrandar/cambiar "el rayo", preguntar si se refiere al **avión (gear)**, la **bala estándar** o el **misil**. Ya pasó: se agrandó la bala (0.75) cuando quería el avión. Aclaración de Gabriel: "el gear, el misil ya está grande" → el avión.
+## B1. El nombre de un gear es ambiguo → SIEMPRE preguntar
+Cuando Gabriel pide agrandar/cambiar un gear por su nombre (ej. "el CrimsonAttack"), preguntar si se refiere al **avión (gear)**, la **bala estándar** o el **misil**. Ya pasó: se agrandó la bala (0.75) cuando quería el avión. Aclaración de Gabriel: "el gear, el misil ya está grande" → el avión.
 
-## B2. La bala estándar del Rayo debe quedar en radio 0.5 (por ahora)
-Por la aclaración de Gabriel, la STD del Rayo quedó en `SphereGeometry(0.5,...)` (línea ~4369). NO volver a poner 0.75 sin confirmar. El misil "ya está grande".
+## B2. La bala estándar del CrimsonAttack debe quedar en radio 0.5 (por ahora)
+Por la aclaración de Gabriel, la STD del CrimsonAttack quedó en `SphereGeometry(0.5,...)` (línea ~4369). NO volver a poner 0.75 sin confirmar. El misil "ya está grande".
 
-## B3. El avión del Rayo se escala en DOS puntos, no uno
-Para agrandar SOLO el avión del gear Rayo hay que escalar en:
+## B3. El avión del CrimsonAttack se escala en DOS puntos, no uno
+Para agrandar SOLO el avión del gear CrimsonAttack hay que escalar en:
 1. El bloque de cambio de gear (`newModel.scale.multiplyScalar(1.5)` cuando `cfg.modelKey==='crimson'`, ~línea 1396).
 2. `swapModelIfReady` (cuando carga el .glb, `instance.scale...`, ~línea 3885).
 Si se cambia sólo uno, el tamaño no queda consistente. No duplicar la escala (swapModelIfReady reemplaza a los hijos del ship, así que no se apila).
