@@ -2,7 +2,7 @@
 
 Memoria persistente para que cualquier instancia/IA continúe el proyecto sin perder contexto. **Léelo al inicio de cada sesión** y consulta `memory/` antes de tocar código.
 
-Última actualización: versión **v1.2.1.1** (commit `ac6e192`).
+Última actualización: versión **v1.2.1.1** + **paths consolidados en `D:\PatoClon-Proyecto\`** (repo/server/harness).
 
 ---
 
@@ -15,7 +15,7 @@ Memoria persistente para que cualquier instancia/IA continúe el proyecto sin pe
 
 ### Reglas de oro
 - Usuario: Gabriel. Responder en español (rioplatense, voseo: "déjame", NUNCA "déjamo").
-- **PROHIBIDO usar internet para copiar código**: se copia de `D:\server` (AO real) o de `referencias/` del repo. Internet solo sirve para consultas conceptuales.
+- **PROHIBIDO usar internet para copiar código**: se copia de `D:\PatoClon-Proyecto\server` (AO real) o de `referencias/` del repo. Internet solo sirve para consultas conceptuales.
 - **Es UN solo juego con 4 gears** (no 4 proyectos). `enchants.js` es un layer del mismo juego.
 
 ---
@@ -29,7 +29,7 @@ Memoria persistente para que cualquier instancia/IA continúe el proyecto sin pe
 | UI | HTML + CSS inline en el mismo `index.html` (sin frameworks) |
 | Servidor | Node.js **solo para desarrollo** (`server.js` en el harness, puerto 8123; sirve estático) |
 | Publicación | GitHub Pages auto (sin build; CNAME/raíz del repo) |
-| Testing | Node + Chrome headless vía CDP (harness en carpeta temp, ver sección 9) |
+| Testing | Node + Chrome headless vía CDP (harness en `D:\PatoClon-Proyecto\harness`, ver sección 9) |
 | Repo | Sin `package.json`, sin `README.md`, sin `.gitignore`, sin dependencias npm |
 
 **Archivos del juego:**
@@ -40,30 +40,35 @@ Memoria persistente para que cualquier instancia/IA continúe el proyecto sin pe
 
 ## 3. Estructura del proyecto
 
+**Estructura consolidada (todo el proyecto en UNA carpeta, lista para copiar a otra PC):**
 ```
-D:\Pato-Clone\
-├── index.html          Juego completo (HTML + CSS + todo el JS del motor del juego)
-├── enchants.js         Capa de mejora/enchants
-├── AGENTS.md           Este archivo
-├── memory\             Memoria persistente (leer siempre):
-│   ├── projectbrief.md      qué es y alcance
-│   ├── productContext.md    por qué existe, contexto
-│   ├── patterns.md          convenciones de código y repo
-│   ├── decisions.md         decisiones D1..D6 y su POR QUÉ (evita re-trabajo)
-│   ├── progress.md          DONE / IN PROGRESS / NEXT + log de commits
-│   └── blockers.md          gotchas B1..B7 que ya costaron tiempo
-├── referencias\        Docs propios del equipo (configs/valores del AO):
-│   00-RESUMEN-JUEGO, 01-SKILLS-AO-VALORES, 02-GEAR-CONFIGS,
-│   03-SISTEMAS-COMBATE, 04-FISICA-DE-PLANO, 05-MODELOS-Y-VFX,
-│   06-BASE-DE-DATOS-OMI, 07-HISTORIAL-BUGS
-└── modelos\            Modelos 3D locales (subidos al repo):
-    pato.glb 26.68 MB, Crimson.glb 19.13 MB, barco.stl 10.76 MB,
-    oso.glb 10.11 MB, Mecano.glb 7.48 MB, boat.glb 6.72 MB
+D:\PatoClon-Proyecto\
+├── repo\               Repo git (rama main) + juego:
+│   ├── index.html          Juego completo (HTML + CSS + todo el JS del motor del juego)
+│   ├── enchants.js         Capa de mejora/enchants
+│   ├── AGENTS.md           Este archivo
+│   ├── memory\             Memoria persistente (leer siempre):
+│   │   ├── projectbrief.md      qué es y alcance
+│   │   ├── productContext.md    por qué existe, contexto
+│   │   ├── patterns.md          convenciones de código y repo
+│   │   ├── decisions.md         decisiones D1..D9 y su POR QUÉ (evita re-trabajo)
+│   │   ├── progress.md          DONE / IN PROGRESS / NEXT + log de commits
+│   │   └── blockers.md          gotchas B1..B7 que ya costaron tiempo
+│   ├── referencias\        Docs propios del equipo (configs/valores del AO):
+│   │   00-RESUMEN-JUEGO, 01-SKILLS-AO-VALORES, 02-GEAR-CONFIGS,
+│   │   03-SISTEMAS-COMBATE, 04-FISICA-DE-PLANO, 05-MODELOS-Y-VFX,
+│   │   06-BASE-DE-DATOS-OMI, 07-HISTORIAL-BUGS
+│   └── modelos\            Modelos 3D locales (subidos al repo):
+│       pato.glb 26.68 MB, Crimson.glb 19.13 MB, barco.stl 10.76 MB,
+│       oso.glb 10.11 MB, Mecano.glb 7.48 MB, boat.glb 6.72 MB
+├── server\             Código del AO real (fuente de verdad para comportamiento)
+└── harness\            Herramientas de desarrollo (NO van al repo):
+    server.js, check_syntax.js, cdp_*.js, parse_omi*.js, extract_*.ps1
 ```
 
 **Dependencias EXTERNAS al repo (importantes para continuar):**
-- `D:\server\` — código del AO real. **Fuente de verdad** para comportamiento (mobs, boss, armas).
-- `C:\...\Temp\opencode\` — harness de desarrollo: `server.js`, `check_syntax.js`, `cdp_*.js`, `parse_omi*.js`. Ruta MACHINE-SPECIFIC (en esta PC: `C:\Users\GMULLI~1.ITP\AppData\Local\Temp\opencode\`). NO está en el repo; para continuar en otra PC hay que copiarla y ajustar los paths hardcodeados (ver sección 8).
+- `D:\PatoClon-Proyecto\server\` — código del AO real. **Fuente de verdad** para comportamiento (mobs, boss, armas).
+- `D:\PatoClon-Proyecto\harness\` — herramientas de desarrollo. NO está en el repo. Ya vive DENTRO de `D:\PatoClon-Proyecto` (consolidado); sus scripts tienen paths hardcodeados al repo (`D:/PatoClon-Proyecto/repo`). Si en otra PC cambia la letra de disco o la ruta, hay que actualizarlos (ver sección 8).
 
 **Mapa de código (líneas aprox. de `index.html`):**
 - `GEAR_CONFIGS` — config de los 4 gears (nombre, armas, stats, skills, `modelKey`).
@@ -115,7 +120,7 @@ D:\Pato-Clone\
 - Si Gabriel reporta que un objeto destructible NO desaparece en su navegador → pedir Ctrl+F5 primero (probable versión vieja cacheada o HP alto), y de persistir, verificar nivel y objeto exacto.
 - Agrandar avión de OTRO gear si Gabriel lo pide.
 - Decidir si agrandar la bala STD del CrimsonAttack (hoy 0.5, por ahora NO tocar).
-- Mover el harness al repo si Gabriel pide reproducibilidad.
+- Mover el harness DENTRO del repo (hoy vive en `D:\PatoClon-Proyecto\harness`, consolidado con el proyecto pero sin versionar) si Gabriel pide reproducibilidad.
 
 ---
 
@@ -125,10 +130,10 @@ No hay build (sin package.json). Dos formas de jugar:
 
 1. **Producción (lo que juega Gabriel):** push a `main` → GitHub Pages despliega en 1-2 min. URL `https://gabo422.github.io/pato-clone/`.
 2. **Local (para desarrollo/harness):**
-   - Servir estático: `node server.js` (está en la carpeta temp del harness; escucha en `:8123`, sirve desde `D:/Pato-Clone`).
+   - Servir estático: `node server.js` (está en `D:\PatoClon-Proyecto\harness`; escucha en `:8123`, sirve desde `D:/PatoClon-Proyecto/repo`).
    - Abrir `http://localhost:8123/index.html`.
    - Requisitos: Node instalado, Chrome instalado (para harness), la carpeta `modelos/` presente (los .glb se sirven desde el repo).
-   - En la PC nueva: ajustar el path del repo en `server.js` y `check_syntax.js` si el proyecto ya no está en `D:\Pato-Clone`.
+   - En la PC nueva: ajustar el path del repo en `server.js` y `check_syntax.js` si el proyecto ya no está en `D:\PatoClon-Proyecto\repo`.
 
 ---
 
@@ -147,10 +152,10 @@ No hay build (sin package.json). Dos formas de jugar:
 - **B2.** Bala STD del CrimsonAttack = radio **0.5** por ahora. NO volver a 0.75 sin confirmación.
 - **B3.** El avión del CrimsonAttack se escala en DOS puntos (cambio de gear ~1396 y `swapModelIfReady` ~3885); tocar solo uno deja el tamaño inconsistente. No duplicar la escala.
 - **B4.** FPS con Chrome headless es RUINOSO (9–51 según estado). No confiar en el número; confiar en 0 page errors + que no se creen materiales/geometrías por frame + valores esperados.
-- **B5.** No usar internet para copiar código del AO; fuente de verdad = `D:\server` + `referencias/`.
+- **B5.** No usar internet para copiar código del AO; fuente de verdad = `D:\PatoClon-Proyecto\server` + `referencias/`.
 - **B6.** GitHub Pages tarda 1-2 min en desplegar y el caché del navegador juega en contra: SIEMPRE pedir **Ctrl+F5** tras un push.
 - **B7.** Es UN juego con 4 gears; no asumir proyectos separados.
-- **Paths hardcodeados (crítico para la mudanza de PC):** `server.js` y `check_syntax.js` apuntan a `D:\Pato-Clone`. El harness además vive en una ruta `Temp` con nombre corto de usuario (`GMULLI~1.ITP`). En la PC nueva: copiar la carpeta temp, actualizar paths y re-servir.
+- **Paths hardcodeados (crítico para la mudanza de PC):** el harness y el juego referencian `D:\PatoClon-Proyecto\...`. Todo el proyecto quedó consolidado en `D:\PatoClon-Proyecto\` (repo/server/harness). En la PC nueva: copiar esa carpeta completa y, si cambia la letra de disco o la ruta, actualizar los scripts del harness (principalmente `server.js`, `check_syntax.js`, `cdp_*.js`) y esta guía.
 - No hay README ni .gitignore: cuidado con archivos sueltos que puedan inflar el repo (el pack git ya va en 189.61 MiB).
 
 ---
@@ -160,14 +165,14 @@ No hay build (sin package.json). Dos formas de jugar:
 Flujo estándar por cada tarea (verificación OBLIGATORIA antes de commit):
 
 1. **Servir local** (si no está corriendo): `node server.js` → `http://localhost:8123/index.html`.
-2. **Sintaxis:** `node check_syntax.js` → debe decir **"Script block 0: OK"**. (Lee `D:\Pato-Clone\index.html` hardcodeado.)
+2. **Sintaxis:** `node check_syntax.js` → debe decir **"Script block 0: OK"**. (Lee `D:\PatoClon-Proyecto\repo\index.html` hardcodeado.)
 3. **Harness CDP (comportamiento):** `node cdp_*.js` según lo que se pruebe (ej. `cdp_fps.js`, `cdp_destru.js`, `cdp_realshot.js`). Buscar **"PAGE_ERRORS[0]"** y los valores esperados del caso. Lanzan Chrome headless por CDP.
 4. **Git:**
    - `git add <archivos>` / `git commit -m "Fix: ..."` (mensajes en ESPAÑOL, estilo `Fix:`, con QUÉ y cómo se verificó).
    - `git push origin main` (rama única `main`).
    - Antes de push: revisar `git status` y `git diff`.
 5. **Peso (regla general, reportar al final de CADA commit):**
-   - Carpeta `D:\Pato-Clone` total (referencia: ~88.56 MB / 4109 archivos; ningún archivo > 100 MB, repo < 1 GB).
+   - Carpeta `D:\PatoClon-Proyecto\repo` total (referencia: ~88.56 MB / 4109 archivos; ningún archivo > 100 MB, repo < 1 GB).
    - `git count-objects -vH` → `size-pack` (referencia: 189.61 MiB).
    - Peso individual de los archivos tocados (referencia: `index.html` 0.40 MB, `enchants.js` 0.02 MB, `modelos/*` pesados listados en sección 3).
 6. **Versión:** si el cambio se publica, subir `GAME_VERSION` en `index.html` (línea 1158) y actualizar el `#versionTag` (texto por defecto ~1149). Registrar en `memory/progress.md` con el hash del commit.

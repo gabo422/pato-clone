@@ -17,7 +17,7 @@
 # ITEM STRUCT (576 bytes cada uno)
 # ═══════════════════════════════════════════════════════════════
 # sizeof(ITEM) = 576 bytes con MSVC 32-bit
-# Source: D:\server\Common\AtumParam.h (línea ~3000)
+# Source: D:\PatoClon-Proyecto\server\Common\AtumParam.h (línea ~3000)
 
 # Offsets importantes:
 # +0:    int32   UniqueNumber (ItemNum)
@@ -107,7 +107,7 @@
 # ═══════════════════════════════════════════════════════════════
 # EXCEL-SERVER (alternate parsing)
 # ═══════════════════════════════════════════════════════════════
-# Source: D:\server\GameServer\AtumMonitor\LoadExcelFile.cpp
+# Source: D:\PatoClon-Proyecto\server\GameServer\AtumMonitor\LoadExcelFile.cpp
 # Mapea columnas CSV a campos de ITEM:
 # case 48: pITEM->ReAttacktime = atoi(pToken) ← UINT
 # case 49: pITEM->Time = atoi(pToken) ← INT

@@ -13,7 +13,7 @@
 - Proyectiles: `PROJ_BY_GEAR` + `getProjBuilders()` (línea ~4317); la bala estándar del CrimsonAttack es `SphereGeometry(0.5,...)`.
 - Partículas: `aceSpawnParticles(preset, position, array)` centraliza la emisión. **Usar SIEMPRE `aceGetParticleMat(color,size)` para el material** (cache, evita crear PointsMaterial nuevo por llamada → evita bajón de FPS). No volver a crear `new THREE.PointsMaterial` inline en emisores frecuentes.
 - Constantes del motor nuevos se registran en `ACE` (ej: `ACE.missileTrail` para estela de misiles).
-- Los helpers de harness de prueba viven en TEMP (`C:\Users\GMULLI~1.ITP\AppData\Local\Temp\opencode\`), NO en el repo salvo que se pidan.
+- Los helpers de harness de prueba viven en `D:\PatoClon-Proyecto\harness\` (fuera del repo), NO en el repo salvo que se pidan.
 
 ## Verificación obligatoria antes de commit
 1. `node check_syntax.js` → "Script block 0: OK".

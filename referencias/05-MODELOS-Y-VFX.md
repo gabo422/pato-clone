@@ -3,7 +3,7 @@
 # ═══════════════════════════════════════════════════════════════
 # ARCHIVOS DE MODELOS (Draco-compressed)
 # ═══════════════════════════════════════════════════════════════
-# Directorio: D:\Pato-Clone\modelos\
+# Directorio: repo\modelos\ (dentro de D:\PatoClon-Proyecto\.)
 # Compresión: @gltf-transform/cli draco
 # Loader: DRACOLoader desde CDN (three@0.128.0/examples/js/loaders/DRACOLoader.js)
 # Decoder path: https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/

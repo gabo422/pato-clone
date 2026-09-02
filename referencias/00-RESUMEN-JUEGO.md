@@ -1,7 +1,7 @@
 # Guerra de Juguetes - Resumen del Proyecto
 
 ## Estructura
-- **Archivo único:** `D:\Pato-Clone\index.html` (~6267 lineas)
+- **Archivo único:** `repo\index.html` (~8900 líneas) — dentro de `D:\PatoClon-Proyecto\`
 - **Remoto:** `https://github.com/gabo422/pato-clone.git`
 - **Live:** `https://gabo422.github.io/pato-clone/`
 - **Idioma:** Español
@@ -18,23 +18,23 @@
 - roomSize=2000, wallHeight=800, GRAVITY=98
 
 ## Archivos de Datos de Ace Online
-- **Source code:** `D:\server\` (7 archives extraidos)
+- **Source code:** `D:\PatoClon-Proyecto\server\` (7 archives extraidos)
 - **Cliente deployado:** `D:\02.1ClientAceOnline_EP46_EnglishVer\ClientAceOnline_EP46_EnglishVer\`
   - `Res-Tex\omi.tex` — base de datos binaria de TODOS los items/skills (ITEM struct serializada)
 - **OpenAO:** `C:\Users\gmullin.ITPRO\Downloads\OpenAO\OpenAo-master\`
 
-## Modelos 3D (Draco-compressed)
-- `D:\Pato-Clone\modelos\pato.glb` (27MB) — M-Gear (HealDuck)
-- `D:\Pato-Clone\modelos\oso.glb` (10MB) — B-Gear (TeddyBomb) / teddy bear
-- `D:\Pato-Clone\modelos\boat.glb` (7MB) — bote
-- `D:\Pato-Clone\modelos\Crimson.glb` (19MB) — I-Gear (CrimsonAttack)
-- `D:\Pato-Clone\modelos\Mecano.glb` (7.5MB) — A-Gear (MecanoTank)
+## Modelos 3D (Draco-compressed) — en `repo\modelos\`
+- `pato.glb` (27MB) — M-Gear (HealDuck)
+- `oso.glb` (10MB) — B-Gear (TeddyBomb) / teddy bear
+- `boat.glb` (7MB) — bote
+- `Crimson.glb` (19MB) — I-Gear (CrimsonAttack)
+- `Mecano.glb` (7.5MB) — A-Gear (MecanoTank)
 - DRACOLoader desde CDN: `three@0.128.0/examples/js/loaders/DRACOLoader.js`
 - Git LFS NO funciona con GitHub Pages (solo sirve pointer files)
 
 ## Iconos
-- `D:\Pato-Clone\icons\skills_ace\` — iconos de skills AO
-- `D:\Pato-Clone\icons\skills_ace_all\` — TODOS los iconos AO (93 extraidos)
+- `repo\icons\skills_ace\` — iconos de skills AO
+- `repo\icons\skills_ace_all\` — TODOS los iconos AO (93 extraidos)
 - SKILL_ICON_MAP en el código mapea skillId → archivo de icono
 
 ## Estructura de Archivos de Referencia

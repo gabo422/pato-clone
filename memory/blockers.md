@@ -16,7 +16,7 @@ Si se cambia sólo uno, el tamaño no queda consistente. No duplicar la escala (
 Medir FPS con Chrome headless es poco fiable (varía 9–51 según estado del juego/CPU del VM). NO confiar en el número absoluto de FPS del harness; confiar en: 0 page errors + que NO se creen materiales/geometrías por frame + valores esperados (escalas, counts).
 
 ## B5. No usar internet para copiar código del AO
-La fuente de verdad es `D:\server` (AO real) y `referencias/` del repo. (El usuario pidió una guía de memoria por internet, pero el CÓDIGO del juego viene de refs locales.)
+La fuente de verdad es `D:\PatoClon-Proyecto\server` (AO real) y `referencias/` del repo. (El usuario pidió una guía de memoria por internet, pero el CÓDIGO del juego viene de refs locales.)
 
 ## B6. GitHub Pages tarda 1-2 min + Ctrl+F5
 Después de cada push, avisar a Gabriel que espere y haga **Ctrl+F5** (por caché). No borrar/limpiar caché sin avisar.
