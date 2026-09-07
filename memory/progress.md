@@ -8,13 +8,15 @@
 - [x] **Avión del gear CrimsonAttack agrandado 50% (×1.5 → 4.35), SOLO CrimsonAttack.** Commits: `b921671`.
 - [x] **Optimización FPS de partículas:** cache de material (estela misiles, muzzle flash, explosiones/impactos); estela más barata. Commit: `ed82921` (parcial) + `b921671` (muzzle flash).
 - [x] Flujo: `node check_syntax.js` OK + harness CDP 0 page errors antes de cada push.
+- [x] **Barra de carga real con progreso** durante el preload de modelos (loadingOverlay + barra con % viajando, se oculta al 100%). Versión `v1.2.2.0`. Harness `cdp_loading.js`: visible 80% durante carga, hidden al final, 0 page errors.
 
 ## IN PROGRESS
 - Esperando feedback de Gabriel tras el push `b921671` (avión CrimsonAttack grande + FPS).
   - Confirmar en su navegador (Ctrl+F5) que el avión del CrimsonAttack se ve más grande y que los otros 3 gears no cambiaron.
   - Confirmar que al disparar misiles ya no baja el FPS.
 - Pulido de interacción/roturas: verificado en harness que los destructibles SÍ desaparecen (5 niveles, 0 fails). Agregado flash de impacto recursivo (antes no flasheaban). Commit: `d29a588` (renombre) + este.
-- Versión del juego: indicador `v1.2.1.1` abajo a la derecha; subir `GAME_VERSION` (=v1.2.1.1) al inicio del script en cada cambio publicado.
+- Versión del juego: indicador `v1.2.2.0` abajo a la derecha; subir `GAME_VERSION` (=v1.2.2.0) al inicio del script en cada cambio publicado.
+- **Roadmap Fase 1 — visual**: barra de carga LISTA; pendiente → colores/texturas (Gabriel elige paleta), hitbox vs modelo.
 
 ## NEXT (pendientes propuestos, NO empezados)
 - (Según reportes de Gabriel) agrandar avión de OTRO gear si lo pide.
@@ -23,6 +25,9 @@
 - documentar en los harness CDP en el repo si Gabriel pide reproducibilidad (hoy están en TEMP).
 
 ## Log de últimos commits
+- `2618ecc` — docs: consolidar paths del proyecto en D:\PatoClon-Proyecto (repo/server/harness).
+- `d9ff357` — AGENTS.md completo (estado v1.2.1.1) para continuar desde otra PC.
+- `ac6e192` — flash de impacto en destructibles (Group) + indicador de version v1.2.1.1 abajo a la derecha.
 - `d29a588` — renombre de gears (Rayo→CrimsonAttack, Muro→MecanoTank, Trueno→TeddyBomb, Viento→HealDuck) en código y memory bank.
 - `019fb00` — eliminar nombres viejos de referencias/.
 - `b921671` — avión CrimsonAttack ×1.5 + FPS muzzle flash cache + revert bala a 0.5.

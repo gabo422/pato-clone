@@ -767,6 +767,27 @@
   }
   #loginSubmitBtn:hover { background: linear-gradient(180deg, rgba(0,180,255,0.55) 0%, rgba(0,120,200,0.55) 100%); }
   #loginLoading { color: #5a9bc4; font-size: 12px; margin-top: 12px; min-height: 16px; letter-spacing: 1px; }
+  /* ---- Loading bar (model preload) ---- */
+  #loadingOverlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: radial-gradient(ellipse at 50% 35%, #0d1c30 0%, #040b14 65%, #000 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #loadingOverlay.hidden { display: none; }
+  #loadingOverlay .load-title { color: #9fd8ff; font-size: 22px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; margin-bottom: 6px; }
+  #loadingOverlay .load-sub { color: #6a93b5; font-size: 12px; margin-bottom: 18px; }
+  #loadingBarOuter {
+    width: 320px; max-width: 80%; height: 14px;
+    background: rgba(10,25,45,0.9); border: 1px solid rgba(0,180,255,0.3);
+    border-radius: 7px; overflow: hidden; position: relative;
+  }
+  #loadingBarInner {
+    width: 0%; height: 100%;
+    background: linear-gradient(90deg, rgba(0,180,255,0.6) 0%, rgba(0,220,255,0.9) 100%);
+    border-radius: 7px; transition: width 0.25s ease;
+  }
+  #loadingPct { color: #5a9bc4; font-size: 12px; margin-top: 8px; letter-spacing: 1px; min-height: 16px; }
   #playerNameInput { font-family: 'Rajdhani', sans-serif; }
   /* ---- Tutorial de bienvenida ---- */
   #tutorialOverlay {
@@ -1146,7 +1167,13 @@
   </div>
 </div>
 
-<div id="versionTag">v1.2.1.1</div>
+<div id="versionTag">v1.2.2.0</div>
+<div id="loadingOverlay">
+  <div class="load-title">PATO CLONE</div>
+  <div class="load-sub">Cargando recursos...</div>
+  <div id="loadingBarOuter"><div id="loadingBarInner"></div></div>
+  <div id="loadingPct">0%</div>
+</div>
 <script src="enchants.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -1155,7 +1182,7 @@
 <script>
 // ================= VERSIÓN DEL JUEGO =================
 // Subir acá el número en cada cambio publicado (ej. 1.2.1.1 → 1.2.2.1). Se muestra abajo a la derecha.
-const GAME_VERSION = '1.2.1.1';
+const GAME_VERSION = '1.2.2.0';
 document.getElementById('versionTag').textContent = 'v' + GAME_VERSION;
 // ================= Detección de mobile/táctil =================
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (('ontouchstart' in window) && window.innerWidth < 900);
@@ -3497,20 +3524,27 @@ function base64ToArrayBuffer(base64) {
 // un server local, etc.) — ya no funciona abriendo el .html con doble clic directo.
 function preloadModels(onDone) {
   const keys = Object.keys(MODEL_LIBRARY).filter(k => MODEL_LIBRARY[k].url);
-  if (keys.length === 0) { onDone(); return; }
+  if (keys.length === 0) { hideLoadingBar(); onDone(); return; }
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/');
   const gltfLoader = new THREE.GLTFLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
   const stlLoader = new THREE.STLLoader();
   let remaining = keys.length;
-  const finishOne = () => { remaining--; if (remaining === 0) onDone(); };
+  const total = keys.length;
+  const loadBar = document.getElementById('loadingBarInner');
+  const loadPct = document.getElementById('loadingPct');
+  const updateProgress = () => {
+    const done = total - remaining;
+    const pct = Math.round((done / total) * 100);
+    if (loadBar) loadBar.style.width = pct + '%';
+    if (loadPct) loadPct.textContent = pct + '%';
+  };
+  const finishOne = () => { remaining--; updateProgress(); if (remaining === 0) { hideLoadingBar(); onDone(); } };
   keys.forEach(key => {
     const cfg = MODEL_LIBRARY[key];
     if (cfg.type === 'stl') {
       stlLoader.load(cfg.url, geometry => {
-        // El STL suele venir en eje Z-arriba (típico de impresión 3D) y sin centrar.
-        // Lo pasamos a Y-arriba y lo centramos con la base apoyada en y=0, igual que el resto de los objetos.
         geometry.rotateX(-Math.PI / 2);
         geometry.computeBoundingBox();
         const bb = geometry.boundingBox;
@@ -3532,6 +3566,10 @@ function preloadModels(onDone) {
         });
     }
   });
+}
+function hideLoadingBar() {
+  var el = document.getElementById('loadingOverlay');
+  if (el) el.classList.add('hidden');
 }
 
 // Si hay un modelo propio cargado para "key", devuelve una instancia lista para usar
