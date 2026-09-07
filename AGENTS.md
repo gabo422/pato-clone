@@ -18,7 +18,8 @@ Memoria persistente para que cualquier instancia/IA continúe el proyecto sin pe
 - **PROHIBIDO usar internet para copiar código**: se copia de `D:\PatoClon-Proyecto\server` (AO real) o de `referencias/` del repo. Internet solo sirve para consultas conceptuales.
 - **Es UN solo juego con 4 gears** (no 4 proyectos). `enchants.js` es un layer del mismo juego.
 - **NO puede explotar**: ninguna feature puede romper el juego o crashear. Siempre verificar con harness CDP (0 page errors) antes de push.
-- **Cuidar SIEMPRE el rendimiento**: correr en PC doméstica común ("es una casa") — priorizar FPS estables, evitar crear materiales/geometrías por frame (cache), no cargar assets pesados de más, no bloquear el hilo principal.
+- **Cuidar SIEMPRE el rendimiento**: FPS estables, cachear materiales/geometrías por frame, no bloquear el hilo principal, cargas con progreso.
+- **El mapa es una CASA (interior doméstico)**: coherencia visual con muebles/cajas/lego/objetos de casa. NO decoraciones de guerra/militares/industriales (a Gabriel le "explotan" los ojos).
 - **Pulido incremental**: tocar UN punto a la vez, no reventar el mapa/decoraciones sin pedirle la paleta a Gabriel.
 
 ---

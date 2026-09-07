@@ -27,10 +27,8 @@
 - **Estela de misil:** `ACE.missileTrail` glow 3→1, plume 2→1; intervalos del trail 0.05s→0.09s.
 - **Por qué:** la creación repetida de materiales/geometrías por frame era la causa del bajón FPS al disparar misiles. Si hay futuro código de partículas frecuente, DEBE usar `aceGetParticleMat` (ver patterns.md).
 
-## D10. Rendimiento y estabilidad como regla de oro ("es una casa")
-- Gabriel lo explicitó: el juego corre en PC doméstica común, **NO puede explotar/crashear**, y el rendimiento SIEMPRE importa (FPS estables, memoria, cargas).
-- Consecuencias en la práctica:
-  - Cachear materiales/geometrías/partículas (nunca crear por frame/función llamada muchas veces).
-  - Verificar con harness CDP (0 page errors) antes de cada push.
-  - No bloquear el hilo principal (evitar loops pesados síncronos; usar carga transparente como la barra de progreso v1.2.2.0).
-  - Antes de tocar el mapa o las decoraciones, preguntarle a Gabriel la paleta/dirección de diseño (evita retrabajo y sorpresas).
+## D10. El mapa ES una casa + no puede explotar + rendimiento SIEMPRE
+- Gabriel lo dijo: **"nunca olvides que es una casa"** → el MAPA/escenario del juego es una CASA (interior doméstico). Coherencia visual: muebles, cajas, lego, objetos de casa. **Nada de decoraciones de guerra/militares/industriales** (Gabriel las ve "espantosas").
+- El juego **NO puede explotar/crashear**: cualquier feature se verifica con harness CDP (0 page errors) antes del push.
+- **Rendimiento SIEMPRE**: FPS estables, cachear materiales/geometrías/partículas (nunca crear por frame), no bloquear el hilo principal, cargas con progreso (barra v1.2.2.0).
+- Antes de tocar el mapa o las decoraciones, preguntarle a Gabriel la paleta/dirección de diseño (evita retrabajo y sorpresas).
