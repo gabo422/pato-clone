@@ -1167,7 +1167,7 @@
   </div>
 </div>
 
-<div id="versionTag">v1.2.2.0</div>
+<div id="versionTag">v1.2.3.0</div>
 <div id="loadingOverlay">
   <div class="load-title">PATO CLONE</div>
   <div class="load-sub">Cargando recursos...</div>
@@ -1182,7 +1182,7 @@
 <script>
 // ================= VERSIÓN DEL JUEGO =================
 // Subir acá el número en cada cambio publicado (ej. 1.2.1.1 → 1.2.2.1). Se muestra abajo a la derecha.
-const GAME_VERSION = '1.2.2.0';
+const GAME_VERSION = '1.2.3.0';
 document.getElementById('versionTag').textContent = 'v' + GAME_VERSION;
 // ================= Detección de mobile/táctil =================
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (('ontouchstart' in window) && window.innerWidth < 900);
@@ -1902,36 +1902,40 @@ function makeOutsideViewTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
   const ctx = c.getContext('2d');
-  // Pared de la habitación (vista hacia afuera de la arena)
-  ctx.fillStyle = '#e8d8b8';
+  // Jardín de una casa normal (vista desde la ventana del cuarto)
+  ctx.fillStyle = '#87b9e8';
   ctx.fillRect(0, 0, 256, 256);
-  // Suelo de madera afuera
-  ctx.fillStyle = '#a07840';
-  ctx.fillRect(0, 190, 256, 66);
-  // Estantería con libros/juguetes
-  ctx.fillStyle = '#6a4a2a';
-  ctx.fillRect(30, 80, 80, 8);
-  ctx.fillRect(30, 130, 80, 8);
-  // Libros
-  for (const [x, w, color] of [[35, 10, '#cc4444'], [48, 8, '#4444cc'], [59, 12, '#44aa44'], [74, 9, '#cc8822'], [86, 11, '#8844aa']]) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x, 60, w, 20);
-  }
-  // Juguetes en repisa baja
-  ctx.fillStyle = '#ff6644';
-  ctx.fillRect(40, 110, 14, 20);
-  ctx.fillStyle = '#44aaff';
-  ctx.beginPath(); ctx.arc(70, 118, 12, 0, Math.PI * 2); ctx.fill();
-  // Poster de guerra en la pared
-  ctx.fillStyle = '#336';
-  ctx.fillRect(150, 40, 70, 50);
-  ctx.fillStyle = '#ff4444';
-  ctx.font = 'bold 10px monospace';
-  ctx.fillText('ATACK!', 160, 70);
-  // Soldado de juguete en silueta
-  ctx.fillStyle = '#556b2f';
-  ctx.fillRect(170, 100, 16, 40);
-  ctx.beginPath(); ctx.arc(178, 92, 10, 0, Math.PI * 2); ctx.fill();
+  // Césped
+  const grass = ctx.createLinearGradient(0, 150, 0, 256);
+  grass.addColorStop(0, '#7fae4f');
+  grass.addColorStop(1, '#5e8636');
+  ctx.fillStyle = grass;
+  ctx.fillRect(0, 150, 256, 106);
+  // Nubes
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath(); ctx.arc(60, 45, 15, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(80, 38, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(150, 60, 12, 0, Math.PI * 2); ctx.fill();
+  // Árbol
+  ctx.fillStyle = '#7a4a22';
+  ctx.fillRect(190, 120, 14, 90);
+  ctx.fillStyle = '#4f7f31';
+  ctx.beginPath(); ctx.arc(197, 105, 40, 0, Math.PI * 2); ctx.fill();
+  // Cercos de madera
+  ctx.fillStyle = '#c9b48a';
+  for (let x = 10; x < 256; x += 26) ctx.fillRect(x, 170, 12, 86);
+  ctx.fillStyle = '#a08a5e';
+  ctx.fillRect(0, 190, 256, 8);
+  ctx.fillRect(0, 225, 256, 8);
+  // Camino de piedras
+  ctx.fillStyle = '#a9a9a2';
+  for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(210, 155 + i * 20, 9, 0, Math.PI * 2); ctx.fill(); }
+  // Pelota de juguete tirada en el jardín
+  ctx.fillStyle = '#e04e39';
+  ctx.beginPath(); ctx.arc(120, 210, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(117, 205, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(123, 215, 3, 0, Math.PI * 2); ctx.fill();
   return new THREE.CanvasTexture(c);
 }
 function addToonOutline(mesh, color) {
@@ -2191,44 +2195,43 @@ let notebookGroup;
 let fork;
 let levelExtra = [];
 function buildLevel1() {
-  // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
+  // Casa normal: piso de madera real, paredes de yeso, zócalo y techo de casa.
   
   ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   
-  // Zócalo (parte baja) marrón oscuro + parte alta marrón claro, con cinta de embalaje como separador
-  const wallPlaneW = roomW * 2;
-  const wallLowerH = wallHeight * 0.32;
-  const wallUpperH = wallHeight - wallLowerH - wallHeight * 0.02;
-  wallLowerTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallLowerH / WALL_TILE_WORLD_SIZE);
-  wallUpperTex.repeat.set(wallPlaneW / WALL_TILE_WORLD_SIZE, wallUpperH / WALL_TILE_WORLD_SIZE);
+  // Repeats de texturas: definidos centralmente en buildLevel()
+  
   makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, -roomD, 0);
   makeWall(roomW * 2, wallHeight, 0, wallHeight / 2, roomD, Math.PI);
   makeWall(roomD * 2, wallHeight, -roomW, wallHeight / 2, 0, Math.PI / 2);
   makeWall(roomD * 2, wallHeight, roomW, wallHeight / 2, 0, -Math.PI / 2);
   
-  // ---- Techo (antes no existía: se podía volar hacia arriba sin límite y salir del cuarto) ----
+  // ---- Techo de casa (blanco, con moldura) ----
   ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(roomW * 2, roomD * 2),
-    new THREE.MeshStandardMaterial({ color: 0xC4A265, side: THREE.FrontSide })
+    new THREE.MeshStandardMaterial({ color: 0xEFE9DC, side: THREE.FrontSide })
   );
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = wallHeight;
   scene.add(ceiling);
-  // Lamparita simple en el centro del techo, de paso (agrupada para poder moverla como una sola pieza)
+  // Lamparita simple en el centro del techo
   lampGroup = new THREE.Group();
-  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 4, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-  lampBase.position.set(0, -3, 0);
+  const lampCord = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 40, 8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+  lampCord.position.set(0, -10, 0);
+  lampGroup.add(lampCord);
+  const lampBase = new THREE.Mesh(new THREE.SphereGeometry(10, 12, 8), new THREE.MeshStandardMaterial({ color: 0xddd5c5 }));
+  lampBase.position.set(0, -35, 0);
   lampGroup.add(lampBase);
   const lampGlow = new THREE.Mesh(new THREE.CircleGeometry(11, 16), new THREE.MeshStandardMaterial({ color: 0xfff7d0, emissive: 0xfff2b0, emissiveIntensity: 0.8 }));
   lampGlow.rotation.x = Math.PI / 2;
-  lampGlow.position.set(0, -5.5, 0);
+  lampGlow.position.set(0, -41, 0);
   lampGroup.add(lampGlow);
   lampGroup.position.set(0, wallHeight, 0);
   scene.add(lampGroup);
   
-  // ---- Paneles de advertencia en las paredes (no en pantalla): se iluminan al acercarte a cada una ----
+  // ---- Límites blandos (se iluminan al acercarte a cada pared) ----
   hazardTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   boundaryStripes = {
     zNeg: makeBoundaryStripe(0, wallHeight / 2, -roomD, 0),
@@ -2237,7 +2240,7 @@ function buildLevel1() {
     xPos: makeBoundaryStripe(roomW, wallHeight / 2, 0, -Math.PI / 2)
   };
   
-  // ---- Ventana en la pared del fondo ----
+  // ---- Ventana con vista al jardín ----
   outsideView = new THREE.Mesh(
     new THREE.PlaneGeometry(330, 270),
     new THREE.MeshBasicMaterial({ map: makeOutsideViewTexture() })
@@ -2247,10 +2250,9 @@ function buildLevel1() {
   scene.add(outsideView);
   
   windowGroup = new THREE.Group();
-  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(340, 280, 10), new THREE.MeshStandardMaterial({ color: 0xf2ede0, roughness: 0.55 }));
-  addToonOutline(windowFrame, 0xbfae82);
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(340, 280, 10), new THREE.MeshStandardMaterial({ color: 0xf5efdf, roughness: 0.55 }));
   windowGroup.add(windowFrame);
-  const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(310, 250), new THREE.MeshStandardMaterial({ color: 0x9fd8f0, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+  const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(310, 250), new THREE.MeshStandardMaterial({ color: 0xbfe3f2, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
   windowGlass.position.z = 3;
   windowGroup.add(windowGlass);
   const mullionV = new THREE.Mesh(new THREE.BoxGeometry(8, 250, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
@@ -2266,138 +2268,46 @@ function buildLevel1() {
   windowGroup.rotation.y = Math.PI;
   scene.add(windowGroup);
   
+  // ---- Alfombra de casa en el centro ----
+  const rugMat = new THREE.MeshStandardMaterial({ color: 0x9a8171, roughness: 0.95 });
+  const rug = new THREE.Mesh(new THREE.CylinderGeometry(170, 170, 2.5, 32), rugMat);
+  rug.position.set(0, 1.2, 0);
+  scene.add(rug);
   
+  const bedGroupLocal = buildLevel1Ex();
+  bedGroup = bedGroupLocal;
+  scene.add(bedGroup);
   
-  
-  
-  
+  // ---- Cajas de juguetes de cartón (destructibles, como cobertura) ----
   const boxSur = buildCardboardBox(80, 70, 80);
-  boxSur.position.set(-280, 0, 190);
+  boxSur.position.set(-260, 0, 60);
   scene.add(boxSur);
   
   const boxNE = buildCardboardBox(50, 100, 50);
-  boxNE.position.set(310, 0, -235);
+  boxNE.position.set(330, 0, -120);
   scene.add(boxNE);
   
-  const legoWall = buildLegoWall(120, 80, 20);
-  legoWall.position.set(235, 0, 280);
-  legoWall.rotation.y = 0.4;
-  scene.add(legoWall);
-  
-  const boxOeste = buildCardboardBox(120, 40, 60, cardboardDark);
-  boxOeste.position.set(-390, 0, 0);
-  scene.add(boxOeste);
-  
   const boxCentro = buildCardboardBox(40, 55, 40);
-  boxCentro.position.set(78, 0, -190);
+  boxCentro.position.set(150, 0, -320);
   scene.add(boxCentro);
   
-  // ---- Array central de decoración: todo lo que se puede colocar/borrar desde el editor vive acá ----
+  // ---- Juguetes esparcidos por el piso ----
   decorationInstances = [];
-  // Assets personalizados (subidos por el usuario): declarado afuera del editor a propósito, para
-  // que las instancias ya colocadas se sigan viendo en la versión "sin editor" repartida a amigos.
-  // Carga (parsea) todos los CUSTOM_ASSETS que tengan base64 pero todavía no tengan geometría/escena
-  // lista, y avisa por callback cuando terminó — se usa tanto al arrancar como después de un guardado.
-  
-  // ---- Marcas de guerra: manchas de quemado en el piso, como si hubieran explotado misiles cerca ----
-  makeScorchMark(95, 60, 11, 0.4);
-  makeScorchMark(-60, 170, 9, 1.8);
-  makeScorchMark(190, -95, 10, 2.6);
-  makeScorchMark(-140, -95, 8, 0.9);
-  makeScorchMark(30, -235, 10.5, 3.4);
-  makeScorchMark(-280, -50, 9, 2.1);
-  makeScorchMark(235, 200, 8, 0.6);
-  makeScorchMark(-30, 310, 9.5, 3.0);
-  makeScorchMark(-200, 200, 10, 1.2);
-  makeScorchMark(150, -300, 8.5, 2.8);
-  makeScorchMark(350, 50, 9, 0.3);
-  makeScorchMark(-350, -150, 11, 1.5);
-  
-  // ---- Cinta de precaución (obra en construcción / zona de peligro) ----
   tapePostColliders = [];
-  makeCautionTapeBarrier(155, 95, 55, 0.5);
-  makeCautionTapeBarrier(-110, -265, 48, 1.2);
-  makeCautionTapeBarrier(280, -220, 52, -0.7);
-  makeCautionTapeBarrier(-250, 155, 46, -0.3);
-  makeCautionTapeBarrier(95, -345, 50, 1.6);
-  makeCautionTapeBarrier(-320, -80, 42, 0.8);
-  makeCautionTapeBarrier(380, -120, 38, -1.1);
   
-  // ---- Escombros de batalla dispersos por el piso: llenan el mapa sin agregar mucho peso ----
-  for (let i = 0; i < 35; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = 80 + Math.random() * 380;
-    const kind = DEBRIS_KINDS[Math.floor(Math.random() * DEBRIS_KINDS.length)];
-    spawnDebrisPiece(Math.cos(angle) * radius, Math.sin(angle) * radius, kind);
-  }
+  // ---- Escombros: pedacitos de casa (juguetes/crayones sueltos), no guerra ----
   
-  // ---- Puerta semi-abierta (reemplaza el portal toroidal de AO) ----
-  // La hendidura entre la puerta y el marco es el acceso al portal de la siguiente oleada
+  // ---- Puerta semi-abierta (acceso al portal de la siguiente oleada) ----
   buildDoor();
   
-  // ---- Cama de niño (lado -X de la habitación) ----
-  bedGroup = new THREE.Group();
-  // Colchón
-  const mattressMat = new THREE.MeshStandardMaterial({ color: 0x5577cc, roughness: 0.7 });
-  const mattress = new THREE.Mesh(new THREE.BoxGeometry(140, 25, 200), mattressMat);
-  mattress.position.y = 22;
-  addToonOutline(mattress, 0x3355aa);
-  bedGroup.add(mattress);
-  // Sábana arrugada (geo offset para dar textura)
-  const sheetMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.8 });
-  const sheet = new THREE.Mesh(new THREE.BoxGeometry(130, 4, 180), sheetMat);
-  sheet.position.set(0, 37, 10);
-  bedGroup.add(sheet);
-  // Almohada
-  const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.75 });
-  const pillow = new THREE.Mesh(new THREE.BoxGeometry(60, 16, 35), pillowMat);
-  pillow.position.set(0, 40, -75);
-  addToonOutline(pillow, 0xbbaa99);
-  bedGroup.add(pillow);
-  // Cabecera
-  const headboardMat = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.6 });
-  const headboard = new THREE.Mesh(new THREE.BoxGeometry(150, 100, 10), headboardMat);
-  headboard.position.set(0, 60, -105);
-  addToonOutline(headboard, 0x5a4510);
-  bedGroup.add(headboard);
-  // Patas de la cama (4 cilindros)
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 });
-  for (const [lx, lz] of [[-65, -95], [65, -95], [-65, 95], [65, 95]]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 20, 8), legMat);
-    leg.position.set(lx, 2, lz);
-    bedGroup.add(leg);
-  }
-  // Oso de peluche tirado en la cama
-  const plushBody = new THREE.Mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushBody.position.set(25, 48, -20);
-  plushBody.scale.set(1, 0.8, 1.1);
-  bedGroup.add(plushBody);
-  const plushHead = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushHead.position.set(25, 58, -12);
-  bedGroup.add(plushHead);
-  // Ojos del oso
-  for (const ex of [-3, 3]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-    eye.position.set(25 + ex, 59, -6);
-    bedGroup.add(eye);
-  }
-  const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 18, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushArm.position.set(38, 44, -18);
-  plushArm.rotation.z = -0.8;
-  bedGroup.add(plushArm);
-  bedGroup.position.set(-roomW + 90, 0, 0);
-  bedGroup.rotation.y = Math.PI / 2;
-  scene.add(bedGroup);
+  // ---- Juguetes que no estorban ----
+  buildToyCar(-220, 230, 0xcc2222, 0.8);
+  buildToyCar(290, 260, 0x2244cc, -1.2);
+  buildToyCar(-340, -210, 0xddcc22, 2.1);
   
-  // ---- Autos de juguete esparcidos ----
-  buildToyCar(200, 150, 0xcc2222, 0.8);
-  buildToyCar(-120, -280, 0x2244cc, -1.2);
-  buildToyCar(350, 50, 0xddcc22, 2.1);
-  
-  // ---- Cubos / bloques de construcción esparcidos ----
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 10; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const dist = 120 + Math.random() * 300;
+    const dist = 100 + Math.random() * 300;
     const size = 6 + Math.random() * 10;
     const block = new THREE.Mesh(
       new THREE.BoxGeometry(size, size, size),
@@ -2408,10 +2318,9 @@ function buildLevel1() {
     scene.add(block);
   }
   
-  // ---- Lápices y crayones tirados en el piso ----
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 12; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const dist = 60 + Math.random() * 350;
+    const dist = 60 + Math.random() * 340;
     const crayon = new THREE.Mesh(
       new THREE.CylinderGeometry(1.2, 1.2, 18, 6),
       new THREE.MeshStandardMaterial({ color: crayonColors[i % crayonColors.length], roughness: 0.5 })
@@ -2422,12 +2331,12 @@ function buildLevel1() {
     scene.add(crayon);
   }
   
-  // ---- Pelota de goma tirada en una esquina ----
+  // ---- Pelota de goma en una esquina ----
   rubberBall = new THREE.Mesh(
     new THREE.SphereGeometry(12, 16, 12),
     new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.35, metalness: 0.1 })
   );
-  rubberBall.position.set(280, 12, 300);
+  rubberBall.position.set(400, 12, 380);
   scene.add(rubberBall);
   rubberBallStripe = new THREE.Mesh(
     new THREE.TorusGeometry(12.1, 1.2, 8, 24),
@@ -2445,27 +2354,22 @@ function buildLevel1() {
   const dinoHead = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
   dinoHead.position.set(20, 26, 0);
   dinoGroup.add(dinoHead);
-  // Dientes
-  const dinoToothMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
   for (const tx of [-2, 2]) {
-    const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), dinoToothMat);
+    const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
     tooth.position.set(26, 23, tx);
     tooth.rotation.z = -Math.PI / 2;
     dinoGroup.add(tooth);
   }
-  // Cola
   const dinoTail = new THREE.Mesh(new THREE.ConeGeometry(6, 25, 6), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
   dinoTail.position.set(-24, 18, 0);
   dinoTail.rotation.z = Math.PI / 2;
   dinoGroup.add(dinoTail);
-  // Patas
-  const dinoLegMat = new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 });
   for (const [lx, lz] of [[-8, -8], [-8, 8], [8, -8], [8, 8]]) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 5), dinoLegMat);
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 5), new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 }));
     leg.position.set(lx, 4, lz);
     dinoGroup.add(leg);
   }
-  dinoGroup.position.set(-300, 0, -300);
+  dinoGroup.position.set(-330, 0, -320);
   dinoGroup.rotation.y = 1.2;
   scene.add(dinoGroup);
   
@@ -2475,11 +2379,6 @@ function buildLevel1() {
   fork.position.set(160, 1.5, -100);
   fork.rotation.y = 0.4;
   scene.add(fork);
-  for (const tx of [-3, 0, 3]) {
-    const tine = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2, 12), plasticMat);
-    tine.position.set(160 + tx * Math.cos(0.4), 2.5, -125);
-    scene.add(tine);
-  }
   
   // ---- Cuaderno rasgado ----
   notebookGroup = new THREE.Mesh(
@@ -2489,36 +2388,22 @@ function buildLevel1() {
   notebookGroup.position.set(250, 2, 200);
   notebookGroup.rotation.y = 0.5;
   scene.add(notebookGroup);
-  // Hojas sueltas
-  for (let i = 0; i < 4; i++) {
-    const page = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 40),
-      new THREE.MeshStandardMaterial({ color: 0xf8f4e8, roughness: 0.8, side: THREE.DoubleSide })
-    );
-    page.rotation.x = -Math.PI / 2;
-    page.position.set(250 + (Math.random() - 0.5) * 30, 4.5, 200 + (Math.random() - 0.5) * 40 + 15);
-    page.rotation.z = Math.random() * 0.5 - 0.25;
-    scene.add(page);
-  }
   
-  // ---- Zona de aterrizaje (helipad de cartón) ----
+  // ---- Zona de aterrizaje (helipad de cartón con H) ----
   LANDING_PAD_POS = new THREE.Vector3(0, 0, -roomD + 120);
   LANDING_PAD_RADIUS = 40;
   landingPadGroup = new THREE.Group();
-  // Base circular (cartón)
   const padBase = new THREE.Mesh(
     new THREE.CylinderGeometry(LANDING_PAD_RADIUS, LANDING_PAD_RADIUS, 3, 32),
     new THREE.MeshStandardMaterial({ color: 0xc49a4a, roughness: 0.7 })
   );
   landingPadGroup.add(padBase);
-  // H pintada en el centro (dos verticales + una horizontal centrada)
   const hBar = new THREE.Mesh(new THREE.BoxGeometry(16, 3.2, 4), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
   hBar.position.y = 0.1; landingPadGroup.add(hBar);
   const hLeft = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
   hLeft.position.set(-8, 0.1, 0); landingPadGroup.add(hLeft);
   const hRight = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 24), new THREE.MeshStandardMaterial({ color: 0x33aa33, emissive: 0x115511 }));
   hRight.position.set(8, 0.1, 0); landingPadGroup.add(hRight);
-  // Círculo exterior (borde amarillo)
   const padRing = new THREE.Mesh(
     new THREE.RingGeometry(LANDING_PAD_RADIUS - 3, LANDING_PAD_RADIUS, 32),
     new THREE.MeshStandardMaterial({ color: 0xddcc22, emissive: 0x554400, side: THREE.DoubleSide })
@@ -2526,7 +2411,6 @@ function buildLevel1() {
   padRing.rotation.x = -Math.PI / 2;
   padRing.position.y = 1.6;
   landingPadGroup.add(padRing);
-  // Glow de aterrizaje (se intensifica cuando estás cerca)
   landingGlowMat = new THREE.MeshBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
   const landingGlow = new THREE.Mesh(new THREE.CircleGeometry(LANDING_PAD_RADIUS + 10, 32), landingGlowMat);
   landingGlow.rotation.x = -Math.PI / 2;
@@ -2535,21 +2419,65 @@ function buildLevel1() {
   landingPadGroup.position.copy(LANDING_PAD_POS);
   scene.add(landingPadGroup);
   
-  // ---- Objeto con los que la nave puede chocar ----
+  // ---- Objetos con los que la nave puede chocar (sin superposiciones) ----
   worldColliders = [
+    { pos: new THREE.Vector3(bedGroup.position.x, 40, bedGroup.position.z), radius: 90, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
     { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
     { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
-    { pos: new THREE.Vector3(boxOeste.position.x, 36, boxOeste.position.z), radius: 40, damaging: false, hp: 6, maxHp: 6, mesh: boxOeste, type: 'cardboard' },
     { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
-    { pos: new THREE.Vector3(legoWall.position.x, 40, legoWall.position.z), radius: 50, damaging: false, hp: 10, maxHp: 10, mesh: legoWall, type: 'lego' },
-    { pos: new THREE.Vector3(bedGroup.position.x, 40, bedGroup.position.z), radius: 80, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
     { pos: new THREE.Vector3(dinoGroup.position.x, 25, dinoGroup.position.z), radius: 22, damaging: false, hp: 5, maxHp: 5, mesh: dinoGroup, type: 'toy' },
-    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' },
-    ...tapePostColliders,
+    { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' }
   ];
   
 }
 
+function buildLevel1Ex() {
+  // Cama de casa con mueble-cabecera integrado: la cama original quedaba sobre una caja, se rediseña sola.
+  const g = new THREE.Group();
+  const mattressMat = new THREE.MeshStandardMaterial({ color: 0x556b92, roughness: 0.7 });
+  const mattress = new THREE.Mesh(new THREE.BoxGeometry(140, 25, 200), mattressMat);
+  mattress.position.y = 22;
+  g.add(mattress);
+  const sheetMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.8 });
+  const sheet = new THREE.Mesh(new THREE.BoxGeometry(130, 4, 180), sheetMat);
+  sheet.position.set(0, 37, 10);
+  g.add(sheet);
+  const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.75 });
+  const pillow = new THREE.Mesh(new THREE.BoxGeometry(60, 16, 35), pillowMat);
+  pillow.position.set(0, 40, -75);
+  g.add(pillow);
+  const headboardMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.6 });
+  const headboard = new THREE.Mesh(new THREE.BoxGeometry(14, 100, 210), headboardMat);
+  headboard.position.set(70, 60, 0);
+  g.add(headboard);
+  // Patas de la cama (4 cilindros)
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 });
+  for (const [lx, lz] of [[-60, -90], [60, -90], [-60, 90], [60, 90]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 20, 8), legMat);
+    leg.position.set(lx, 2, lz);
+    g.add(leg);
+  }
+  // Oso de peluche tirado en la cama
+  const plushBody = new THREE.Mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushBody.position.set(25, 48, -20);
+  plushBody.scale.set(1, 0.8, 1.1);
+  g.add(plushBody);
+  const plushHead = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushHead.position.set(25, 58, -12);
+  g.add(plushHead);
+  for (const ex of [-3, 3]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    eye.position.set(25 + ex, 59, -6);
+    g.add(eye);
+  }
+  const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 18, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushArm.position.set(38, 44, -18);
+  plushArm.rotation.z = -0.8;
+  g.add(plushArm);
+  g.position.set(-roomW + 100, 0, 0);
+  g.rotation.y = Math.PI / 2;
+  return g;
+}
 function teardownLevel() {
   for (const obj of wallLayers) { if (obj && obj.parent) obj.parent.remove(obj); }
   wallLayers.length = 0;
