@@ -2193,7 +2193,6 @@ let levelExtra = [];
 function buildLevel1() {
   // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
   
-  floorTex.repeat.set(30, 30);
   ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
@@ -2568,7 +2567,6 @@ function teardownLevel() {
 
 // ---- Nivel 2: PASILLO (cuarto alargado en Z, ancho en X) ----
 function buildLevel2() {
-  floorTex.repeat.set(30, 12);
   ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
@@ -2866,7 +2864,6 @@ function buildDoor() {
 
 // ---- Shell compartido: piso, paredes, techo, lámpara, rayas de límite, puerta (portal) y helipad ----
 function buildCommonShell() {
-  floorTex.repeat.set(30, 30);
   ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
@@ -3481,6 +3478,11 @@ function buildLevel(n) {
   roomD = LEVEL_ROOM_D[n] || 2000;
   roomSize = Math.max(roomW, roomD);
   wallHeight = LEVEL_WALL_HEIGHT[n] || 700;
+  // Repeats de texturas proporcionales al nivel (tiles parejos, no textura estirada).
+  floorTex.repeat.set(Math.max(1, Math.round(roomW * 2 / 16)), Math.max(1, Math.round(roomD * 2 / 8)));
+  const wallTile = 40;
+  wallLowerTex.repeat.set(Math.max(1, Math.round(roomW * 2 / wallTile)), Math.max(1, Math.round(wallHeight * 0.32 / wallTile)));
+  wallUpperTex.repeat.set(Math.max(1, Math.round(roomW * 2 / wallTile)), Math.max(1, Math.round(wallHeight * 0.66 / wallTile)));
   if (n === 2) buildLevel2();
   else if (n === 3) buildLevel3();
   else if (n === 4) buildLevel4();
