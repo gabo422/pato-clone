@@ -1167,7 +1167,7 @@
   </div>
 </div>
 
-<div id="versionTag">v1.2.3.0</div>
+<div id="versionTag">v1.2.3.1</div>
 <div id="loadingOverlay">
   <div class="load-title">PATO CLONE</div>
   <div class="load-sub">Cargando recursos...</div>
@@ -1182,7 +1182,7 @@
 <script>
 // ================= VERSIÓN DEL JUEGO =================
 // Subir acá el número en cada cambio publicado (ej. 1.2.1.1 → 1.2.2.1). Se muestra abajo a la derecha.
-const GAME_VERSION = '1.2.3.0';
+const GAME_VERSION = '1.2.3.1';
 document.getElementById('versionTag').textContent = 'v' + GAME_VERSION;
 // ================= Detección de mobile/táctil =================
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (('ontouchstart' in window) && window.innerWidth < 900);
@@ -2142,17 +2142,17 @@ const DEBRIS_KINDS = [
 ];
 function buildToyCar(x, z, color, rotY) {
   const car = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(18, 8, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
-  body.position.y = 8;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 6), new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
+  body.position.y = 3.5;
   car.add(body);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(10, 7, 9), new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: 0.7 }));
-  cabin.position.set(-1, 14, 0);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(6, 3.5, 5), new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: 0.7 }));
+  cabin.position.set(-0.5, 7, 0);
   car.add(cabin);
   const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3 });
-  for (const [wx, wz] of [[-7, -5], [-7, 5], [7, -5], [7, 5]]) {
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 2, 8), wheelMat);
+  for (const [wx, wz] of [[-4, -3.5], [-4, 3.5], [4, -3.5], [4, 3.5]]) {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 1.2, 8), wheelMat);
     wheel.rotation.x = Math.PI / 2;
-    wheel.position.set(wx, 3, wz);
+    wheel.position.set(wx, 1.6, wz);
     car.add(wheel);
   }
   car.position.set(x, 0, z);
@@ -2240,37 +2240,37 @@ function buildLevel1() {
     xPos: makeBoundaryStripe(roomW, wallHeight / 2, 0, -Math.PI / 2)
   };
   
-  // ---- Ventana con vista al jardín ----
+  // ---- Ventana con vista al jardín (ventana real ~1.2×1.2 m ≈ 90×90 u, alféizar a ~0.9 m = 67 u) ----
   outsideView = new THREE.Mesh(
-    new THREE.PlaneGeometry(330, 270),
+    new THREE.PlaneGeometry(90, 92),
     new THREE.MeshBasicMaterial({ map: makeOutsideViewTexture() })
   );
-  outsideView.position.set(0, 180, roomD - 4.5);
+  outsideView.position.set(0, 110, roomD - 3.5);
   outsideView.rotation.y = Math.PI;
   scene.add(outsideView);
   
   windowGroup = new THREE.Group();
-  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(340, 280, 10), new THREE.MeshStandardMaterial({ color: 0xf5efdf, roughness: 0.55 }));
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(100, 100, 7), new THREE.MeshStandardMaterial({ color: 0xf5efdf, roughness: 0.55 }));
   windowGroup.add(windowFrame);
-  const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(310, 250), new THREE.MeshStandardMaterial({ color: 0xbfe3f2, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
-  windowGlass.position.z = 3;
+  const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.MeshStandardMaterial({ color: 0xbfe3f2, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+  windowGlass.position.z = 2.5;
   windowGroup.add(windowGlass);
-  const mullionV = new THREE.Mesh(new THREE.BoxGeometry(8, 250, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-  mullionV.position.z = 4;
+  const mullionV = new THREE.Mesh(new THREE.BoxGeometry(5, 90, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  mullionV.position.z = 3;
   windowGroup.add(mullionV);
-  const mullionH = new THREE.Mesh(new THREE.BoxGeometry(310, 8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-  mullionH.position.z = 4;
+  const mullionH = new THREE.Mesh(new THREE.BoxGeometry(90, 5, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  mullionH.position.z = 3;
   windowGroup.add(mullionH);
-  const sill = new THREE.Mesh(new THREE.BoxGeometry(370, 14, 24), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-  sill.position.set(0, -145, 8);
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(112, 6, 20), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+  sill.position.set(0, -47, 6);
   windowGroup.add(sill);
-  windowGroup.position.set(0, 180, roomD - 3);
+  windowGroup.position.set(0, 110, roomD - 2.5);
   windowGroup.rotation.y = Math.PI;
   scene.add(windowGroup);
   
-  // ---- Alfombra de casa en el centro ----
+  // ---- Alfombra de casa en el centro (alfombra redonda real ~1.5 m de diámetro → radio 60) ----
   const rugMat = new THREE.MeshStandardMaterial({ color: 0x9a8171, roughness: 0.95 });
-  const rug = new THREE.Mesh(new THREE.CylinderGeometry(170, 170, 2.5, 32), rugMat);
+  const rug = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 2.5, 32), rugMat);
   rug.position.set(0, 1.2, 0);
   scene.add(rug);
   
@@ -2279,15 +2279,15 @@ function buildLevel1() {
   scene.add(bedGroup);
   
   // ---- Cajas de juguetes de cartón (destructibles, como cobertura) ----
-  const boxSur = buildCardboardBox(80, 70, 80);
+  const boxSur = buildCardboardBox(38, 26, 38);
   boxSur.position.set(-260, 0, 60);
   scene.add(boxSur);
   
-  const boxNE = buildCardboardBox(50, 100, 50);
+  const boxNE = buildCardboardBox(34, 34, 34);
   boxNE.position.set(330, 0, -120);
   scene.add(boxNE);
   
-  const boxCentro = buildCardboardBox(40, 55, 40);
+  const boxCentro = buildCardboardBox(28, 22, 28);
   boxCentro.position.set(150, 0, -320);
   scene.add(boxCentro);
   
@@ -2308,7 +2308,7 @@ function buildLevel1() {
   for (let i = 0; i < 10; i++) {
     const angle = Math.random() * Math.PI * 2;
     const dist = 100 + Math.random() * 300;
-    const size = 6 + Math.random() * 10;
+    const size = 3 + Math.random() * 5;
     const block = new THREE.Mesh(
       new THREE.BoxGeometry(size, size, size),
       new THREE.MeshStandardMaterial({ color: blockColors[i % blockColors.length], roughness: 0.35 })
@@ -2322,70 +2322,70 @@ function buildLevel1() {
     const angle = Math.random() * Math.PI * 2;
     const dist = 60 + Math.random() * 340;
     const crayon = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.2, 1.2, 18, 6),
+      new THREE.CylinderGeometry(0.7, 0.7, 7, 6),
       new THREE.MeshStandardMaterial({ color: crayonColors[i % crayonColors.length], roughness: 0.5 })
     );
-    crayon.position.set(Math.cos(angle) * dist, 1.2, Math.sin(angle) * dist);
+    crayon.position.set(Math.cos(angle) * dist, 0.8, Math.sin(angle) * dist);
     crayon.rotation.x = Math.PI / 2;
     crayon.rotation.z = Math.random() * Math.PI;
     scene.add(crayon);
   }
   
-  // ---- Pelota de goma en una esquina ----
+  // ---- Pelota de goma en una esquina (real ~10 cm de diámetro → radio 4) ----
   rubberBall = new THREE.Mesh(
-    new THREE.SphereGeometry(12, 16, 12),
+    new THREE.SphereGeometry(4, 16, 12),
     new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.35, metalness: 0.1 })
   );
-  rubberBall.position.set(400, 12, 380);
+  rubberBall.position.set(380, 4, 340);
   scene.add(rubberBall);
   rubberBallStripe = new THREE.Mesh(
-    new THREE.TorusGeometry(12.1, 1.2, 8, 24),
+    new THREE.TorusGeometry(4.03, 0.4, 8, 24),
     new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 })
   );
   rubberBallStripe.position.copy(rubberBall.position);
   rubberBallStripe.rotation.x = Math.PI / 2;
   scene.add(rubberBallStripe);
   
-  // ---- Dinosaurio de juguete ----
+  // ---- Dinosaurio de juguete (real ~15-18 cm de largo → cuerpo ~14 u) ----
   dinoGroup = new THREE.Group();
-  const dinoBody = new THREE.Mesh(new THREE.BoxGeometry(30, 20, 16), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-  dinoBody.position.y = 18;
+  const dinoBody = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 7), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoBody.position.y = 9;
   dinoGroup.add(dinoBody);
-  const dinoHead = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 10), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-  dinoHead.position.set(20, 26, 0);
+  const dinoHead = new THREE.Mesh(new THREE.BoxGeometry(6, 5, 4.5), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoHead.position.set(9, 12, 0);
   dinoGroup.add(dinoHead);
-  for (const tx of [-2, 2]) {
-    const tooth = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-    tooth.position.set(26, 23, tx);
+  for (const tx of [-1.2, 1.2]) {
+    const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.8, 4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+    tooth.position.set(12, 10.5, tx);
     tooth.rotation.z = -Math.PI / 2;
     dinoGroup.add(tooth);
   }
-  const dinoTail = new THREE.Mesh(new THREE.ConeGeometry(6, 25, 6), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
-  dinoTail.position.set(-24, 18, 0);
+  const dinoTail = new THREE.Mesh(new THREE.ConeGeometry(2.5, 11, 6), new THREE.MeshStandardMaterial({ color: 0x4a8a3a, roughness: 0.6 }));
+  dinoTail.position.set(-10, 9, 0);
   dinoTail.rotation.z = Math.PI / 2;
   dinoGroup.add(dinoTail);
-  for (const [lx, lz] of [[-8, -8], [-8, 8], [8, -8], [8, 8]]) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(5, 12, 5), new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 }));
-    leg.position.set(lx, 4, lz);
+  for (const [lx, lz] of [[-3.5, -3.5], [-3.5, 3.5], [3.5, -3.5], [3.5, 3.5]]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(2.2, 5, 2.2), new THREE.MeshStandardMaterial({ color: 0x3a7a2a, roughness: 0.6 }));
+    leg.position.set(lx, 2.5, lz);
     dinoGroup.add(leg);
   }
   dinoGroup.position.set(-330, 0, -320);
   dinoGroup.rotation.y = 1.2;
   scene.add(dinoGroup);
   
-  // ---- Tenedor y cuchara de plástico (juguete de cocina) ----
+  // ---- Tenedor y cuchara de plástico (juguete de cocina, real ~19 cm → 14 u) ----
   const plasticMat = new THREE.MeshStandardMaterial({ color: 0xff88cc, roughness: 0.4 });
-  fork = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 50), plasticMat);
-  fork.position.set(160, 1.5, -100);
+  fork = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 14), plasticMat);
+  fork.position.set(160, 0.9, -100);
   fork.rotation.y = 0.4;
   scene.add(fork);
   
-  // ---- Cuaderno rasgado ----
+  // ---- Cuaderno rasgado (real ~21×29 cm → 16×22 u) ----
   notebookGroup = new THREE.Mesh(
-    new THREE.BoxGeometry(40, 4, 55),
+    new THREE.BoxGeometry(22, 1.5, 16),
     new THREE.MeshStandardMaterial({ color: 0x2244cc, roughness: 0.7 })
   );
-  notebookGroup.position.set(250, 2, 200);
+  notebookGroup.position.set(250, 0.75, 200);
   notebookGroup.rotation.y = 0.5;
   scene.add(notebookGroup);
   
@@ -2421,59 +2421,65 @@ function buildLevel1() {
   
   // ---- Objetos con los que la nave puede chocar (sin superposiciones) ----
   worldColliders = [
-    { pos: new THREE.Vector3(bedGroup.position.x, 40, bedGroup.position.z), radius: 90, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
-    { pos: new THREE.Vector3(boxSur.position.x, 36, boxSur.position.z), radius: 35, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
-    { pos: new THREE.Vector3(boxNE.position.x, 36, boxNE.position.z), radius: 25, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
-    { pos: new THREE.Vector3(boxCentro.position.x, 36, boxCentro.position.z), radius: 22, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
-    { pos: new THREE.Vector3(dinoGroup.position.x, 25, dinoGroup.position.z), radius: 22, damaging: false, hp: 5, maxHp: 5, mesh: dinoGroup, type: 'toy' },
+    { pos: new THREE.Vector3(bedGroup.position.x, 20, bedGroup.position.z), radius: 55, damaging: false, hp: 8, maxHp: 8, mesh: bedGroup, type: 'furniture' },
+    { pos: new THREE.Vector3(boxSur.position.x, 14, boxSur.position.z), radius: 22, damaging: false, hp: 5, maxHp: 5, mesh: boxSur, type: 'cardboard' },
+    { pos: new THREE.Vector3(boxNE.position.x, 18, boxNE.position.z), radius: 20, damaging: false, hp: 4, maxHp: 4, mesh: boxNE, type: 'cardboard' },
+    { pos: new THREE.Vector3(boxCentro.position.x, 12, boxCentro.position.z), radius: 16, damaging: false, hp: 4, maxHp: 4, mesh: boxCentro, type: 'cardboard' },
+    { pos: new THREE.Vector3(dinoGroup.position.x, 10, dinoGroup.position.z), radius: 12, damaging: false, hp: 5, maxHp: 5, mesh: dinoGroup, type: 'toy' },
     { pos: new THREE.Vector3(doorGroup.position.x, 60, doorGroup.position.z), radius: 55, damaging: false, hp: 12, maxHp: 12, mesh: doorGroup, type: 'furniture' }
   ];
   
 }
 
 function buildLevel1Ex() {
-  // Cama de casa con mueble-cabecera integrado: la cama original quedaba sobre una caja, se rediseña sola.
+  // Cama individual de casa: colchón real 90×200 cm → ~67×150 u (puerta 2 m = 150 u de referencia)
   const g = new THREE.Group();
   const mattressMat = new THREE.MeshStandardMaterial({ color: 0x556b92, roughness: 0.7 });
-  const mattress = new THREE.Mesh(new THREE.BoxGeometry(140, 25, 200), mattressMat);
-  mattress.position.y = 22;
+  // Base/sommier (cajón de madera con patas)
+  const base = new THREE.Mesh(new THREE.BoxGeometry(78, 6, 156), new THREE.MeshStandardMaterial({ color: 0x8a6a42, roughness: 0.8 }));
+  base.position.y = 8;
+  g.add(base);
+  const mattress = new THREE.Mesh(new THREE.BoxGeometry(70, 12, 152), mattressMat);
+  mattress.position.y = 17;
   g.add(mattress);
   const sheetMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.8 });
-  const sheet = new THREE.Mesh(new THREE.BoxGeometry(130, 4, 180), sheetMat);
-  sheet.position.set(0, 37, 10);
+  const sheet = new THREE.Mesh(new THREE.BoxGeometry(64, 2.5, 140), sheetMat);
+  sheet.position.set(0, 24, 10);
   g.add(sheet);
   const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.75 });
-  const pillow = new THREE.Mesh(new THREE.BoxGeometry(60, 16, 35), pillowMat);
-  pillow.position.set(0, 40, -75);
+  const pillow = new THREE.Mesh(new THREE.BoxGeometry(38, 8, 45), pillowMat);
+  pillow.position.set(0, 27, -44);
   g.add(pillow);
+  // Cabecero de madera en la cabecera de la cama
   const headboardMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.6 });
-  const headboard = new THREE.Mesh(new THREE.BoxGeometry(14, 100, 210), headboardMat);
-  headboard.position.set(70, 60, 0);
+  const headboard = new THREE.Mesh(new THREE.BoxGeometry(74, 62, 6), headboardMat);
+  headboard.position.set(0, 31, -78);
   g.add(headboard);
   // Patas de la cama (4 cilindros)
   const legMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2a, roughness: 0.7 });
-  for (const [lx, lz] of [[-60, -90], [60, -90], [-60, 90], [60, 90]]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 20, 8), legMat);
-    leg.position.set(lx, 2, lz);
+  for (const [lx, lz] of [[-34, -70], [34, -70], [-34, 70], [34, 70]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 7, 8), legMat);
+    leg.position.set(lx, 3.5, lz);
     g.add(leg);
   }
-  // Oso de peluche tirado en la cama
-  const plushBody = new THREE.Mesh(new THREE.SphereGeometry(10, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushBody.position.set(25, 48, -20);
-  plushBody.scale.set(1, 0.8, 1.1);
+  // Oso de peluche sentado en la cama (un muñeco de ~25 cm ≈ 19 u)
+  const plushBody = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushBody.position.set(22, 29, 20);
+  plushBody.scale.set(1, 0.85, 0.9);
   g.add(plushBody);
-  const plushHead = new THREE.Mesh(new THREE.SphereGeometry(7, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushHead.position.set(25, 58, -12);
+  const plushHead = new THREE.Mesh(new THREE.SphereGeometry(5, 10, 8), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushHead.position.set(22, 36, 20);
   g.add(plushHead);
-  for (const ex of [-3, 3]) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-    eye.position.set(25 + ex, 59, -6);
+  for (const ex of [-2, 2]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.9, 6, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    eye.position.set(22 + ex, 37.5, 23);
     g.add(eye);
   }
-  const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 18, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
-  plushArm.position.set(38, 44, -18);
-  plushArm.rotation.z = -0.8;
+  const plushArm = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 13, 6), new THREE.MeshStandardMaterial({ color: 0x8B6534, roughness: 0.9 }));
+  plushArm.position.set(32, 28, 20);
+  plushArm.rotation.z = -0.7;
   g.add(plushArm);
+  // La cama ocupa ~1.35 m de largo real, apoyada contra la pared -X
   g.position.set(-roomW + 100, 0, 0);
   g.rotation.y = Math.PI / 2;
   return g;
