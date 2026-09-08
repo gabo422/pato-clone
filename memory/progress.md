@@ -9,6 +9,7 @@
 - [x] **Optimización FPS de partículas:** cache de material (estela misiles, muzzle flash, explosiones/impactos); estela más barata. Commit: `ed82921` (parcial) + `b921671` (muzzle flash).
 - [x] Flujo: `node check_syntax.js` OK + harness CDP 0 page errors antes de cada push.
 - [x] **Barra de carga real con progreso** durante el preload de modelos (loadingOverlay + barra con % viajando, se oculta al 100%). Versión `v1.2.2.0`. Harness `cdp_loading.js`: visible 80% durante carga, hidden al final, 0 page errors.
+- [x] **Texturas fotográficas CC0 (ambientCG) en piso y paredes** — `texturas/` en el repo (floor_color 1K, floor/wall normal maps, wall_color 1K; ~3.9 MB). Carga async con la barra, muta las texturas canvas (needsUpdate) y agrega normal maps (piso `makeGroundMaterial()`, paredes con normal en wallLower/UpperMat). Zócalo a madera oscura de casa. Harness `cdp_house.js`: texturas aplicadas, 0 page errors.
 
 ## IN PROGRESS
 - Esperando feedback de Gabriel tras el push `b921671` (avión CrimsonAttack grande + FPS).

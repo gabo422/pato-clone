@@ -1792,13 +1792,67 @@ const wallLowerTex = makeCardboardWallTexture('#8B6914', '#5a4510');
 const wallUpperTex = makeCardboardWallTexture('#C4A265', '#9a7a40');
 const wallLowerMat = new THREE.MeshStandardMaterial({ map: wallLowerTex, side: THREE.DoubleSide });
 const wallUpperMat = new THREE.MeshStandardMaterial({ map: wallUpperTex, side: THREE.DoubleSide });
+// ---- Texturas fotográficas CC0 (ambientCG) para la casa realista CoD2 ----
+// Se cargan async; al llegar mutan el .image de las texturas canvas (needsUpdate),
+// así los materiales ya creados se repintan solos y el próximo buildLevel usa las fotos.
+const houseFloorN = { tex: null, ready: false }; // normal map piso
+const houseWallN = { tex: null, ready: false }; // normal map pared
+function bootPhotoTextures(onAllDone) {
+  const floorColor = document.createElement('img');
+  floorColor.onload = function() {
+    floorTex.image = floorColor;
+    floorTex.needsUpdate = true;
+    floorTex.encoding = THREE.sRGBEncoding;
+    maybeDone();
+  };
+  floorColor.onerror = function() { maybeDone(); };
+  floorColor.src = 'texturas/floor_color.jpg';
+  const wallColor = document.createElement('img');
+  wallColor.onload = function() {
+    wallLowerTex.image = wallColor;
+    wallLowerTex.needsUpdate = true;
+    wallLowerTex.encoding = THREE.sRGBEncoding;
+    wallUpperTex.image = wallColor;
+    wallUpperTex.needsUpdate = true;
+    wallUpperTex.encoding = THREE.sRGBEncoding;
+    maybeDone();
+  };
+  wallColor.onerror = function() { maybeDone(); };
+  wallColor.src = 'texturas/wall_color.jpg';
+  const texLoader = new THREE.TextureLoader();
+  houseFloorN.tex = texLoader.load('texturas/floor_normalgl.jpg', function(t) {
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    houseFloorN.ready = true;
+    maybeDone();
+  }, undefined, maybeDone);
+  houseFloorN.tex.name = 'floorNormal';
+  houseWallN.tex = texLoader.load('texturas/wall_normalgl.jpg', function(t) {
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    houseWallN.ready = true;
+    if (wallLowerMat) { wallLowerMat.normalMap = t; wallLowerMat.needsUpdate = true; }
+    if (wallUpperMat) { wallUpperMat.normalMap = t; wallUpperMat.needsUpdate = true; }
+    maybeDone();
+  }, undefined, maybeDone);
+  houseWallN.tex.name = 'wallNormal';
+  let pending = 4;
+  function maybeDone() {
+    pending--;
+    if (pending <= 0 && onAllDone) onAllDone();
+  }
+}
+// Material de piso listo para usar (con normal map fotográfico si ya cargó).
+function makeGroundMaterial() {
+  const m = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.75, metalness: 0.0 });
+  if (houseFloorN.ready) { m.normalMap = houseFloorN.tex; }
+  return m;
+}
 function makeWall(w, h, x, y, z, rotY) {
   const lowerH = h * 0.32, trimH = h * 0.02, upperH = h - lowerH - trimH;
   const group = new THREE.Group();
   const lower = new THREE.Mesh(new THREE.PlaneGeometry(w, lowerH), wallLowerMat);
   lower.position.y = lowerH / 2;
   group.add(lower);
-  const trim = new THREE.Mesh(new THREE.PlaneGeometry(w, trimH), new THREE.MeshStandardMaterial({ color: 0xb4a064, side: THREE.DoubleSide }));
+  const trim = new THREE.Mesh(new THREE.PlaneGeometry(w, trimH), new THREE.MeshStandardMaterial({ color: 0x6b4a2a, side: THREE.DoubleSide }));
   trim.position.y = lowerH + trimH / 2;
   group.add(trim);
   const upper = new THREE.Mesh(new THREE.PlaneGeometry(w, upperH), wallUpperMat);
@@ -2140,7 +2194,7 @@ function buildLevel1() {
   // Paredes: cartón corrugado con cinta de embalaje y dibujos de guerra
   
   floorTex.repeat.set(30, 30);
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   
@@ -2515,7 +2569,7 @@ function teardownLevel() {
 // ---- Nivel 2: PASILLO (cuarto alargado en Z, ancho en X) ----
 function buildLevel2() {
   floorTex.repeat.set(30, 12);
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
 
@@ -2813,7 +2867,7 @@ function buildDoor() {
 // ---- Shell compartido: piso, paredes, techo, lámpara, rayas de límite, puerta (portal) y helipad ----
 function buildCommonShell() {
   floorTex.repeat.set(30, 30);
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), new THREE.MeshStandardMaterial({ map: floorTex }));
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(roomW * 2, roomD * 2), makeGroundMaterial());
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
   const wallPlaneW = roomW * 2;
@@ -3524,7 +3578,7 @@ function base64ToArrayBuffer(base64) {
 // un server local, etc.) — ya no funciona abriendo el .html con doble clic directo.
 function preloadModels(onDone) {
   const keys = Object.keys(MODEL_LIBRARY).filter(k => MODEL_LIBRARY[k].url);
-  if (keys.length === 0) { hideLoadingBar(); onDone(); return; }
+  if (keys.length === 0) { onDone(); return; }
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/');
   const gltfLoader = new THREE.GLTFLoader();
@@ -3540,7 +3594,7 @@ function preloadModels(onDone) {
     if (loadBar) loadBar.style.width = pct + '%';
     if (loadPct) loadPct.textContent = pct + '%';
   };
-  const finishOne = () => { remaining--; updateProgress(); if (remaining === 0) { hideLoadingBar(); onDone(); } };
+  const finishOne = () => { remaining--; updateProgress(); if (remaining === 0) { onDone(); } };
   keys.forEach(key => {
     const cfg = MODEL_LIBRARY[key];
     if (cfg.type === 'stl') {
@@ -8648,6 +8702,9 @@ const hitRadius = enemy.isBoss ? 165 * enemy.mesh.scale.x : 5.5;
 }
 /* SAVE_INJECT_ANCHOR */
 preloadModels(() => {
+  bootPhotoTextures(function() {
+    hideLoadingBar();
+  });
   swapModelIfReady();
   const gearOverlay = document.getElementById('gearSelectOverlay');
   const gearOverlayVisible = gearOverlay && !gearOverlay.classList.contains('hidden');
