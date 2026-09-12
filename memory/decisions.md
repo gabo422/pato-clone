@@ -32,3 +32,9 @@
 - El juego **NO puede explotar/crashear**: cualquier feature se verifica con harness CDP (0 page errors) antes del push.
 - **Rendimiento SIEMPRE**: FPS estables, cachear materiales/geometrías/partículas (nunca crear por frame), no bloquear el hilo principal, cargas con progreso (barra v1.2.2.0).
 - Antes de tocar el mapa o las decoraciones, preguntarle a Gabriel la paleta/dirección de diseño (evita retrabajo y sorpresas).
+
+## D11. Mudanza a la PC personal de Gabriel (12/sep/2026)
+- **Qué:** el proyecto deja la estación `D:\PatoClon-Proyecto` (repo/server/harness) y pasa a trabajarse SOLO en la PC personal de Gabriel: `E:\OneDrive - IT PRO\Documentos\Default Project`, que ES la raíz del repo git (rama `main`).
+- **Consecuencias:** `server\` (AO real, fuente de verdad) y `harness\` (CDP) NO se copiaron a esta PC → no hay harness CDP ni `server.js` acá. Verificar sintaxis localmente (`node --check` sobre los `<script>`) y comportamiento de forma manual/DevTools o pidiendo a Gabriel con Ctrl+F5.
+- **Estado del memory bank:** actualizado a v1.2.3.1 (AGENTS.md + progress.md + esta decisión). La otra estación queda en desuso.
+- **Por qué:** Gabriel sigue en su PC de uso diario; la estación anterior ya no se usará.

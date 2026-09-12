@@ -2,7 +2,7 @@
 
 Memoria persistente para que cualquier instancia/IA continúe el proyecto sin perder contexto. **Léelo al inicio de cada sesión** y consulta `memory/` antes de tocar código.
 
-Última actualización: versión **v1.2.1.1** + **paths consolidados en `D:\PatoClon-Proyecto\`** (repo/server/harness).
+Última actualización: versión **v1.2.3.1**. Ubicación actual: **PC personal de Gabriel** — `E:\OneDrive - IT PRO\Documentos\Default Project` (raíz del repo git; ya no se trabaja en la estación `D:\PatoClon-Proyecto`).
 
 ---
 
@@ -31,60 +31,58 @@ Memoria persistente para que cualquier instancia/IA continúe el proyecto sin pe
 | Lenguaje | JavaScript (ES5/ES6+) puro, sin bundler ni build |
 | Motor | Three.js **r128** (`three.min.js`) + loaders GLTF/DRACO/STL desde CDN |
 | UI | HTML + CSS inline en el mismo `index.html` (sin frameworks) |
-| Servidor | Node.js **solo para desarrollo** (`server.js` en el harness, puerto 8123; sirve estático) |
+| Servidor | Node.js **solo para desarrollo** (`server.js` en el harness, puerto 8123; sirve estático). En esta PC no está el harness: usar `python -m http.server` o `npx http-server` |
 | Publicación | GitHub Pages auto (sin build; CNAME/raíz del repo) |
-| Testing | Node + Chrome headless vía CDP (harness en `D:\PatoClon-Proyecto\harness`, ver sección 9) |
-| Repo | Sin `package.json`, sin `README.md`, sin `.gitignore`, sin dependencias npm |
+| Testing | Node + Chrome headless vía CDP (harness). **NO disponible en esta PC** (quedó en la otra estación); verificar sintaxis con `node --check` sobre los `<script>` |
+| Repo | Sin `package.json`, sin `README.md`, sin dependencias npm. `.gitignore` ignora `*.crx`, `*.pem` y `reporte-iDUHF-claude.md` |
 
 **Archivos del juego:**
-- `index.html` → 0.41 MB (411 KB), juego completo (~8900 líneas).
+- `index.html` → 0.43 MB (432 KB, ~8930 líneas), juego completo.
 - `enchants.js` → 0.02 MB (22 KB), mejora/enchants.
 
 ---
 
 ## 3. Estructura del proyecto
 
-**Estructura consolidada (todo el proyecto en UNA carpeta, lista para copiar a otra PC):**
+**Estructura actual (PC personal de Gabriel, raíz = repo git rama `main`):**
 ```
-D:\PatoClon-Proyecto\
-├── repo\               Repo git (rama main) + juego:
-│   ├── index.html          Juego completo (HTML + CSS + todo el JS del motor del juego)
-│   ├── enchants.js         Capa de mejora/enchants
-│   ├── AGENTS.md           Este archivo
-│   ├── memory\             Memoria persistente (leer siempre):
-│   │   ├── projectbrief.md      qué es y alcance
-│   │   ├── productContext.md    por qué existe, contexto
-│   │   ├── patterns.md          convenciones de código y repo
-│   │   ├── decisions.md         decisiones D1..D9 y su POR QUÉ (evita re-trabajo)
-│   │   ├── progress.md          DONE / IN PROGRESS / NEXT + log de commits
-│   │   └── blockers.md          gotchas B1..B7 que ya costaron tiempo
-│   ├── referencias\        Docs propios del equipo (configs/valores del AO):
-│   │   00-RESUMEN-JUEGO, 01-SKILLS-AO-VALORES, 02-GEAR-CONFIGS,
-│   │   03-SISTEMAS-COMBATE, 04-FISICA-DE-PLANO, 05-MODELOS-Y-VFX,
-│   │   06-BASE-DE-DATOS-OMI, 07-HISTORIAL-BUGS
-│   └── modelos\            Modelos 3D locales (subidos al repo):
-│       pato.glb 26.68 MB, Crimson.glb 19.13 MB, barco.stl 10.76 MB,
-│       oso.glb 10.11 MB, Mecano.glb 7.48 MB, boat.glb 6.72 MB
-├── server\             Código del AO real (fuente de verdad para comportamiento)
-└── harness\            Herramientas de desarrollo (NO van al repo):
-    server.js, check_syntax.js, cdp_*.js, parse_omi*.js, extract_*.ps1
+E:\OneDrive - IT PRO\Documentos\Default Project\
+├── index.html          Juego completo (HTML + CSS + todo el JS, v1.2.3.1, ~8930 líneas)
+├── enchants.js         Capa de mejora/enchants
+├── AGENTS.md           Este archivo
+├── .gitignore          *.crx, *.pem, reporte-iDUHF-claude.md
+├── memory\             Memoria persistente (leer siempre):
+│   ├── projectbrief.md      qué es y alcance
+│   ├── productContext.md    por qué existe, contexto
+│   ├── patterns.md          convenciones de código y repo
+│   ├── decisions.md         decisiones D1..D11 y su POR QUÉ (evita re-trabajo)
+│   ├── progress.md          DONE / IN PROGRESS / NEXT + log de commits
+│   └── blockers.md          gotchas B1..B7 que ya costaron tiempo
+├── referencias\        Docs propios del equipo (configs/valores del AO):
+│   00-RESUMEN-JUEGO, 01-SKILLS-AO-VALORES, 02-GEAR-CONFIGS,
+│   03-SISTEMAS-COMBATE, 04-FISICA-DE-PLANO, 05-MODELOS-Y-VFX,
+│   06-BASE-DE-DATOS-OMI, 07-HISTORIAL-BUGS
+├── modelos\            Modelos 3D (subidos al repo):
+│   pato.glb 26.68 MB, Crimson.glb 19.13 MB, barco.stl 10.76 MB,
+│   oso.glb 10.11 MB, Mecano.glb 7.48 MB, boat.glb 6.72 MB
+├── texturas\           Texturas CC0 (ambientCG): floor_color/normalgl + wall_color/normalgl (~3.8 MB)
+└── clippicker\         Extensión de Chrome ClipPicker (proyecto aparte, versionada en el mismo repo)
 ```
 
-**Dependencias EXTERNAS al repo (importantes para continuar):**
-- `D:\PatoClon-Proyecto\server\` — código del AO real. **Fuente de verdad** para comportamiento (mobs, boss, armas).
-- `D:\PatoClon-Proyecto\harness\` — herramientas de desarrollo. NO está en el repo. Ya vive DENTRO de `D:\PatoClon-Proyecto` (consolidado); sus scripts tienen paths hardcodeados al repo (`D:/PatoClon-Proyecto/repo`). Si en otra PC cambia la letra de disco o la ruta, hay que actualizarlos (ver sección 8).
+**Dependencias externas al repo (importantes para continuar):**
+- En la estación anterior (`D:\PatoClon-Proyecto\`) quedaron `server\` (código del AO real, **fuente de verdad** del comportamiento) y `harness\` (`server.js`, `check_syntax.js`, `cdp_*.js`, `parse_omi*.js`). **En esta PC NO están.** Si hace falta copiar mecánica nueva del AO o verificación CDP, pedirlas/regenerarlas desde `referencias/`.
 
-**Mapa de código (líneas aprox. de `index.html`):**
+**Mapa de código (líneas aprox. de `index.html` v1.2.3.1):**
 - `GEAR_CONFIGS` — config de los 4 gears (nombre, armas, stats, skills, `modelKey`).
-- `builders = { duck, teddy, mecano, crimson }` (~1391) — elige builder por `modelKey`.
-- `buildLegoWall` (~1868), colliders destructibles (`worldColliders`, ~2449).
-- `swapModelIfReady` (~3885) — intercambio del .glb.
-- `PROJ_BY_GEAR` + `getProjBuilders()` (~4317) — proyectiles; bala STD CrimsonAttack `SphereGeometry(0.5,…)`.
+- `builders = { duck, teddy, mecano, crimson }` — elige builder por `modelKey`.
+- `buildLegoWall`, colliders destructibles (`worldColliders`).
+- `swapModelIfReady` — intercambio del .glb. Escala CrimsonAttack ×1.5 en **dos** puntos: cambio de gear (~1433) y swap (~3923).
+- `PROJ_BY_GEAR` + `getProjBuilders()` — proyectiles; bala STD CrimsonAttack `SphereGeometry(0.5,8,6)` (~4412).
 - `aceGetParticleMat` / `aceSpawnParticles` — partículas cacheadas (obligatorio su uso).
 - `ACE.*` — constantes del motor registradas en el objeto `ACE`.
-- `hitDestructible` (~7411) y `hitWorldCollider` (~7451) — daño/rotura; usan `flashMeshWhite`.
-- `flashMeshWhite` (~7407) — flash blanco recursivo de impacto.
-- Línea 442 CSS de `#versionTag`; 1149 el div; 1158 `GAME_VERSION`; 1159 setea el texto.
+- `hitDestructible` / `hitWorldCollider` — daño/rotura; usan `flashMeshWhite`.
+- `flashMeshWhite` (~7445) — flash blanco recursivo de impacto (recorre `traverse` porque los destructibles son `THREE.Group`).
+- Línea 442 CSS de `#versionTag`; div ~1170; `GAME_VERSION` ~1185; setea el texto ~1186.
 
 ---
 
@@ -104,7 +102,7 @@ D:\PatoClon-Proyecto\
 
 ## 5. Estado actual del desarrollo
 
-**TERMINADO (verificado con harness CDP, 0 page errors):**
+**TERMINADO (todo presente en `index.html` v1.2.3.1, verificado en repo el 12/sep/2026):**
 - 4 gears con armas STD/ADV y stats AO (crimsonAttack, mecanoTank, teddyBomb, healDuck).
 - Homing ADV por gear (`turn`).
 - Mobs como el AO (no orbitan, no siguen en vertical, media vuelta, distancias de ataque por rol).
@@ -112,19 +110,21 @@ D:\PatoClon-Proyecto\
 - Avión CrimsonAttack ×1.5 (4.35) solo ese gear; bala STD 0.5.
 - Optimización FPS partículas (cache de material).
 - Renombre completo a los 4 nombres nuevos (código + referencias + memory).
-- **Destrucción de objetos (pulido):** verificados los 5 niveles en harness (L1 18 colliders, L2 12, L3 4, L4 5, L5 9; todos `fails=[]`; `parentIsScene=true`; el collider muerto sale de la escena). Los objetos SÍ desaparecen al morir.
-- **Flash de impacto** en todos los destructibles (D7) — commit `ac6e192`.
-- **Versión v1.2.1.1 visible** abajo a la derecha (D8) — commit `ac6e192`.
+- Destrucción de objetos + flash de impacto recursivo (`flashMeshWhite`) en todos los destructibles (D7).
+- Versión visible abajo a la derecha (`#versionTag`, `GAME_VERSION`) — hoy **v1.2.3.1** (D8).
+- Barra de carga real con % durante el preload de modelos (v1.2.2.0, commit `12a7c1f`).
+- Texturas CC0 (ambientCG) en piso y paredes, con normal maps y repeat proporcional (commits `bbc295f`, `83a5084`).
+- **Nivel 1 rediseñado como casa real** (sin props de guerra) + proporciones reales 1u ≈ 1.33 cm (commits `efcf7a8`, `71051f6`).
 
-**EN PROGRESO (WIP) / esperando feedback de Gabriel:**
-- Confirmar en su navegador (Ctrl+F5) el flash al golpear objetos destructibles y el indicador de versión.
-- (Anterior, sin confirmar) avión CrimsonAttack grande + FPS de misiles.
+**PENDIENTE de feedback (no es WIP de código):**
+- Que Gabriel pruebe **v1.2.3.1** en su navegador (**Ctrl+F5**) y confirme: casa real del Nivel 1, texturas, avión CrimsonAttack grande, FPS estable con misiles, flash/destrucción de objetos.
 
 **NEXT / pendientes propuestos (NO empezados):**
-- Si Gabriel reporta que un objeto destructible NO desaparece en su navegador → pedir Ctrl+F5 primero (probable versión vieja cacheada o HP alto), y de persistir, verificar nivel y objeto exacto.
-- Agrandar avión de OTRO gear si Gabriel lo pide.
-- Decidir si agrandar la bala STD del CrimsonAttack (hoy 0.5, por ahora NO tocar).
-- Mover el harness DENTRO del repo (hoy vive en `D:\PatoClon-Proyecto\harness`, consolidado con el proyecto pero sin versionar) si Gabriel pide reproducibilidad.
+- Elegir con Gabriel la paleta de colores de la casa (Roadmap Fase 1 visual; NO tocar el mapa sin pedirle la paleta, regla de oro D10).
+- Agrandar avión de OTRO gear si Gabriel lo pide (preguntar avión/bala/misil — B1 — y escalar en los DOS puntos — B3).
+- Decidir si agrandar la bala STD del CrimsonAttack (hoy 0.5, por ahora NO tocar — B2).
+- Si Gabriel ve un destructible que NO desaparece en su navegador → pedir Ctrl+F5 (versión cacheada) y nivel/objeto exactos.
+- Sintaxis: validar con `node --check` sobre los bloques `<script>` (no hay `check_syntax.js` en esta PC).
 
 ---
 
@@ -133,19 +133,20 @@ D:\PatoClon-Proyecto\
 No hay build (sin package.json). Dos formas de jugar:
 
 1. **Producción (lo que juega Gabriel):** push a `main` → GitHub Pages despliega en 1-2 min. URL `https://gabo422.github.io/pato-clone/`.
-2. **Local (para desarrollo/harness):**
-   - Servir estático: `node server.js` (está en `D:\PatoClon-Proyecto\harness`; escucha en `:8123`, sirve desde `D:/PatoClon-Proyecto/repo`).
-   - Abrir `http://localhost:8123/index.html`.
-   - Requisitos: Node instalado, Chrome instalado (para harness), la carpeta `modelos/` presente (los .glb se sirven desde el repo).
-   - En la PC nueva: ajustar el path del repo en `server.js` y `check_syntax.js` si el proyecto ya no está en `D:\PatoClon-Proyecto\repo`.
+2. **Local (para desarrollo):**
+   - Servir estático desde la raíz del repo: `python -m http.server 8123` (o `npx http-server -p 8123`).
+   - Abrir `http://localhost:8123/index.html`. Los `.glb` y `texturas/` se sirven desde el repo.
+   - Requisitos: Python o Node instalado, carpetas `modelos/` y `texturas/` presentes.
+   - NO hay `server.js` en esta PC (quedó en la otra estación). Para validar sintaxis: extraer los bloques `<script>` de `index.html` y correr `node --check` en cada uno (debe dar OK sin errores).
 
 ---
 
 ## 7. Roadmap / ideas
 
-- Verificar y cerrar feedback de Gabriel sobre flash de impacto + versión (WIP actual).
+- Cerrar el feedback de Gabriel sobre v1.2.3.1 (casa real Nivel 1, texturas, avión, FPS, flash/destrucción).
+- Paleta de colores de la casa con Gabriel (Roadmap Fase 1 visual; no tocar el mapa sin su paleta).
 - Evaluar HP de destructibles si Gabriel insiste en que "todo el objeto queda" (cajas 4-6, lego 10, muebles 3-12 vs daño 1 por bala; hoy se muere de a golpes).
-- Si se pide reproducibilidad: versionar los harness CDP dentro del repo.
+- Si se pide reproducibilidad: versionar los harness CDP dentro del repo (hay que re-crearlos en esta PC).
 - Seguir roadmap del AO según lo que Gabriel priorice (más niveles, más gear mechanics, skills con enchants.js).
 
 ---
@@ -159,8 +160,8 @@ No hay build (sin package.json). Dos formas de jugar:
 - **B5.** No usar internet para copiar código del AO; fuente de verdad = `D:\PatoClon-Proyecto\server` + `referencias/`.
 - **B6.** GitHub Pages tarda 1-2 min en desplegar y el caché del navegador juega en contra: SIEMPRE pedir **Ctrl+F5** tras un push.
 - **B7.** Es UN juego con 4 gears; no asumir proyectos separados.
-- **Paths hardcodeados (crítico para la mudanza de PC):** el harness y el juego referencian `D:\PatoClon-Proyecto\...`. Todo el proyecto quedó consolidado en `D:\PatoClon-Proyecto\` (repo/server/harness). En la PC nueva: copiar esa carpeta completa y, si cambia la letra de disco o la ruta, actualizar los scripts del harness (principalmente `server.js`, `check_syntax.js`, `cdp_*.js`) y esta guía.
-- No hay README ni .gitignore: cuidado con archivos sueltos que puedan inflar el repo (el pack git ya va en 189.61 MiB).
+- **Ubicación (mudanza de PC cerrada el 12/sep/2026):** el proyecto ya NO se trabaja en `D:\PatoClon-Proyecto`. Vive SOLO en la PC personal de Gabriel: `E:\OneDrive - IT PRO\Documentos\Default Project` (raíz del repo). El `server\` (AO real) y `harness\` quedaron en la estación anterior y NO se copiaron acá → no planificar usando harness CDP ni `server.js` en esta PC hasta que se re-extraigan.
+- Hay `.gitignore` (`.crx`, `.pem`, `reporte-iDUHF-claude.md`): cuidado con archivos sueltos que inflen el repo (size-pack actual: 169.66 MiB; repo sin .git ~92 MB).
 
 ---
 
@@ -168,18 +169,18 @@ No hay build (sin package.json). Dos formas de jugar:
 
 Flujo estándar por cada tarea (verificación OBLIGATORIA antes de commit):
 
-1. **Servir local** (si no está corriendo): `node server.js` → `http://localhost:8123/index.html`.
-2. **Sintaxis:** `node check_syntax.js` → debe decir **"Script block 0: OK"**. (Lee `D:\PatoClon-Proyecto\repo\index.html` hardcodeado.)
-3. **Harness CDP (comportamiento):** `node cdp_*.js` según lo que se pruebe (ej. `cdp_fps.js`, `cdp_destru.js`, `cdp_realshot.js`). Buscar **"PAGE_ERRORS[0]"** y los valores esperados del caso. Lanzan Chrome headless por CDP.
+1. **Servir local** (si no está corriendo): `python -m http.server 8123` desde la raíz del repo → `http://localhost:8123/index.html`. (En esta PC no hay `server.js`.)
+2. **Sintaxis:** extraer los bloques `<script>` de `index.html` y correr `node --check` en cada uno → debe decir OK sin errores (reemplaza al viejo `check_syntax.js`).
+3. **Harness CDP:** NO disponible en esta PC (quedó en la otra estación). Fallback: revisión manual/DevTools y confirmación de Gabriel con Ctrl+F5.
 4. **Git:**
    - `git add <archivos>` / `git commit -m "Fix: ..."` (mensajes en ESPAÑOL, estilo `Fix:`, con QUÉ y cómo se verificó).
    - `git push origin main` (rama única `main`).
    - Antes de push: revisar `git status` y `git diff`.
 5. **Peso (regla general, reportar al final de CADA commit):**
-   - Carpeta `D:\PatoClon-Proyecto\repo` total (referencia: ~88.56 MB / 4109 archivos; ningún archivo > 100 MB, repo < 1 GB).
-   - `git count-objects -vH` → `size-pack` (referencia: 189.61 MiB).
-   - Peso individual de los archivos tocados (referencia: `index.html` 0.40 MB, `enchants.js` 0.02 MB, `modelos/*` pesados listados en sección 3).
-6. **Versión:** si el cambio se publica, subir `GAME_VERSION` en `index.html` (línea 1158) y actualizar el `#versionTag` (texto por defecto ~1149). Registrar en `memory/progress.md` con el hash del commit.
+   - Carpeta repo total sin `.git` (referencia: ~92 MB; ningún archivo .glb > 30 MB, repo < 1 GB).
+   - `git count-objects -vH` → `size-pack` (referencia actual: 169.66 MiB).
+   - Peso individual de los archivos tocados (referencia: `index.html` 0.43 MB, `enchants.js` 0.02 MB, `modelos/*` en sección 3).
+6. **Versión:** si el cambio se publica, subir `GAME_VERSION` en `index.html` (~1185) y actualizar el `#versionTag` (div ~1170). Registrar en `memory/progress.md` con el hash del commit.
 7. **Feedback:** avisar a Gabriel que espere "un momento" y haga **Ctrl+F5**. Actualizar `memory/progress.md` y `memory/decisions.md` ANTES y DESPUÉS de trabajar.
 
 **Orden de lectura de memoria:** `memory/blockers.md` (gotchas primero) → `memory/decisions.md` → `memory/progress.md` → el resto según necesidad.
