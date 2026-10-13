@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Presupuesto - ITpro</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; color: #1f2430; margin: 0; padding: 34px 44px; font-size: 12px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1f8f4e; padding-bottom: 14px; margin-bottom: 20px; }
+  .head img { width: 132px; height: auto; }
+  .meta { text-align: right; font-size: 11px; color: #5a6270; line-height: 1.55; }
+  h1 { font-size: 19px; margin: 6px 0 2px; }
+  .lead { color: #5a6270; font-size: 11.5px; margin-bottom: 16px; }
+  h2 { font-size: 14px; margin: 24px 0 8px; padding: 7px 10px; background: #1f8f4e; color: #fff; border-radius: 5px; }
+  h2.alt { background: #146b3a; }
+  h2.grey { background: #eef7f1; color: #1f5c3a; }
+  .sub { color: #5a6270; font-size: 11px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  th { background: #eef7f1; text-align: left; padding: 7px 9px; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: #2c4a3a; border-bottom: 2px solid #cde6d8; }
+  td { padding: 7px 9px; border-bottom: 1px solid #e7ebf3; vertical-align: top; }
+  td.c { text-align: center; white-space: nowrap; color: #5a6270; width: 34px; }
+  .badge { display: inline-block; background: #e8f7ec; color: #1c7a3a; border-radius: 10px; padding: 1px 8px; font-size: 10px; font-weight: 600; }
+  .badge.warn { background: #fdeaea; color: #b3261e; }
+  .totbox { margin-top: 14px; margin-left: auto; width: 340px; border: 2px solid #1f8f4e; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
+  .totbox .row { display: flex; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #e7ebf3; font-size: 12px; }
+  .totbox .row span:last-child { font-weight: 600; }
+  .totbox .row.final { background: #1f8f4e; color: #fff; border-bottom: none; font-size: 15px; font-weight: 700; }
+  .totbox .row.final span:last-child { font-weight: 700; }
+  .note { background: #fff7e6; border-left: 4px solid #f0a020; padding: 10px 12px; border-radius: 4px; font-size: 11px; margin-top: 16px; line-height: 1.55; }
+  ul { margin: 6px 0 0; padding-left: 18px; } li { margin-bottom: 3px; }
+  .foot { margin-top: 28px; border-top: 1px solid #cde6d8; padding-top: 10px; font-size: 10.5px; color: #5a6270; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <img src="__LOGO__" alt="ITpro">
+  <div class="meta">
+    <strong>Fecha:</strong> 13/10/2026<br>
+    <strong>Validez de la oferta:</strong> 10 días<br>
+    <strong>Moneda:</strong> USD / UYU<br>
+    <strong>Entrega:</strong> a coordinar
+  </div>
+</div>
+
+<h1>Presupuesto — Estación de trabajo</h1>
+<div class="lead">Equipo de alto rendimiento para procesos de inteligencia artificial y optimización, sobre Ubuntu Linux.</div>
+
+<h2>Opción A — Recomendada</h2>
+<div class="sub">Configuración principal, balance ideal entre rendimiento de GPU y presupuesto.</div>
+<table>
+  <thead><tr><th class="c">#</th><th>Componente</th><th>Detalle</th></tr></thead>
+  <tbody>
+    <tr><td class="c">1</td><td>Placa de video</td><td>NVIDIA GeForce RTX 5070 Ti · 16 GB GDDR7</td></tr>
+    <tr><td class="c">2</td><td>Procesador</td><td>AMD Ryzen 7 7700 · 8 núcleos · socket AM5</td></tr>
+    <tr><td class="c">3</td><td>Placa madre</td><td>ATX · DDR5 · 4 ranuras de memoria · PCIe x16</td></tr>
+    <tr><td class="c">4</td><td>Memoria RAM</td><td>64 GB DDR5 5600 (2 × 32 GB)</td></tr>
+    <tr><td class="c">5</td><td>Almacenamiento</td><td>SSD NVMe 1 TB (sistema y modelos)</td></tr>
+    <tr><td class="c">6</td><td>Almacenamiento</td><td>Disco rígido 2 TB (audios y datos)</td></tr>
+    <tr><td class="c">7</td><td>Fuente</td><td>850 W · 80 Plus Gold · ATX 3.0</td></tr>
+    <tr><td class="c">8</td><td>Refrigeración</td><td>Disipador de CPU por aire (doble torre)</td></tr>
+    <tr><td class="c">9</td><td>Gabinete</td><td>ATX · frontal mesh · alto flujo de aire</td></tr>
+    <tr><td class="c">10</td><td>UPS</td><td>1500 VA / 900 W</td></tr>
+    <tr><td class="c">11</td><td>Sistema operativo</td><td>Ubuntu Linux (sin costo de licencia)</td></tr>
+  </tbody>
+</table>
+
+<div class="totbox">
+  <div class="row"><span>Subtotal</span><span>USD 4.274,78</span></div>
+  <div class="row"><span>IVA 22%</span><span>USD 940,45</span></div>
+  <div class="row final"><span>Precio final (IVA incl.)</span><span>USD 5.215,23</span></div>
+</div>
+
+<h2 class="alt">Opción B — Alternativa económica</h2>
+<div class="sub">Misma configuración, con placa de video y procesador de gama económica.</div>
+<table>
+  <thead><tr><th class="c">#</th><th>Componente</th><th>Detalle</th></tr></thead>
+  <tbody>
+    <tr><td class="c">1</td><td>Placa de video</td><td>NVIDIA GeForce RTX 5060 Ti · 16 GB GDDR7 <span class="badge warn">sujeto a stock</span></td></tr>
+    <tr><td class="c">2</td><td>Procesador</td><td>Intel Core i5 14ª generación · 10 núcleos · LGA 1700</td></tr>
+    <tr><td class="c">3</td><td>Placa madre</td><td>ATX · DDR5 · 4 ranuras de memoria · PCIe x16</td></tr>
+    <tr><td class="c">4</td><td>Resto de componentes</td><td>Igual que la Opción A (RAM 64 GB DDR5, SSD NVMe 1 TB, disco 2 TB, fuente 850 W Gold, refrigeración por aire, gabinete airflow, UPS 1500 VA, Ubuntu)</td></tr>
+  </tbody>
+</table>
+
+<div class="totbox">
+  <div class="row"><span>Subtotal</span><span>USD 3.016,11</span></div>
+  <div class="row"><span>IVA 22%</span><span>USD 663,54</span></div>
+  <div class="row final"><span>Precio final (IVA incl.)</span><span>USD 3.679,65</span></div>
+</div>
+
+<h2 class="grey">Cumplimiento del pliego</h2>
+<table>
+  <thead><tr><th>Requisito</th><th>Resultado</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td>GPU 16 GB VRAM NVIDIA</td><td>RTX 5070 Ti 16 GB / RTX 5060 Ti 16 GB</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>CPU i5/i7 12ª+ o Ryzen 5/7 7000/9000</td><td>Ryzen 7 7700 / Core i5 14ª</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>RAM 64 GB DDR5 (2×32)</td><td>2 × 32 GB DDR5 5600</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>SSD NVMe 1 TB + 2 TB (audios)</td><td>NVMe 1 TB + disco 2 TB</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>Placa madre PCIe x16 + 4 ranuras RAM</td><td>ATX DDR5</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>Fuente 850 W 80 Plus Gold</td><td>850 W Gold ATX 3.0</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>Refrigeración por aire</td><td>Disipador doble torre</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>Gabinete con buen flujo de aire</td><td>ATX frontal mesh</td><td><span class="badge">Cumple</span></td></tr>
+    <tr><td>UPS 1500 VA adicional</td><td>1500 VA / 900 W</td><td><span class="badge">Cumple</span></td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>Condiciones:</strong>
+  <ul>
+    <li>Precios expresados en <strong>dólares (USD)</strong>; el tipo de cambio de referencia es 1 USD = 41,25 UYU.</li>
+    <li>Precio final <strong>con IVA incluido</strong>. La Opción A equivale aproximadamente a $UY 215.128 y la Opción B a $UY 151.786.</li>
+    <li>La <strong>Opción B está sujeta a disponibilidad</strong> de la placa de video al momento de confirmar.</li>
+    <li>Oferta válida por <strong>10 días</strong> desde la fecha de emisión y sujeta a variación de precios de mercado.</li>
+    <li>No incluye instalación ni licencias de software propietario, salvo acuerdo aparte.</li>
+  </ul>
+</div>
+
+<div class="foot">
+  <strong>ITpro</strong> · Asunción 1278, CP 11800, Montevideo, Uruguay · Tel. (+598) 2924-0669<br>
+  Documento emitido como propuesta comercial. No constituye factura.
+</div>
+
+</body>
+</html>

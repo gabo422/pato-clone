@@ -1,0 +1,104 @@
+swagger: '2.0'
+info:
+  title: ITpro Cotizador - Buscar productos
+  description: >-
+    Busca articulos del catalogo ITpro (proveedores de informatica) y devuelve
+    titulo, SKU, precio en USD sin IVA, stock y proveedor. Pensado para armar
+    presupuestos de equipos (PC/workstation) componente por componente.
+  version: 1.1.0
+host: cotiza.itpro.com.uy
+schemes:
+  - https
+produces:
+  - application/json
+x-ms-openai-manifest:
+  humanName: ITpro Cotizador
+  modelDescription: >-
+    Busca articulos del catalogo de proveedores de ITpro para armar presupuestos
+    de equipos. Devuelve precio (USD sin IVA), stock y proveedor de cada articulo.
+  contactEmail: ''
+  legalUrl: ''
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: query
+    name: apikey
+security:
+  - api_key: []
+paths:
+  /api/search:
+    get:
+      operationId: SearchProduct
+      summary: Buscar articulos por nombre
+      description: >-
+        Busca articulos por nombre y devuelve hasta 50 resultados con titulo,
+        SKU, precio (USD, sin IVA), stock y proveedor. Enviar SIEMPRE
+        providers=true para que cada resultado incluya el campo proveedor.
+        Usar terminos cortos (ej: "gabinete", "RTX 5070 Ti", "DDR5 32GB",
+        "fuente 850W", "mother B650", "UPS 1500").
+      parameters:
+        - name: name
+          in: query
+          description: Termino de busqueda del articulo (corto y especifico).
+          required: true
+          type: string
+          x-ms-visibility: important
+        - name: providers
+          in: query
+          description: Enviar siempre true para incluir el proveedor en cada resultado.
+          required: true
+          type: boolean
+          default: true
+          x-ms-visibility: important
+      responses:
+        '200':
+          description: Resultados de la busqueda.
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              products:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int32
+                    sku:
+                      type: string
+                    title:
+                      type: string
+                      description: Nombre del articulo.
+                    price:
+                      type: number
+                      format: double
+                      description: Precio unitario en USD, sin IVA.
+                    stock:
+                      type: integer
+                      format: int32
+                      description: Unidades disponibles. 0 = sin stock.
+                    currency:
+                      type: string
+                      description: Moneda del precio (USD).
+                    proveedor:
+                      type: string
+                      description: Proveedor del articulo (requiere providers=true).
+                    product_url:
+                      type: string
+                      description: Link publico del articulo.
+        '400':
+          description: Falta el termino de busqueda.
+        '403':
+          description: API key ausente o invalida.
+      x-ms-openai-data:
+        openai-enabled: true
+        operations:
+          - operationId: SearchProduct
+            x-ms-require-user-confirmation: false
+            summary: Buscar articulos por nombre (precio, stock y proveedor).
+            description: >-
+              Busca articulos del catalogo de proveedores de ITpro. Devuelve
+              precio en USD sin IVA, stock y proveedor. Invocar siempre con
+              providers=true.

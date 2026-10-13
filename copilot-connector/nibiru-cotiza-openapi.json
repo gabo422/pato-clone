@@ -1,0 +1,360 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Nibiru Cotiza - cotiza.itpro.com.uy",
+    "description": "API de la tienda Nibiru Ecommerce de IT PRO (cotiza.itpro.com.uy). Lectura de productos, categorias, marcas, monedas y pedidos, y creacion de pedidos/cotizaciones. Autenticacion por API Key en query string (?apikey=...).",
+    "version": "1.0.0"
+  },
+  "host": "cotiza.itpro.com.uy",
+  "basePath": "/",
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "apikey": {
+      "type": "apiKey",
+      "name": "apikey",
+      "in": "query"
+    }
+  },
+  "security": [{ "apikey": [] }],
+  "paths": {
+    "/api/products": {
+      "get": {
+        "operationId": "listProducts",
+        "summary": "Listar productos",
+        "description": "Lista productos paginados del catalogo. Usa after_id para recorrer catalogos grandes o updated_since para traer solo lo que cambio.",
+        "parameters": [
+          { "name": "page", "in": "query", "type": "integer", "required": false, "description": "Pagina (default 1). Ignorado si se envia after_id." },
+          { "name": "after_id", "in": "query", "type": "integer", "required": false, "description": "Devuelve productos con id mayor a este, ordenados por id. Reemplaza a page." },
+          { "name": "limit", "in": "query", "type": "integer", "required": false, "description": "Productos por pagina, de 1 a 100 (default 10)." },
+          { "name": "lang_id", "in": "query", "type": "integer", "required": false, "description": "Idioma para nombres de caracteristicas (default 1)." },
+          { "name": "updated_since", "in": "query", "type": "string", "required": false, "description": "Solo productos modificados desde esa fecha ISO 8601 (ej. 2026-09-24T10:00:00-03:00)." },
+          { "name": "updated_until", "in": "query", "type": "string", "required": false, "description": "Hasta esa fecha. Requiere updated_since." }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array de productos",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Product" } }
+          },
+          "400": { "description": "Parametros invalidos", "schema": { "$ref": "#/definitions/Error" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/product": {
+      "get": {
+        "operationId": "getProduct",
+        "summary": "Obtener producto por ID o SKU",
+        "description": "Trae un producto con detalles, imagenes, variantes y caracteristicas. Requiere id o sku.",
+        "parameters": [
+          { "name": "id", "in": "query", "type": "integer", "required": false, "description": "ID del producto (se requiere id o sku)." },
+          { "name": "sku", "in": "query", "type": "string", "required": false, "description": "SKU exacto del producto (se requiere id o sku)." },
+          { "name": "lang_id", "in": "query", "type": "integer", "required": false, "description": "Idioma (default 1)." }
+        ],
+        "responses": {
+          "200": { "description": "Producto", "schema": { "$ref": "#/definitions/ProductDetail" } },
+          "400": { "description": "Falta id y sku", "schema": { "$ref": "#/definitions/Error" } },
+          "404": { "description": "No encontrado", "schema": { "$ref": "#/definitions/Error" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "searchProducts",
+        "summary": "Buscar productos",
+        "description": "Busca productos por SKU, nombre o ID (al menos uno). Devuelve hasta 50 productos.",
+        "parameters": [
+          { "name": "sku", "in": "query", "type": "string", "required": false, "description": "Texto a buscar en el SKU." },
+          { "name": "name", "in": "query", "type": "string", "required": false, "description": "Texto a buscar en el nombre." },
+          { "name": "id", "in": "query", "type": "integer", "required": false, "description": "ID exacto del producto." },
+          { "name": "lang_id", "in": "query", "type": "integer", "required": false, "description": "Idioma para los textos (default 1)." },
+          { "name": "providers", "in": "query", "type": "string", "required": false, "description": "true/1 para incluir productos de proveedores externos." }
+        ],
+        "responses": {
+          "200": { "description": "Resultados", "schema": { "$ref": "#/definitions/SearchResponse" } },
+          "400": { "description": "Sin criterio de busqueda", "schema": { "$ref": "#/definitions/Error" } },
+          "404": { "description": "Sin resultados", "schema": { "$ref": "#/definitions/Error" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "operationId": "listCategories",
+        "summary": "Listar categorias",
+        "description": "Lista categorias. Sin page devuelve todas; con page pagina de a 10.",
+        "parameters": [
+          { "name": "page", "in": "query", "type": "integer", "required": false, "description": "Si se envia, pagina de a 10." },
+          { "name": "lang_id", "in": "query", "type": "integer", "required": false, "description": "Idioma del campo name." },
+          { "name": "with_names", "in": "query", "type": "integer", "required": false, "description": "1 agrega names con el nombre en todos los idiomas." }
+        ],
+        "responses": {
+          "200": { "description": "Array de categorias", "schema": { "type": "array", "items": { "$ref": "#/definitions/Category" } } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/brands": {
+      "get": {
+        "operationId": "listBrands",
+        "summary": "Listar marcas",
+        "description": "Devuelve todas las marcas con imagen como URL absoluta. Sin parametros de paginacion.",
+        "parameters": [],
+        "responses": {
+          "200": { "description": "Array de marcas", "schema": { "type": "array", "items": { "$ref": "#/definitions/Brand" } } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/currencies": {
+      "get": {
+        "operationId": "listCurrencies",
+        "summary": "Listar monedas y cotizaciones",
+        "description": "Monedas habilitadas de la tienda y su tipo de cambio (USD, UYU, ...).",
+        "parameters": [],
+        "responses": {
+          "200": { "description": "Array de monedas", "schema": { "type": "array", "items": { "$ref": "#/definitions/Currency" } } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "summary": "Listar pedidos",
+        "description": "Pedidos paginados con productos, envio y totales. order_status: 0 en proceso, 1 completado, 2 cancelado.",
+        "parameters": [
+          { "name": "page", "in": "query", "type": "integer", "required": false, "description": "Pagina (default 1)." }
+        ],
+        "responses": {
+          "200": { "description": "Pedidos", "schema": { "$ref": "#/definitions/OrdersResponse" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/order/{id}": {
+      "get": {
+        "operationId": "getOrder",
+        "summary": "Obtener pedido por ID",
+        "description": "Un pedido por su ID numerico.",
+        "parameters": [
+          { "name": "id", "in": "path", "type": "integer", "required": true, "description": "ID numerico del pedido." }
+        ],
+        "responses": {
+          "200": { "description": "Pedido", "schema": { "$ref": "#/definitions/Order" } },
+          "400": { "description": "ID invalido", "schema": { "$ref": "#/definitions/Error" } },
+          "404": { "description": "No encontrado", "schema": { "$ref": "#/definitions/Error" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    },
+    "/api/upload-order": {
+      "post": {
+        "operationId": "createOrder",
+        "summary": "Crear pedido / cotizacion",
+        "description": "Crea un pedido en la tienda. Sirve para registrar una cotizacion armada por el agente. Los importes van en unidades de la moneda con decimales. El apikey puede ir en el body o en la query.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/CreateOrderRequest" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Pedido creado", "schema": { "$ref": "#/definitions/OrderCreatedResponse" } },
+          "400": { "description": "Campos faltantes o invalidos", "schema": { "$ref": "#/definitions/Error" } },
+          "403": { "description": "API Key invalida o sin permiso", "schema": { "$ref": "#/definitions/Error" } },
+          "422": { "description": "Regla de negocio rechazada", "schema": { "$ref": "#/definitions/Error" } }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": { "type": "string", "description": "Mensaje de error" },
+        "message": { "type": "string", "description": "Mensaje adicional" }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "sku": { "type": "string" },
+        "price": { "type": "number", "format": "double", "description": "Precio en unidades de la moneda" },
+        "stock": { "type": "integer" },
+        "product_type": { "type": "string" },
+        "category_id": { "type": "integer" },
+        "visibility": { "type": "integer", "description": "1 visible, 0 oculta" },
+        "is_deleted": { "type": "integer" },
+        "updated_at": { "type": "string" },
+        "changed_at": { "type": "string", "description": "Ultima modificacion (ISO 8601 UTC), incluye variantes" },
+        "combinations": { "type": "array", "items": { "type": "object" } },
+        "custom_fields": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "ProductDetail": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "title": { "type": "string" },
+        "sku": { "type": "string" },
+        "price": { "type": "number", "format": "double" },
+        "stock": { "type": "integer" },
+        "details": { "type": "object" },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "image_path": { "type": "string" },
+              "is_main": { "type": "integer" }
+            }
+          }
+        },
+        "combinations": { "type": "array", "items": { "type": "object" } },
+        "custom_fields": { "type": "array", "items": { "type": "object" } },
+        "product_url": { "type": "string" }
+      }
+    },
+    "SearchResponse": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "title": { "type": "string" },
+              "sku": { "type": "string" },
+              "price": { "type": "number", "format": "double" },
+              "stock": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "Category": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "parent_id": { "type": "integer", "description": "0 = categoria raiz" },
+        "category_order": { "type": "integer" },
+        "visibility": { "type": "integer" },
+        "show_on_main_menu": { "type": "integer" },
+        "image_path": { "type": "string" },
+        "image_url": { "type": "string" },
+        "names": { "type": "object" }
+      }
+    },
+    "Brand": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "title_meta_tag": { "type": "string" },
+        "description": { "type": "string" },
+        "keywords": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "image_path": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "Currency": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "symbol": { "type": "string" },
+        "exchange_rate": { "type": "number", "format": "double" },
+        "status": { "type": "integer" }
+      }
+    },
+    "OrdersResponse": {
+      "type": "object",
+      "properties": {
+        "total_orders": { "type": "integer" },
+        "orders": { "type": "array", "items": { "$ref": "#/definitions/Order" } }
+      }
+    },
+    "Order": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "order_id": { "type": "string" },
+        "order_status": { "type": "integer", "description": "0 en proceso, 1 completado, 2 cancelado" },
+        "payment_method": { "type": "string" },
+        "total_amount": { "type": "number", "format": "double" },
+        "price_currency": { "type": "string" },
+        "order_date": { "type": "string" },
+        "product_details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "product_title": { "type": "string" },
+              "product_quantity": { "type": "integer" },
+              "product_total_price": { "type": "number", "format": "double" }
+            }
+          }
+        },
+        "shipping_details": { "type": "object" },
+        "updated_at": { "type": "string" }
+      }
+    },
+    "CreateOrderRequest": {
+      "type": "object",
+      "required": ["apikey", "payment_method", "products", "total_amount", "currency"],
+      "properties": {
+        "apikey": { "type": "string", "description": "API Key de la tienda" },
+        "payment_method": { "type": "string", "description": "Metodo de pago (ej. PayPal, Cash On Delivery, Cotizacion)" },
+        "products": {
+          "type": "array",
+          "description": "Items del pedido",
+          "items": { "$ref": "#/definitions/OrderItemRequest" }
+        },
+        "total_amount": { "type": "number", "format": "double", "description": "Total del pedido en unidades de la moneda" },
+        "currency": { "type": "string", "description": "Codigo de moneda: USD o UYU" },
+        "buyer_id": { "type": "integer", "description": "ID de usuario (0 = invitado)" },
+        "source": { "type": "string", "description": "Origen del pedido (ej. Copilot, WhatsApp). Max 100 caracteres." },
+        "shipping": {
+          "type": "object",
+          "properties": {
+            "shipping_first_name": { "type": "string" },
+            "shipping_last_name": { "type": "string" },
+            "shipping_address": { "type": "string" },
+            "shipping_city": { "type": "string" },
+            "shipping_country": { "type": "string" },
+            "shipping_email": { "type": "string" },
+            "shipping_phone_number": { "type": "string" }
+          }
+        }
+      }
+    },
+    "OrderItemRequest": {
+      "type": "object",
+      "properties": {
+        "product_id": { "type": "integer", "description": "ID del producto (o usar sku)" },
+        "sku": { "type": "string", "description": "SKU del producto (o usar product_id)" },
+        "quantity": { "type": "integer", "description": "Cantidad (default 1)" }
+      }
+    },
+    "OrderCreatedResponse": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "order_id": { "type": "integer" }
+      }
+    }
+  }
+}

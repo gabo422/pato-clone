@@ -1,0 +1,115 @@
+swagger: '2.0'
+info:
+  title: ITpro Product Search
+  description: Busca artículos, precio, stock y proveedor real para ITpro.
+  version: 1.0.3
+host: cotiza.itpro.com.uy
+schemes:
+  - https
+produces:
+  - application/json
+x-ms-openai-manifest:
+  humanName: ITpro Product Search
+  modelDescription: Busca artículos y sus proveedores para ITpro.
+  contactEmail: ''
+  legalUrl: ''
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: query
+    name: apikey
+security:
+  - api_key: []
+paths:
+  /api/search:
+    get:
+      operationId: SearchProduct
+      summary: Busca artículos por nombre e incluye su proveedor, precio y stock.
+      description: >
+        Devuelve un listado de artículos que coinciden con la búsqueda,
+        incluyendo precio, stock, descripción y el proveedor real de cada
+        producto en el campo "proveedor". El parámetro providers debe enviarse
+        siempre con el valor true; si se omite, los resultados NO incluyen el
+        campo proveedor. Los precios están en USD y sin IVA.
+      parameters:
+        - name: name
+          in: query
+          description: Nombre o término de búsqueda del artículo.
+          required: true
+          type: string
+        - name: providers
+          in: query
+          description: Debe enviarse siempre con el valor true.
+          required: true
+          type: boolean
+          default: true
+          x-ms-visibility: important
+      responses:
+        '200':
+          description: Resultado de la búsqueda.
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              products:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int32
+                    sku:
+                      type: string
+                    slug:
+                      type: string
+                    title:
+                      type: string
+                      description: Nombre del artículo.
+                    description:
+                      type: string
+                    price:
+                      type: number
+                      format: double
+                      description: Precio en USD, sin IVA.
+                    discount_rate:
+                      type: number
+                      format: double
+                    final_price:
+                      type: string
+                      description: Precio final formateado para mostrar.
+                    stock:
+                      type: integer
+                      format: int32
+                      description: Cantidad disponible en stock.
+                    currency:
+                      type: string
+                      description: Moneda del precio (USD).
+                    storage:
+                      type: string
+                    product_url:
+                      type: string
+                    image_url:
+                      type: string
+                    image_small:
+                      type: string
+                    proveedor:
+                      type: string
+                      description: Proveedor real del artículo (solo con providers=true).
+        '400':
+          description: Solicitud inválida o parámetro de búsqueda faltante.
+        '403':
+          description: API key ausente o inválida.
+        '500':
+          description: Error interno del servidor.
+      x-ms-openai-data:
+        openai-enabled: true
+        operations:
+          - operationId: SearchProduct
+            x-ms-require-user-confirmation: false
+            summary: Busca artículos por nombre e incluye su proveedor, precio y stock.
+            description: >
+              Devuelve artículos que coinciden con la búsqueda, incluyendo
+              precio, stock, descripción y el proveedor real. La operación debe
+              invocarse siempre con providers=true. Los precios son en USD sin IVA.
