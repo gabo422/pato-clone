@@ -20,7 +20,7 @@ Cotizador ITpro genere los 3 PDF con el formato oficial (verde ITpro): **Cliente
 | Precio al cliente | `precio = costo × (1 + margen)` |
 | Margen | fracción: `0.21` = 21 %. Cliente nuevo: `0.15` |
 | IVA | `22 %` sobre el subtotal, **al final** |
-| Tipo de cambio de referencia | `1 USD = 41,25 UYU` |
+| Tipo de cambio de referencia | **dólar venta BROU del día** (lo consulta el Cotizador; no lo mandes en el JSON) |
 | Se ofrecen 2 opciones | `A` (recomendada) y `B` (alternativa) |
 | Stock y SKU | **nunca se inventan**: salen de la búsqueda real |
 | Carpetas de salida | `Presupuesto-ITpro-Cliente.pdf`, `-Detalle.pdf`, `-INTERNO.pdf` |
@@ -95,7 +95,6 @@ Cotizador ITpro genere los 3 PDF con el formato oficial (verde ITpro): **Cliente
   ],
   "condiciones": [
     "Precios expresados en USD sin IVA, por unidad. El IVA 22% se aplica sobre el subtotal.",
-    "Tipo de cambio de referencia: 1 USD = 41,25 UYU.",
     "Vigencia de la oferta: 7 días. Disponibilidad sujeta a stock al momento de confirmar el pedido."
   ],
   "notasInternas": [
@@ -158,6 +157,9 @@ nunca los muestra.
 6. Si hay `cumplimiento`: barra gris «Cumplimiento de las especificaciones solicitadas» y tabla
    `Requisito` · `Opción A` · `Opción B` · `Estado` (badge verde; rojo si dice «no cumple», «parcial» o «revisar»).
 7. Si hay `condiciones`: caja amarilla «Condiciones:» con viñetas.
+   El Cotizador **agrega solo**, al final de esa caja, la línea
+   `Tipo de cambio de referencia: 1 USD = 41,75 UYU (BROU venta del 16/11/2026).`
+   Si el JSON ya trae una línea de tipo de cambio, no la duplica.
 
 **Nunca** muestra costo, margen, proveedor, SKU ni stock.
 
@@ -171,7 +173,9 @@ segunda línea dentro de la celda del nombre. Columnas: `#` · `Artículo` · `C
 
 1. Título: **`Confirmación de costos — <titulo>`**.
 2. Etiqueta roja arriba: `USO INTERNO — NO ENVIAR AL CLIENTE`.
-3. Párrafo: `Costos de proveedor, margen y precio de venta. Referencia: 1 USD = 41,25 UYU.`
+3. Párrafo: `Costos de proveedor, margen y precio de venta. Referencia: 1 USD = 41,75 UYU (BROU venta, 16/11/2026).`
+   El número lo pone el Cotizador: consulta el **dólar venta BROU del día** (página oficial; si está
+   caída, una API pública de la misma fuente; si no, el último valor guardado).
 4. Tabla: `#` · `Artículo` · `Proveedor` · `SKU` · `Stock` · `Costo` · `Margen` ·
    `Precio sin IVA` · `Total`.
 5. Caja de totales: `Costo proveedor (sin IVA)` · `Ganancia` (verde) · `Subtotal` · `IVA 22%` ·

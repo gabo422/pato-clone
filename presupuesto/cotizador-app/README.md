@@ -49,6 +49,24 @@ Si el agente externo devuelve el **JSON** del esquema (ver `ESQUEMA-cotizacion.m
 El programa normaliza lo que venga "suelto": `margen: 21` → `0,21`, `"219,50"` → `219.5`,
 `"16/11/2026"` → `2026-11-16`, condiciones en un solo texto → una por línea.
 
+### Tipo de cambio (dólar venta BROU)
+
+Los PDF llevan el **dólar venta del BROU del día**, consultado solo, sin que hagas nada:
+
+1. Página oficial del BROU (`brou.com.uy/cotizaciones`).
+2. Si el BROU no está publicando —pasa seguido, la página dice «Sin cotizaciones disponibles»—
+   una API pública de la misma fuente (`api.cambio-uruguay.com`, serie **BROU mostrador**).
+3. Si tampoco, el último valor bueno guardado en `data\cambio.json`.
+4. Último recurso: `cambio` de `config.json`.
+
+En la pantalla de artículos está el chip **«Dólar BROU venta 41,75 · 16-11»** con botón
+**Refrescar** (se cachea media hora). Si el chip sale en amarillo, el dato no es fresco
+(último guardado o puesto a mano). El número se imprime en el **INTERNO** y como última
+condición del **Cliente**; si el presupuesto ya trae una línea de tipo de cambio, no se duplica.
+
+Para fijarlo a mano (si el BROU está caído y hay que emitir igual): `POST /api/cambio` con
+`{"valor": "41,75"}`. Para volver a automático: `{"auto": true}`.
+
 ---
 
 ## 3. El agente
@@ -147,6 +165,7 @@ cotizador-app/
 │   ├── excel.js           registro en "Gabi Cotizaciones 2026.xlsx"
 │   ├── ps.js              ejecuta los .ps1 existentes (margen, Excel)
 │   ├── quote.js           normaliza JSONs externos (margen 21 → 0,21, fechas, "1.234,56")
+│   ├── brou.js            dólar venta BROU del día (página + API + cache)
 │   └── agent.js           agente con tool calling
 ├── ESQUEMA-cotizacion.md  esquema JSON para agentes externos (subir a Copilot Studio)
 └── public/                la interfaz (HTML/CSS/JS, sin frameworks)
@@ -174,7 +193,8 @@ copiá `config.example.json` a `config.json` y completá los datos.
 | `rutas.salida` | Carpeta raíz de los PDF. |
 | `rutas.excel` | Excel de seguimiento. |
 | `rutas.excelCompras` | Excel de historial (para sugerir margen). |
-| `iva` / `cambio` | 0.22 y 41.25. |
+| `iva` | 0.22 (IVA uruguayo). |
+| `cambio` | Solo de respaldo: si no hay internet usa este valor. El número real es el **dólar venta BROU del día**. |
 | `margenDefault` | 0.15 para clientes nuevos. |
 | `agent.*` | `baseUrl`, `model`, `apiKey` del modelo. |
 

@@ -28,6 +28,24 @@ function fechaLarga(iso) {
   return `${m[3]}/${m[2]}/${m[1]}`;
 }
 
+// Tipo de cambio: 41.75 -> "41,75" (sin los ,00 cuando es redondo)
+function numCambio(v) {
+  return money(v).replace(/,00$/, '');
+}
+
+// Acepta el objeto que devuelve lib/brou.js o un numero suelto.
+function valorCambio(cambio) {
+  const v = cambio && typeof cambio === 'object' ? Number(cambio.valor) : Number(cambio);
+  return v > 0 ? v : 0;
+}
+
+function textoCambio(cambio) {
+  const v = valorCambio(cambio);
+  if (!v) return '';
+  const cuando = cambio && typeof cambio === 'object' && cambio.fecha ? ` (BROU venta del ${fechaLarga(cambio.fecha)})` : '';
+  return `Tipo de cambio de referencia: 1 USD = ${numCambio(v)} UYU${cuando}.`;
+}
+
 // ---------------------------------------------------------------------------
 // Calculos
 // ---------------------------------------------------------------------------
@@ -142,7 +160,7 @@ const leadTexto = (q) =>
 // ---------------------------------------------------------------------------
 // CLIENTE
 // ---------------------------------------------------------------------------
-function docCliente(q, logo, iva) {
+function docCliente(q, logo, iva, cambio) {
   let cuerpo = `<h1>${esc(q.titulo || 'Presupuesto')}</h1>\n<div class="lead">${leadTexto(q)}</div>`;
 
   (q.opciones || []).forEach((op, idx) => {
@@ -189,6 +207,10 @@ function docCliente(q, logo, iva) {
   }
 
   const cond = (q.condiciones || []).filter((c) => String(c).trim());
+  // El tipo de cambio lo pone el cotizador (BROU venta del día), salvo que ya
+  // venga escrito en las condiciones (por ejemplo, un presupuesto viejo).
+  const tc = textoCambio(cambio);
+  if (tc && !cond.some((c) => /tipo de cambio|d[oó]lar.*uyu|1\s*usd/i.test(String(c)))) cond.push(tc);
   if (cond.length) {
     cuerpo += `\n<div class="note">\n  <strong>Condiciones:</strong>\n  <ul>`;
     for (const c of cond) cuerpo += `\n    <li>${esc(c)}</li>`;
@@ -241,8 +263,11 @@ function docDetalle(q, logo, iva) {
 // INTERNO
 // ---------------------------------------------------------------------------
 function docInterno(q, logo, iva, cambio) {
+  const vCambio = valorCambio(cambio);
+  const cuando = cambio && typeof cambio === 'object' && cambio.fecha ? ` (BROU venta, ${fechaLarga(cambio.fecha)})` : '';
+  const ref = vCambio ? ` Referencia: 1 USD = ${numCambio(vCambio)} UYU${cuando}.` : '';
   let cuerpo = `<h1>Confirmación de costos — ${esc(q.titulo || 'Presupuesto')}</h1>
-<div class="lead">Costos de proveedor, margen y precio de venta. Referencia: 1 USD = ${esc(money(cambio).replace(/,00$/, ''))} UYU.</div>`;
+<div class="lead">Costos de proveedor, margen y precio de venta.${ref}</div>`;
 
   (q.opciones || []).forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';

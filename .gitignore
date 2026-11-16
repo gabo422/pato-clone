@@ -1,3 +1,5 @@
 *.crx
 *.pem
 reporte-iDUHF-claude.md
+# cache del dolar BROU (se regenera solo)
+presupuesto/cotizador-app/data/

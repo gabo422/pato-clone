@@ -291,6 +291,7 @@ function enlazar() {
   };
 
   $('#btn-pdf').onclick = generarPdfs;
+  $('#btn-cambio').onclick = () => pintarCambio(true);
   $('#btn-json').onclick = abrirJsonModal;
   $('#btn-cerrar-json').onclick = () => $('#modal-json').classList.add('oculto');
   $('#btn-json-pdf').onclick = jsonAPdf;
@@ -388,6 +389,46 @@ function aviso(texto) {
   $('#salida').innerHTML = `<div class="aviso">${escAttr(texto)}</div>`;
 }
 
+// ------------------------------------------------------------ tipo de cambio --
+// Dólar venta BROU del día. El valor lo pone el servidor (lib/brou.js): primero
+// la página del BROU, si está caída una API pública y, si no, el último guardado.
+function pintarCambioChip(r) {
+  const chip = $('#chip-cambio');
+  if (!chip) return;
+  if (!r || !(r.valor > 0)) {
+    chip.textContent = 'Dólar BROU: sin dato';
+    chip.className = 'chip warn';
+    chip.title = (r && r.detalle) || 'No pude consultar el dólar.';
+    return;
+  }
+  let t = 'Dólar BROU venta ' + money(r.valor);
+  if (r.fecha) t += ' · ' + fechaCorta(r.fecha);
+  if (!r.ok) t += r.fuente === 'manual' ? ' (a mano)' : ' (último guardado)';
+  chip.textContent = t;
+  chip.className = 'chip' + (r.ok ? '' : ' warn');
+  chip.title = (r.detalle || '') + (r.fuente ? ' · fuente: ' + r.fuente : '');
+}
+
+async function pintarCambio(forzar) {
+  const chip = $('#chip-cambio');
+  if (!chip) return;
+  if (forzar) {
+    chip.textContent = 'Consultando el dólar…';
+    chip.className = 'chip';
+  }
+  try {
+    const r = await api('/api/cambio' + (forzar ? '?forzar=1' : ''));
+    pintarCambioChip(r);
+  } catch (e) {
+    pintarCambioChip({ valor: 0, detalle: e.message });
+  }
+}
+
+function lineaCambio(r) {
+  if (!r || !r.cambio || !(r.cambio.valor > 0)) return '';
+  return '\nDólar BROU venta: ' + money(r.cambio.valor) + (r.cambio.fecha ? ' (' + fechaCorta(r.cambio.fecha) + ')' : '');
+}
+
 async function generarPdfs() {
   const btn = $('#btn-pdf');
   btn.disabled = true;
@@ -397,7 +438,7 @@ async function generarPdfs() {
     $('#salida').innerHTML = `
       <div class="resultado">Listo: 3 PDF en
 ${escAttr(r.destino)}
-${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}</div>
+${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}${lineaCambio(r)}</div>
       <div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>`;
     $('#btn-abrir').onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
   } catch (e) {
@@ -453,7 +494,7 @@ function resultadoPdf(r) {
   $('#salida').innerHTML = `
     <div class="resultado">Listo: 3 PDF en
 ${escAttr(r.destino)}
-${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}</div>
+${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}${lineaCambio(r)}</div>
     <div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>`;
   $('#btn-abrir').onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
 }
@@ -603,6 +644,7 @@ async function init() {
   actualizarPill(s.agente);
   pintarTodo();
   enlazar();
+  pintarCambio(false);
 
   try {
     const cfg = await api('/api/agent/status');

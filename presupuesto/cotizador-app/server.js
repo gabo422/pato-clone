@@ -14,6 +14,7 @@ const pdf = require('./lib/pdf');
 const excel = require('./lib/excel');
 const { ps, q, parseSugerido } = require('./lib/ps');
 const agent = require('./lib/agent');
+const makeBrou = require('./lib/brou');
 
 const APP_DIR = __dirname;
 const PUBLIC_DIR = path.join(APP_DIR, 'public');
@@ -37,6 +38,7 @@ function loadConfig() {
 
 let cfg = loadConfig();
 let nibiru = makeClient(cfg.nibiru);
+let brou = makeBrou({ dir: APP_DIR, fallback: cfg.cambio });
 
 function expand(p) {
   return String(p || '').replace(/%USERPROFILE%/gi, os.homedir()).replace(/%TEMP%/gi, os.tmpdir());
@@ -257,6 +259,22 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { logo: logoDataUri() });
     }
 
+    // --- tipo de cambio: dólar venta BROU del día ---
+    if (p === '/api/cambio' && req.method === 'GET') {
+      const forzar = url.searchParams.get('forzar') === '1';
+      return json(res, 200, await brou.obtener({ forzar }));
+    }
+
+    if (p === '/api/cambio' && req.method === 'POST') {
+      // { valor: 41.75 } fija a mano · { auto: true } vuelve a consultar solo
+      const body = await leerCuerpo(req);
+      if (body.auto) {
+        brou.olvidarManual();
+        return json(res, 200, await brou.obtener({ forzar: true }));
+      }
+      return json(res, 200, brou.fijarManual(body.valor));
+    }
+
     if (p === '/api/normalizar' && req.method === 'POST') {
       // Devuelve la cotización "limpia" (números como números, margen como fracción, fecha ISO).
       // Lo usa el botón «Pegar JSON» para cargar en el editor lo que devolvió un agente.
@@ -271,16 +289,17 @@ const server = http.createServer(async (req, res) => {
       const quote = normalizar(body.quote || body.cotizacion || body);
       validarQuote(quote);
       const logo = logoDataUri();
+      const cambio = await brou.obtener();
       const htmls = {
-        cliente: docCliente(quote, logo, cfg.iva),
+        cliente: docCliente(quote, logo, cfg.iva, cambio),
         detalle: docDetalle(quote, logo, cfg.iva),
-        interno: docInterno(quote, logo, cfg.iva, cfg.cambio),
+        interno: docInterno(quote, logo, cfg.iva, cambio),
       };
       if (body.soloHtml) {
-        return json(res, 200, { htmls, iva: cfg.iva });
+        return json(res, 200, { htmls, iva: cfg.iva, cambio });
       }
       const r = await pdf.generarPdfs(quote, cfg, htmls);
-      return json(res, 200, r);
+      return json(res, 200, Object.assign({ cambio }, r));
     }
 
     if (p === '/api/excel' && req.method === 'POST') {
