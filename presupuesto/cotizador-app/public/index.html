@@ -99,6 +99,7 @@
 
     <div class="barra-acciones">
       <button class="primario" id="btn-pdf">Generar los 3 PDF</button>
+      <button class="sec" id="btn-json" title="Pegar el JSON que devuelve Copilot Studio / otro agente">Pegar JSON</button>
       <button class="sec" id="btn-excel">Registrar en Excel</button>
       <label class="fila" style="font-weight:400;font-size:12px;color:var(--gris)">
         <input type="checkbox" id="chk-dry" style="width:auto" checked> solo simular (DryRun)
@@ -151,7 +152,7 @@
 </main>
 
 <!-- Modal de búsqueda -->
-<div id="modal" class="oculto">
+<div id="modal" class="oculto modal">
   <div class="caja">
     <header>
       <h2>Buscar en proveedores</h2>
@@ -163,6 +164,29 @@
     </div>
     <div class="cuerpo" id="modal-resultados"></div>
     <div class="pie" id="modal-pie">Elegí un artículo para agregarlo a la opción activa.</div>
+  </div>
+</div>
+
+<!-- Modal: pegar JSON de otro agente (Copilot Studio) -->
+<div id="modal-json" class="oculto modal">
+  <div class="caja">
+    <header>
+      <h2>Pegar JSON de una cotización</h2>
+      <button class="mini" id="btn-cerrar-json">Cerrar</button>
+    </header>
+    <div class="cuerpo">
+      <div style="font-size:12px;color:var(--gris);line-height:1.5;margin-bottom:8px">
+        Pegá acá lo que devuelve Copilot Studio (sirve con o sin los <code>```json</code> alrededor).
+        El esquema está en <code>ESQUEMA-cotizacion.md</code>.
+      </div>
+      <textarea id="json-texto" placeholder='{ "cliente": "EIGHTROOM", "titulo": "...", "opciones": [ { "letra": "A", "items": [ ... ] } ] }'></textarea>
+      <div class="acciones">
+        <button class="primario" id="btn-json-pdf">Generar los 3 PDF</button>
+        <button class="sec" id="btn-json-editor">Solo cargar en el editor</button>
+      </div>
+      <div id="json-msg"></div>
+    </div>
+    <div class="pie">Los PDF salen en Escritorio\presupuestos opencode\&lt;cliente&gt;\&lt;subcarpeta&gt;\.</div>
   </div>
 </div>
 

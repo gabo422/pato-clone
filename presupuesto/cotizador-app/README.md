@@ -37,6 +37,18 @@ Requisitos: Node.js (ya está instalado en esta PC) y Microsoft Edge (ya está).
 
 Todo se guarda solo en el navegador: si cerrás, al volver tenés la misma cotización.
 
+### Traer una cotización desde otro agente (Copilot Studio, ChatGPT, etc.)
+
+Si el agente externo devuelve el **JSON** del esquema (ver `ESQUEMA-cotizacion.md`):
+
+1. **«Pegar JSON»** (al lado de «Generar los 3 PDF»).
+2. Pegá la respuesta tal cual (aguanta los ```json … ``` y texto alrededor).
+3. **«Generar los 3 PDF»** → salen los mismos 3 PDF del formato oficial.
+   O **«Solo cargar en el editor»** si querés revisar/editar antes.
+
+El programa normaliza lo que venga "suelto": `margen: 21` → `0,21`, `"219,50"` → `219.5`,
+`"16/11/2026"` → `2026-11-16`, condiciones en un solo texto → una por línea.
+
 ---
 
 ## 3. El agente
@@ -134,7 +146,9 @@ cotizador-app/
 │   ├── pdf.js             HTML → PDF con Edge headless
 │   ├── excel.js           registro en "Gabi Cotizaciones 2026.xlsx"
 │   ├── ps.js              ejecuta los .ps1 existentes (margen, Excel)
+│   ├── quote.js           normaliza JSONs externos (margen 21 → 0,21, fechas, "1.234,56")
 │   └── agent.js           agente con tool calling
+├── ESQUEMA-cotizacion.md  esquema JSON para agentes externos (subir a Copilot Studio)
 └── public/                la interfaz (HTML/CSS/JS, sin frameworks)
 ```
 

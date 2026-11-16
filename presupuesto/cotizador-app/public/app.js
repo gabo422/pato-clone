@@ -291,6 +291,10 @@ function enlazar() {
   };
 
   $('#btn-pdf').onclick = generarPdfs;
+  $('#btn-json').onclick = abrirJsonModal;
+  $('#btn-cerrar-json').onclick = () => $('#modal-json').classList.add('oculto');
+  $('#btn-json-pdf').onclick = jsonAPdf;
+  $('#btn-json-editor').onclick = jsonAlEditor;
   $('#btn-excel').onclick = registrarExcel;
   $('#btn-limpiar').onclick = () => {
     if (!confirm('¿Empezar una cotización nueva? Se borra la actual (no los PDF ya generados).')) return;
@@ -416,6 +420,78 @@ ${escAttr(r.salida || '')}</div>
     if (dry) $('#btn-excel-real').onclick = () => { $('#chk-dry').checked = false; registrarExcel(); };
   } catch (e) {
     aviso('No pude registrar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ------------------------------------------------------------- pegar JSON --
+// Acepta la respuesta de un agente (Copilot Studio, ChatGPT, etc.): con o sin ```json
+// alrededor y con texto antes/después. Toma desde la primera { hasta la última }.
+function parsearJSON(texto) {
+  let t = String(texto || '').trim();
+  if (!t) throw new Error('Pegá el JSON primero.');
+  t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  const ini = t.indexOf('{');
+  const fin = t.lastIndexOf('}');
+  if (ini < 0 || fin <= ini) throw new Error('No encuentro un JSON ahí adentro (falta la llave { ).');
+  try {
+    return JSON.parse(t.slice(ini, fin + 1));
+  } catch (e) {
+    throw new Error('El JSON está mal armado: ' + e.message);
+  }
+}
+
+function abrirJsonModal() {
+  $('#json-msg').className = '';
+  $('#json-msg').textContent = '';
+  $('#modal-json').classList.remove('oculto');
+  $('#json-texto').focus();
+}
+
+function resultadoPdf(r) {
+  $('#salida').innerHTML = `
+    <div class="resultado">Listo: 3 PDF en
+${escAttr(r.destino)}
+${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}</div>
+    <div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>`;
+  $('#btn-abrir').onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
+}
+
+async function jsonAlEditor() {
+  const msg = $('#json-msg');
+  msg.className = '';
+  msg.textContent = 'Leyendo…';
+  try {
+    const crudo = parsearJSON($('#json-texto').value);
+    const r = await api('/api/normalizar', { method: 'POST', body: JSON.stringify({ quote: crudo }) });
+    quote = Object.assign(estadoVacio(), r.quote);
+    opcionActiva = (quote.opciones[0] && quote.opciones[0].letra) || 'A';
+    pintarTodo();
+    guardar();
+    $('#modal-json').classList.add('oculto');
+    aviso('Cotización cargada desde el JSON. Revisá los datos y generá los PDF cuando quieras.');
+  } catch (e) {
+    msg.className = 'err';
+    msg.textContent = e.message;
+  }
+}
+
+async function jsonAPdf() {
+  const btn = $('#btn-json-pdf');
+  const msg = $('#json-msg');
+  msg.className = '';
+  msg.textContent = 'Generando los 3 PDF… (Edge tarda unos segundos)';
+  btn.disabled = true;
+  try {
+    const crudo = parsearJSON($('#json-texto').value);
+    const r = await api('/api/pdf', { method: 'POST', body: JSON.stringify({ quote: crudo }) });
+    msg.className = 'ok';
+    msg.textContent = 'Listo. Los 3 PDF están en ' + r.destino;
+    resultadoPdf(r);
+  } catch (e) {
+    msg.className = 'err';
+    msg.textContent = 'No pude generar los PDF: ' + e.message;
   } finally {
     btn.disabled = false;
   }

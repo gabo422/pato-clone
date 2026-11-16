@@ -9,6 +9,7 @@ const { spawn } = require('child_process');
 
 const { makeClient } = require('./lib/nibiru');
 const { docCliente, docDetalle, docInterno } = require('./lib/docs');
+const { normalizar } = require('./lib/quote');
 const pdf = require('./lib/pdf');
 const excel = require('./lib/excel');
 const { ps, q, parseSugerido } = require('./lib/ps');
@@ -256,9 +257,18 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { logo: logoDataUri() });
     }
 
+    if (p === '/api/normalizar' && req.method === 'POST') {
+      // Devuelve la cotización "limpia" (números como números, margen como fracción, fecha ISO).
+      // Lo usa el botón «Pegar JSON» para cargar en el editor lo que devolvió un agente.
+      const body = await leerCuerpo(req);
+      const quote = normalizar(body.quote || body.cotizacion || body);
+      return json(res, 200, { quote });
+    }
+
     if (p === '/api/pdf' && req.method === 'POST') {
       const body = await leerCuerpo(req);
-      const quote = body.quote || {};
+      // normalizar: acepta JSON de un agente (margen 21, "1.234,56", fecha 16/11/2026, etc.)
+      const quote = normalizar(body.quote || body.cotizacion || body);
       validarQuote(quote);
       const logo = logoDataUri();
       const htmls = {
@@ -275,8 +285,9 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/excel' && req.method === 'POST') {
       const body = await leerCuerpo(req);
-      validarQuote(body.quote || {});
-      const r = await excel.registrar(body.quote, cfg, { dryRun: !!body.dryRun });
+      const quote = normalizar(body.quote || body.cotizacion || body);
+      validarQuote(quote);
+      const r = await excel.registrar(quote, cfg, { dryRun: !!body.dryRun });
       return json(res, 200, r);
     }
 
