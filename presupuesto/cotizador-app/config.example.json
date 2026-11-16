@@ -1,0 +1,27 @@
+{
+  "puerto": 8090,
+  "host": "127.0.0.1",
+  "password": "CAMBIAME",
+  "nibiru": {
+    "baseUrl": "https://cotiza.itpro.com.uy",
+    "apiKey": "PONE_ACA_TU_API_KEY",
+    "campoCosto": "price"
+  },
+  "rutas": {
+    "scripts": "..",
+    "logo": "%USERPROFILE%\\Downloads\\itpro-logo.png",
+    "salida": "%USERPROFILE%\\Desktop\\presupuestos opencode",
+    "excel": "%USERPROFILE%\\IT PRO\\Compartido - Documentos\\Gabriel\\Cotizaciones\\Gabi Cotizaciones 2026.xlsx",
+    "excelCompras": "%USERPROFILE%\\IT PRO\\Compartido - Documentos\\00-Compras y Entregas a Realizar - 2026.xlsx",
+    "edge": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+  },
+  "iva": 0.22,
+  "cambio": 41.25,
+  "margenDefault": 0.15,
+  "agent": {
+    "provider": "gemini",
+    "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "model": "gemini-3-flash",
+    "apiKey": ""
+  }
+}

@@ -1,0 +1,4 @@
+# La config real tiene la API key de Nibiru y la contraseña: NO se sube al repo.
+config.json
+node_modules/
+*.log

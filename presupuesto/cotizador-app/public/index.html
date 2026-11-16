@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotizador ITpro</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div id="login" class="oculto">
+  <form class="caja" id="form-login">
+    <img src="/itpro-logo.png" alt="ITpro" style="height:40px;margin-bottom:10px" onerror="this.style.display='none'">
+    <h1>Cotizador</h1>
+    <p>Ingresá la contraseña para continuar</p>
+    <input type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password">
+    <button class="primario" style="width:100%" type="submit">Entrar</button>
+    <div class="err" id="login-err"></div>
+  </form>
+</div>
+
+<header>
+  <img src="/itpro-logo.png" alt="ITpro" onerror="this.style.display='none'">
+  <h1>Cotizador ITpro</h1>
+  <span class="pill off" id="pill-agente">Agente sin configurar</span>
+  <button class="link" id="btn-salir">Salir</button>
+</header>
+
+<main>
+  <div>
+    <!-- Datos generales -->
+    <section class="card">
+      <h2>Datos de la cotización</h2>
+      <div class="grid g4">
+        <div>
+          <label>Cliente</label>
+          <div class="fila">
+            <input id="f-cliente" placeholder="Ej: Eightroom" style="flex:1">
+            <button class="sec mini" id="btn-margen" title="Sugerir margen según historial">Sugerir %</button>
+          </div>
+          <div class="fila" style="margin-top:5px"><span class="chip" id="chip-margen">Margen 15%</span></div>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="f-fecha">
+        </div>
+        <div>
+          <label>Entrega</label>
+          <input id="f-entrega" placeholder="24 a 72 hs">
+        </div>
+        <div>
+          <label>Validez</label>
+          <input id="f-validez" placeholder="7 días">
+        </div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <label>Título del presupuesto</label>
+          <input id="f-titulo" placeholder="Ej: 5 notebooks y 5 mouse inalámbricos">
+        </div>
+        <div class="grid g2">
+          <div>
+            <label>Carpeta de salida</label>
+            <input id="f-subcarpeta" placeholder="presupuesto notebooks 13-11-2026">
+          </div>
+          <div>
+            <label>Introducción para el cliente (opcional)</label>
+            <input id="f-lead" placeholder="Texto que aparece debajo del título">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Opciones -->
+    <section class="card">
+      <h2>Artículos <span class="acc" id="acc-items"></span></h2>
+      <div class="tabs" id="tabs"></div>
+      <div id="tabla-items"></div>
+      <div class="fila" style="margin-top:10px">
+        <button class="sec" id="btn-buscar">+ Buscar en proveedores</button>
+        <button id="btn-manual">+ Ítem manual</button>
+      </div>
+      <div class="totales" id="totales"></div>
+    </section>
+
+    <!-- Cumplimiento -->
+    <section class="card">
+      <h2>Cumplimiento de requisitos <span class="acc"><button class="mini" id="btn-add-req">+ Fila</button></span></h2>
+      <div id="cumplimiento"></div>
+    </section>
+
+    <!-- Textos -->
+    <section class="card">
+      <h2>Condiciones (una por línea)</h2>
+      <textarea id="f-condiciones" rows="5" placeholder="Precios en USD sin IVA..."></textarea>
+      <h2 style="margin-top:14px">Notas internas (una por línea)</h2>
+      <textarea id="f-notas" rows="4" placeholder="Observaciones que solo ves vos"></textarea>
+    </section>
+
+    <div class="barra-acciones">
+      <button class="primario" id="btn-pdf">Generar los 3 PDF</button>
+      <button class="sec" id="btn-excel">Registrar en Excel</button>
+      <label class="fila" style="font-weight:400;font-size:12px;color:var(--gris)">
+        <input type="checkbox" id="chk-dry" style="width:auto" checked> solo simular (DryRun)
+      </label>
+      <button id="btn-limpiar" style="margin-left:auto">Nueva cotización</button>
+    </div>
+    <div id="salida"></div>
+  </div>
+
+  <!-- Agente -->
+  <aside id="agente">
+    <section class="card">
+      <h2>Agente</h2>
+      <div id="aviso-agente" class="aviso oculto">
+        Falta la API key del modelo. Pegala abajo y guardá.
+      </div>
+      <div id="chat">
+        <div class="msgs" id="msgs"></div>
+        <form id="form-chat">
+          <input id="chat-input" placeholder="Ej: cotizame 5 notebooks i5 para Eightroom" autocomplete="off">
+          <button class="primario" type="submit">Enviar</button>
+        </form>
+      </div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--gris)">Configuración del agente</summary>
+        <div class="grid" style="margin-top:8px">
+          <div>
+            <label>API key</label>
+            <input id="cfg-key" type="password" placeholder="sk-...">
+          </div>
+          <div>
+            <label>Modelo</label>
+            <input id="cfg-model" placeholder="gemini-3-flash">
+          </div>
+          <div>
+            <label>URL base (compatible OpenAI)</label>
+            <input id="cfg-url" placeholder="https://.../v1">
+          </div>
+          <button class="sec" id="btn-guardar-cfg">Guardar configuración</button>
+          <div id="cfg-msg" style="font-size:12px;color:var(--verde-osc)"></div>
+        </div>
+      </details>
+    </section>
+  </aside>
+</main>
+
+<!-- Modal de búsqueda -->
+<div id="modal" class="oculto">
+  <div class="caja">
+    <header>
+      <h2>Buscar en proveedores</h2>
+      <button class="mini" id="btn-cerrar-modal">Cerrar</button>
+    </header>
+    <div class="buscador">
+      <input id="modal-q" placeholder="Texto o SKU: notebook i5, mouse inalámbrico, LAT5420..." style="flex:1">
+      <button class="primario" id="btn-modal-buscar">Buscar</button>
+    </div>
+    <div class="cuerpo" id="modal-resultados"></div>
+    <div class="pie" id="modal-pie">Elegí un artículo para agregarlo a la opción activa.</div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
