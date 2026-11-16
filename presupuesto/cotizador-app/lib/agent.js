@@ -21,27 +21,26 @@ CÓMO TRABAJAR
 3. Armá las opciones con agregar_item.
 4. Aplicá el margen (fijar_margen o margen por artículo).
 5. Generá los PDF y ofrecé registrar en el Excel.
+- Si el usuario YA dio todos los datos, hacé todo de corrido: no pidas confirmación de cada paso.
+- Pedí varias herramientas en el mismo turno cuando sean independientes (ej. dos buscar_precio, o dos agregar_item). Ahorra cuota.
+- Cuando ya esté todo cargado y con margen, CERRÁ con un resumen corto (opción, artículos, total con IVA) sin llamar más herramientas. Si el usuario pidió explícitamente no generar PDFs, no los generes.
 
-Respondé en texto plano corto (sin markdown complicado). Si una herramienta falla, explicalo en una línea.`;
+Respondé corto: máximo 10 líneas, sin tablas ni markdown. Si te falta un dato importante, preguntá una sola cosa a la vez. Si el pedido ya se entiende, hacelo directo sin pedir confirmación.`;
 
 const TOOLS = [
   {
     type: 'function',
     function: {
       name: 'buscar_precio',
-      description: 'Busca artículos en el catálogo de proveedores por texto libre (ej: "notebook i5", "mouse inalámbrico"). Devuelve SKU, título, costo, stock y proveedor.',
-      parameters: {
-        type: 'object',
-        properties: { texto: { type: 'string', description: 'Texto a buscar' } },
-        required: ['texto'],
-      },
+      description: 'Busca en el catálogo por texto (ej "notebook i5", "mouse"). Devuelve SKU, título, costo, stock y proveedor.',
+      parameters: { type: 'object', properties: { texto: { type: 'string' } }, required: ['texto'] },
     },
   },
   {
     type: 'function',
     function: {
       name: 'detalle_producto',
-      description: 'Trae el detalle completo de un producto por SKU (nombre real y especificaciones).',
+      description: 'Detalle y especificaciones de un SKU.',
       parameters: { type: 'object', properties: { sku: { type: 'string' } }, required: ['sku'] },
     },
   },
@@ -49,7 +48,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'sugerir_margen',
-      description: 'Devuelve el margen histórico sugerido para un cliente según las ventas anteriores.',
+      description: 'Margen histórico sugerido del cliente.',
       parameters: { type: 'object', properties: { cliente: { type: 'string' } }, required: ['cliente'] },
     },
   },
@@ -57,17 +56,17 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'datos_cotizacion',
-      description: 'Setea los datos generales de la cotización.',
+      description: 'Setea datos generales de la cotización.',
       parameters: {
         type: 'object',
         properties: {
           cliente: { type: 'string' },
-          titulo: { type: 'string', description: 'Título del presupuesto, ej: "5 notebooks y 5 mouse inalámbricos"' },
+          titulo: { type: 'string' },
           fecha: { type: 'string', description: 'AAAA-MM-DD' },
-          subcarpeta: { type: 'string', description: 'Nombre de la carpeta de salida, ej: "presupuesto notebooks 13-11-2026"' },
+          subcarpeta: { type: 'string' },
           entrega: { type: 'string' },
           validez: { type: 'string' },
-          lead: { type: 'string', description: 'Párrafo introductorio para el cliente' },
+          lead: { type: 'string' },
         },
       },
     },
@@ -76,18 +75,18 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'agregar_item',
-      description: 'Agrega un artículo a una opción (A o B).',
+      description: 'Agrega un artículo a la opción A o B.',
       parameters: {
         type: 'object',
         properties: {
-          opcion: { type: 'string', description: 'A o B' },
+          opcion: { type: 'string' },
           sku: { type: 'string' },
           titulo: { type: 'string' },
-          detalle: { type: 'string', description: 'Especificaciones para el cliente' },
+          detalle: { type: 'string' },
           cant: { type: 'integer' },
           costo: { type: 'number' },
-          margen: { type: 'number', description: 'Margen como fracción, ej 0.21' },
-          precio: { type: 'number', description: 'Precio de venta unitario sin IVA (alternativa al margen)' },
+          margen: { type: 'number', description: 'Fracción, ej 0.21' },
+          precio: { type: 'number', description: 'Precio unitario sin IVA (alternativa a margen)' },
           stock: { type: 'integer' },
           proveedor: { type: 'string' },
         },
@@ -99,7 +98,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'actualizar_item',
-      description: 'Cambia un campo de un artículo existente (por opción e índice empezando en 1).',
+      description: 'Cambia un campo de un artículo (índice desde 1).',
       parameters: {
         type: 'object',
         properties: {
@@ -116,7 +115,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'quitar_item',
-      description: 'Elimina un artículo por opción e índice (empezando en 1).',
+      description: 'Elimina un artículo (índice desde 1).',
       parameters: {
         type: 'object',
         properties: { opcion: { type: 'string' }, indice: { type: 'integer' } },
@@ -128,13 +127,10 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'fijar_margen',
-      description: 'Aplica el mismo margen a todos los artículos (de una opción o de todas).',
+      description: 'Aplica el mismo margen a todos los artículos.',
       parameters: {
         type: 'object',
-        properties: {
-          margen: { type: 'number', description: 'Fracción, ej 0.21' },
-          opcion: { type: 'string', description: 'A, B o vacío para todas' },
-        },
+        properties: { margen: { type: 'number', description: 'Fracción, ej 0.21' }, opcion: { type: 'string' } },
         required: ['margen'],
       },
     },
@@ -143,7 +139,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'resumen',
-      description: 'Devuelve la cotización actual con totales calculados. Usalo para verificar antes de generar.',
+      description: 'Cotización actual con totales.',
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -151,7 +147,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'generar_pdfs',
-      description: 'Genera los 3 PDF (cliente, detalle e interno) en el escritorio. Requiere cliente y artículos cargados.',
+      description: 'Genera los 3 PDF en el escritorio.',
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -159,11 +155,8 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'registrar_excel',
-      description: 'Registra la cotización en "Gabi Cotizaciones 2026.xlsx". Empezá con dryRun=true.',
-      parameters: {
-        type: 'object',
-        properties: { dryRun: { type: 'boolean' } },
-      },
+      description: 'Registra en el Excel de Gabi. Empezá con dryRun=true.',
+      parameters: { type: 'object', properties: { dryRun: { type: 'boolean' } } },
     },
   },
 ];
@@ -181,7 +174,39 @@ function opcion(quote, letra) {
   return op;
 }
 
+function recorte(s, n) {
+  const t = String(s == null ? '' : s);
+  return t.length > n ? t.slice(0, n) + '…' : t;
+}
+
 function resumen(quote, iva) {
+  // Versión compacta: se manda al modelo en cada turno, así que cada token cuenta.
+  return {
+    cliente: quote.cliente,
+    titulo: recorte(quote.titulo, 90),
+    fecha: quote.fecha,
+    subcarpeta: quote.subcarpeta,
+    opciones: (quote.opciones || []).map((op) => {
+      const items = (op.items || []).map((it) => ({
+        titulo: recorte(it.titulo, 60),
+        cant: it.cant,
+        costo: it.costo,
+        precio: Math.round(precioItem(it) * 100) / 100,
+        margen: it.costo > 0 ? Math.round((precioItem(it) / it.costo - 1) * 10000) / 100 + '%' : 's/dato',
+      }));
+      const subtotal = items.reduce((a, it) => a + it.precio * (it.cant || 0), 0);
+      return {
+        opcion: op.letra,
+        items,
+        subtotal: Math.round(subtotal * 100) / 100,
+        total: Math.round(subtotal * (1 + iva) * 100) / 100,
+      };
+    }),
+  };
+}
+
+function resumenLargo(quote, iva) {
+  // Versión completa, para la herramienta "resumen" (no se manda sola).
   return {
     cliente: quote.cliente,
     titulo: quote.titulo,
@@ -213,8 +238,13 @@ async function ejecutar(name, args, ctx) {
   switch (name) {
     case 'buscar_precio': {
       const r = await nibiru.buscar(args.texto, 20);
-      return r.slice(0, 20).map((p) => ({
-        sku: p.sku, titulo: p.titulo, costo: p.costo, stock: p.stock, proveedor: p.proveedor,
+      // Sólo 10 resultados: cada uno se reenvía al modelo y consume cuota.
+      return r.slice(0, 10).map((p) => ({
+        sku: p.sku,
+        titulo: recorte(p.titulo, 70),
+        costo: p.costo,
+        stock: p.stock,
+        proveedor: p.proveedor,
       }));
     }
     case 'detalle_producto': {
@@ -222,7 +252,7 @@ async function ejecutar(name, args, ctx) {
       if (!p) return { error: 'SKU no encontrado: ' + args.sku };
       return {
         sku: p.sku, titulo: p.titulo, costo: p.costo, stock: p.stock,
-        proveedor: p.proveedor, descripcion: String(p.descripcion || '').slice(0, 1500),
+        proveedor: p.proveedor, descripcion: recorte(p.descripcion || '', 700),
       };
     }
     case 'sugerir_margen': {
@@ -282,7 +312,7 @@ async function ejecutar(name, args, ctx) {
       return { ok: true, aplicado: n, margen: m };
     }
     case 'resumen':
-      return resumen(quote, iva);
+      return resumenLargo(quote, iva);
     case 'generar_pdfs': {
       if (!quote.cliente) return { error: 'Falta el cliente.' };
       const htmls = {
@@ -302,24 +332,61 @@ async function ejecutar(name, args, ctx) {
   }
 }
 
-async function chat(cfg, messages, tools) {
-  const url = String(cfg.agent.baseUrl).replace(/\/$/, '') + '/chat/completions';
+async function chat(cfg, messages, tools, intento = 1) {
+  const base = String(cfg.agent.baseUrl || '').replace(/\/$/, '');
+  if (!/^https?:\/\//i.test(base)) {
+    throw new Error(
+      'La URL base del agente está mal: "' + base + '". Tiene que ser la dirección de la API, por ejemplo https://api.groq.com/openai/v1'
+    );
+  }
+  const url = base + '/chat/completions';
+  const cuerpo = {
+    model: cfg.agent.model,
+    messages,
+    temperature: 0.2,
+    max_tokens: 1200,
+  };
+  // Sin tools: se usa para el pedido de cierre (que el modelo escriba el resumen final).
+  if (tools && tools.length) {
+    cuerpo.tools = tools;
+    cuerpo.tool_choice = 'auto';
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + cfg.agent.apiKey,
     },
-    body: JSON.stringify({
-      model: cfg.agent.model,
-      messages,
-      tools,
-      tool_choice: 'auto',
-      temperature: 0.2,
-    }),
+    body: JSON.stringify(cuerpo),
   });
   const txt = await res.text();
-  if (!res.ok) throw new Error('Modelo: ' + res.status + ' ' + txt.slice(0, 400));
+  if (!res.ok) {
+    let detalle = txt.slice(0, 300);
+    try {
+      const j = JSON.parse(txt);
+      detalle = (j.error && (j.error.message || j.error.type)) || j.message || detalle;
+    } catch {}
+    if (/model.*(not found|does not exist|decommissioned|invalid)/i.test(detalle)) {
+      throw new Error('El modelo "' + cfg.agent.model + '" no existe en ese proveedor. Probá otro nombre. Detalle: ' + detalle);
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('La API key del agente fue rechazada. Revisala en Configuración del agente. Detalle: ' + detalle);
+    }
+    if (res.status === 429) {
+      // Cuota por minuto: esperamos lo que pide el proveedor (máx. 25 s) y reintentamos una vez.
+      const m = /try again in ([\d.]+)\s*s/i.exec(detalle);
+      const espera = m ? Math.min(Math.ceil(Number(m[1])) + 1, 25) : 0;
+      if (intento <= 2 && espera > 0) {
+        await new Promise((r) => setTimeout(r, espera * 1000));
+        return chat(cfg, messages, tools, intento + 1);
+      }
+      throw new Error(
+        'El proveedor gratis te cortó por límite de tokens por minuto (429). Esperá ~30 segundos y volvé a pedirlo, ' +
+          'o cambiá a un modelo con más cupo. Detalle: ' + detalle
+      );
+    }
+    throw new Error('Modelo: ' + res.status + ' ' + detalle);
+  }
   return JSON.parse(txt);
 }
 
@@ -331,8 +398,11 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
     throw new Error('El agente no está configurado: falta la API key en config.json (agent.apiKey).');
   }
   const messages = [{ role: 'system', content: SYSTEM }];
-  for (const h of (historial || []).slice(-12)) {
-    if (h.rol === 'user' || h.rol === 'assistant') messages.push({ role: h.rol, content: String(h.texto || '').slice(0, 4000) });
+  // Historial corto: con cuotas gratis, mandar 12 mensajes largos revienta el límite por minuto.
+  for (const h of (historial || []).slice(-6)) {
+    if (h.rol === 'user' || h.rol === 'assistant') {
+      messages.push({ role: h.rol, content: recorte(h.texto, 600) });
+    }
   }
   messages.push({
     role: 'user',
@@ -341,7 +411,7 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
   });
 
   const acciones = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     const data = await chat(cfg, messages, TOOLS);
     const msg = data.choices && data.choices[0] && data.choices[0].message;
     if (!msg) throw new Error('Respuesta vacía del modelo.');
@@ -365,11 +435,32 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
       messages.push({
         role: 'tool',
         tool_call_id: call.id,
-        content: JSON.stringify(resultado).slice(0, 6000),
+        content: recorte(JSON.stringify(resultado), 2500),
       });
     }
   }
-  return { mensaje: 'Corté el trabajo para no dar vueltas de más. Revisá la cotización y decime qué ajusto.', quote, acciones };
+
+  // Llegó al tope de iteraciones: pedimos un último turno SIN herramientas para que
+  // cierre con un resumen útil (si no, devolvía "corté el trabajo" y no se entendía nada).
+  let cierre = '';
+  try {
+    messages.push({
+      role: 'user',
+      content:
+        'No uses más herramientas. Escribí el cierre para el usuario: qué quedó cargado en la cotización ' +
+        '(opción, artículos y total con IVA) y qué falta, en 6 líneas como máximo.',
+    });
+    const data = await chat(cfg, messages, null);
+    const msg = data.choices && data.choices[0] && data.choices[0].message;
+    cierre = String((msg && msg.content) || '').trim();
+  } catch {
+    // si el cierre falla (cuota/red), seguimos con el mensaje genérico
+  }
+  return {
+    mensaje: cierre || 'Ya apliqué los cambios en la cotización. Revisala y decime qué ajusto.',
+    quote,
+    acciones,
+  };
 }
 
 module.exports = { correrAgente, TOOLS, SYSTEM, resumen };

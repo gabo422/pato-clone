@@ -131,11 +131,16 @@
           </div>
           <div>
             <label>Modelo</label>
-            <input id="cfg-model" placeholder="gemini-3-flash">
+            <input id="cfg-model" placeholder="openai/gpt-oss-120b">
           </div>
           <div>
             <label>URL base (compatible OpenAI)</label>
-            <input id="cfg-url" placeholder="https://.../v1">
+            <input id="cfg-url" placeholder="https://api.groq.com/openai/v1">
+            <div style="font-size:11px;color:var(--gris);margin-top:3px;line-height:1.45">
+              Groq: <code>https://api.groq.com/openai/v1</code><br>
+              OpenRouter: <code>https://openrouter.ai/api/v1</code><br>
+              Google AI Studio: <code>https://generativelanguage.googleapis.com/v1beta/openai</code>
+            </div>
           </div>
           <button class="sec" id="btn-guardar-cfg">Guardar configuración</button>
           <div id="cfg-msg" style="font-size:12px;color:var(--verde-osc)"></div>

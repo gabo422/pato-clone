@@ -19,9 +19,9 @@
   "cambio": 41.25,
   "margenDefault": 0.15,
   "agent": {
-    "provider": "gemini",
-    "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
-    "model": "gemini-3-flash",
+    "provider": "groq",
+    "baseUrl": "https://api.groq.com/openai/v1",
+    "model": "openai/gpt-oss-120b",
     "apiKey": ""
   }
 }

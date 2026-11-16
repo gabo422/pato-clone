@@ -26,7 +26,7 @@ function loadConfig() {
     console.error('');
     process.exit(1);
   }
-  const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
+  const raw = fs.readFileSync(CONFIG_PATH, 'utf8').replace(/^\uFEFF/, '');
   const cfg = JSON.parse(raw);
   if (!cfg.cookieSecret) {
     cfg.cookieSecret = crypto.createHash('sha256').update('itpro-' + (cfg.password || '') + '-v1').digest('hex');
@@ -55,6 +55,35 @@ function logoDataUri() {
     }
   }
   throw new Error('No encuentro el logo. Poné el archivo en la ruta del config (rutas.logo).');
+}
+
+// Normaliza la URL base del agente. Acepta "console.groq.com" o "api.groq.com"
+// y devuelve la URL real de la API (compatible OpenAI).
+function normalizarBaseUrl(u) {
+  let s = String(u || '').trim();
+  if (!s) return '';
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  s = s.replace(/\/+$/, '');
+  if (/^https?:\/\/(console|www)\.groq\.com$/i.test(s) || /^https?:\/\/groq\.com$/i.test(s)) {
+    return 'https://api.groq.com/openai/v1';
+  }
+  if (/^https?:\/\/api\.groq\.com$/i.test(s)) return 'https://api.groq.com/openai/v1';
+  if (/^https?:\/\/openrouter\.ai$/i.test(s) || /^https?:\/\/openrouter\.ai\/api$/i.test(s)) {
+    return 'https://openrouter.ai/api/v1';
+  }
+  if (/^https?:\/\/aistudio\.google\.com$/i.test(s)) {
+    return 'https://generativelanguage.googleapis.com/v1beta/openai';
+  }
+  return s;
+}
+
+function validarUrl(s) {
+  try {
+    const u = new URL(s);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------- auth -----
@@ -266,6 +295,7 @@ const server = http.createServer(async (req, res) => {
         activo: !!(cfg.agent && cfg.agent.apiKey),
         modelo: cfg.agent ? cfg.agent.model : null,
         proveedor: cfg.agent ? cfg.agent.provider : null,
+        baseUrl: cfg.agent ? cfg.agent.baseUrl : null,
       });
     }
 
@@ -293,13 +323,28 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/config' && req.method === 'POST') {
-      // permite cambiar contraseña / key del agente desde la UI
       const body = await leerCuerpo(req);
       const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-      if (body.password) raw.password = String(body.password);
-      if (body.agentApiKey != null) raw.agent.apiKey = String(body.agentApiKey);
-      if (body.agentModel) raw.agent.model = String(body.agentModel);
-      if (body.agentBaseUrl) raw.agent.baseUrl = String(body.agentBaseUrl);
+      raw.agent = raw.agent || {};
+      if (body.password) {
+        if (String(body.password).length < 4) return json(res, 400, { error: 'La contraseña tiene que tener al menos 4 caracteres.' });
+        raw.password = String(body.password);
+      }
+      // OJO: un campo vacío NO borra lo que ya está guardado (el input de la key
+      // siempre aparece vacío por seguridad). Para borrar la key: agentClearApiKey.
+      if (body.agentClearApiKey) raw.agent.apiKey = '';
+      else if (String(body.agentApiKey || '').trim()) raw.agent.apiKey = String(body.agentApiKey).trim();
+      else if (!String(raw.agent.apiKey || '').trim()) raw.agent.apiKey = '';
+      if (String(body.agentModel || '').trim()) raw.agent.model = String(body.agentModel).trim();
+      if (body.agentBaseUrl) {
+        const u = normalizarBaseUrl(body.agentBaseUrl);
+        if (!validarUrl(u)) {
+          return json(res, 400, {
+            error: 'La URL base no es válida: "' + body.agentBaseUrl + '". Tiene que ser una dirección como https://api.groq.com/openai/v1',
+          });
+        }
+        raw.agent.baseUrl = u;
+      }
       if (body.host) raw.host = String(body.host);
       fs.writeFileSync(CONFIG_PATH, JSON.stringify(raw, null, 2), 'utf8');
       cfg = loadConfig();
@@ -310,6 +355,7 @@ const server = http.createServer(async (req, res) => {
         password: !!cfg.password,
         agente: !!(cfg.agent && cfg.agent.apiKey),
         modelo: cfg.agent.model,
+        baseUrl: cfg.agent.baseUrl,
       });
     }
 

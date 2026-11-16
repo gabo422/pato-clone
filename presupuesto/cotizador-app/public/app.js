@@ -422,10 +422,20 @@ ${escAttr(r.salida || '')}</div>
 }
 
 // -------------------------------------------------------------------- chat --
+function textoConFormato(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
 function pintarMensaje(tipo, texto, extra) {
   const div = document.createElement('div');
   div.className = 'm ' + tipo;
-  div.textContent = texto;
+  if (tipo === 'bot') div.innerHTML = textoConFormato(texto);
+  else div.textContent = texto;
   if (extra) {
     const s = document.createElement('span');
     s.className = 'acc';
@@ -471,16 +481,23 @@ async function enviarChat() {
 async function guardarCfg() {
   const msg = $('#cfg-msg');
   msg.textContent = 'Guardando…';
+  const payload = {};
+  const key = $('#cfg-key').value.trim();
+  const modelo = $('#cfg-model').value.trim();
+  const url = $('#cfg-url').value.trim();
+  if (key) payload.agentApiKey = key;
+  if (modelo) payload.agentModel = modelo;
+  if (url) payload.agentBaseUrl = url;
+  if (!Object.keys(payload).length) {
+    msg.textContent = 'No cambiaste nada.';
+    return;
+  }
   try {
-    const r = await api('/api/config', {
-      method: 'POST',
-      body: JSON.stringify({
-        agentApiKey: $('#cfg-key').value.trim(),
-        agentModel: $('#cfg-model').value.trim(),
-        agentBaseUrl: $('#cfg-url').value.trim(),
-      }),
-    });
-    msg.textContent = r.agente ? 'Guardado. Agente activo con ' + r.modelo : 'Guardado (sin key).';
+    const r = await api('/api/config', { method: 'POST', body: JSON.stringify(payload) });
+    msg.textContent = (r.agente ? 'Guardado. Agente activo con ' + r.modelo : 'Guardado (sin key).') +
+      (r.baseUrl ? ' · ' + r.baseUrl : '');
+    if (r.modelo) $('#cfg-model').value = r.modelo;
+    if (r.baseUrl) $('#cfg-url').value = r.baseUrl;
     actualizarPill(r.agente);
     $('#cfg-key').value = '';
   } catch (e) {
@@ -514,6 +531,7 @@ async function init() {
   try {
     const cfg = await api('/api/agent/status');
     if (cfg.modelo) $('#cfg-model').value = cfg.modelo;
+    if (cfg.baseUrl) $('#cfg-url').value = cfg.baseUrl;
   } catch {}
 
   pintarMensaje('bot', 'Hola. Puedo buscar precios, armar las opciones A/B, calcular márgenes y generar los 3 PDF.\n\nEjemplo: "Cotizá 5 notebooks i5 con 16 GB y 5 mouse para Eightroom, margen 21%".');

@@ -51,7 +51,7 @@ aplicar márgenes, generar los PDF y registrar en el Excel. No tiene acceso a na
    - **Groq** (`console.groq.com` → API Keys): **gratis, sin tarjeta**, ~1.000 pedidos por día.
      Es la que mejor anda para el agente porque los modelos soportan *tool calling* (que es lo que
      necesita para buscar precios y armar la cotización). URL base: `https://api.groq.com/openai/v1`
-     Modelo: `llama-3.3-70b-versatile`.
+     Modelo: `openai/gpt-oss-120b` (probado, anda bien).
    - **OpenRouter** (`openrouter.ai` → Keys): **gratis, sin tarjeta**, 20 pedidos/minuto y 50 por día
      con los modelos que terminan en `:free` (sube a 1.000/día si alguna vez cargás USD 10).
      URL base: `https://openrouter.ai/api/v1`. Modelo: `openai/gpt-oss-120b:free` o `openrouter/free`.
