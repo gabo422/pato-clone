@@ -229,23 +229,10 @@ main.sin-agente { grid-template-columns: minmax(0, 1fr); }
 body.compartido .solo-local { display: none; }
 body:not(.compartido) .solo-compartido { display: none; }
 
-/* --------------------------------------------------- completar con IA -- */
-#modal-ia .caja { width: 720px; }
-.ia-cuerpo { padding: 14px 20px 18px; }
-#ia-texto { min-height: 74px; font-size: 13px; }
-#ia-resp {
-  margin-top: 12px; max-height: 300px; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 8px;
+/* --------------------------------------------------- chat del agente -- */
+/* En el servidor de la red el chat es el panel de la derecha (mismo que en la PC). */
+#agente .nota.solo-compartido {
+  font-size: 11.5px; line-height: 1.5; padding: 8px 10px;
+  background: #f2f7f4; border: 1px solid #dfeae4; border-radius: 8px; color: #44504a;
 }
-#ia-resp:empty { display: none; }
-#ia-resp .m {
-  padding: 9px 12px; border-radius: 10px; font-size: 12.8px; line-height: 1.5;
-  white-space: pre-wrap; max-width: 96%;
-}
-#ia-resp .m.user { align-self: flex-end; background: var(--verde); color: #fff; }
-#ia-resp .m.bot { align-self: flex-start; background: #f2f5f3; border: 1px solid #e3eae6; }
-#ia-resp .m.err { align-self: flex-start; background: #fdeaea; color: #7a1f1f; }
-#ia-resp .m code { background: #e8f2ec; border-radius: 4px; padding: 0 4px; font-family: Consolas, monospace; font-size: 11.5px; }
-#ia-resp .m.user code { background: rgba(255,255,255,.22); color: #fff; }
-#ia-resp .m .acc { display: block; margin-top: 5px; font-size: 11px; color: var(--verde-osc); }
 @media (max-width: 720px) { .pdfs { grid-template-columns: 1fr; } }

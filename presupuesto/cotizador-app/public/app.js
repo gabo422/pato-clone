@@ -42,7 +42,6 @@ const IVA = 0.22;
 let margenSugerido = 0.15;
 let opcionActiva = 'A';
 let historialChat = [];
-let historialIA = [];
 // Modo compartido: la app corre en un servidor de la red. Se oculta todo lo
 // que depende de Windows/PowerShell (agente, Excel, sugerir margen).
 let MODO = { compartido: false, so: '' };
@@ -326,25 +325,6 @@ function enlazar() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#modal-ayuda').classList.contains('oculto')) cerrarAyuda();
   });
-
-  // completar con IA (servidor de la red)
-  $('#btn-ia').onclick = abrirIA;
-  $('#btn-cerrar-ia').onclick = cerrarIA;
-  $('#btn-ia-enviar').onclick = enviarIA;
-  $('#modal-ia').onclick = (e) => { if (e.target.id === 'modal-ia') cerrarIA(); };
-  $('#ia-texto').onkeydown = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviarIA(); }
-  };
-  $('#btn-ia-nueva').onclick = () => {
-    if (!confirm('¿Empezar de cero? Se borra lo que cargó la IA y lo que escribiste.')) return;
-    quote = estadoVacio();
-    historialIA = [];
-    $('#ia-resp').innerHTML = '';
-    $('#ia-texto').value = '';
-    $('#ia-estado').textContent = '';
-    pintarTodo(); guardar();
-    $('#ia-texto').focus();
-  };
 }
 
 function enlazarLogin() {
@@ -390,59 +370,8 @@ function cerrarAyuda() {
 }
 
 // --------------------------------------------------------- completar con IA --
-// En el servidor de la red no hay panel lateral: la IA se abre en una ventana.
-function abrirIA() {
-  $('#modal-ia').classList.remove('oculto');
-  $('#ia-texto').focus();
-}
-
-function cerrarIA() {
-  $('#modal-ia').classList.add('oculto');
-}
-
-function agregarRespIA(tipo, texto, extra) {
-  const div = document.createElement('div');
-  div.className = 'm ' + tipo;
-  if (tipo === 'bot') div.innerHTML = textoConFormato(texto);
-  else div.textContent = texto;
-  if (extra) {
-    const s = document.createElement('span');
-    s.className = 'acc';
-    s.textContent = extra;
-    div.appendChild(s);
-  }
-  $('#ia-resp').appendChild(div);
-  $('#ia-resp').scrollTop = $('#ia-resp').scrollHeight;
-}
-
-async function enviarIA() {
-  const inp = $('#ia-texto');
-  const texto = inp.value.trim();
-  if (!texto) return;
-  const btn = $('#btn-ia-enviar');
-  btn.disabled = true;
-  $('#ia-estado').textContent = 'Pensando… puede tardar unos segundos';
-  agregarRespIA('user', texto);
-  historialIA.push({ rol: 'user', texto });
-  try {
-    const r = await api('/api/agent', {
-      method: 'POST',
-      body: JSON.stringify({ quote, historial: historialIA, mensaje: texto }),
-    });
-    historialIA.push({ rol: 'assistant', texto: r.mensaje || '' });
-    const acciones = (r.acciones || []).map((a) => a.herramienta).join(' · ');
-    agregarRespIA('bot', r.mensaje || '(sin respuesta)', acciones ? 'Acciones: ' + acciones : '');
-    if (r.quote) fusionarQuote(r.quote);
-    inp.value = '';
-    $('#ia-estado').textContent = 'Cotización actualizada ✓';
-  } catch (e) {
-    agregarRespIA('err', e.message);
-    $('#ia-estado').textContent = '';
-  } finally {
-    btn.disabled = false;
-  }
-}
-
+// En el servidor de la red el chat es el mismo panel de la derecha; el servidor
+// se encarga de que no genere PDF ni toque Excel (ver lib/agent.js).
 function fusionarQuote(nuevo) {
   if (!nuevo || typeof nuevo !== 'object') return;
   quote = Object.assign(estadoVacio(), nuevo);
@@ -768,25 +697,28 @@ function actualizarPill(activo) {
   pill.textContent = activo ? 'Agente activo' : 'Agente sin configurar';
   pill.className = 'pill' + (activo ? '' : ' off');
   $('#aviso-agente').classList.toggle('oculto', !!activo);
+  if (!activo && MODO.compartido) {
+    $('#aviso-agente').textContent = 'La IA no está configurada en este servidor. Avisale a Gabriel.';
+  }
 }
 
 // En el servidor de la red no hay PowerShell, ni Excel, ni escritorio: se
 // esconden esas cosas para que nadie se choque con un error. Queda lo que
-// necesitan los compañeros: buscar precios, armar A/B y bajar los 3 PDF.
+// necesitan los compañeros: el chat de la derecha, buscar precios, armar A/B
+// y bajar los 3 PDF.
 function aplicarModo() {
   if (!MODO.compartido) return;
   document.body.classList.add('compartido');
-  $('#agente').classList.add('oculto');
-  document.querySelector('main').classList.add('sin-agente');
-  $('#pill-agente').classList.add('oculto');
+  // El chat (panel de la derecha) SÍ queda: la IA está configurada en el servidor.
+  // Lo que se oculta es la configuración de la clave, que la maneja Gabriel.
+  const cfgAgente = $('#cfg-agente');
+  if (cfgAgente) cfgAgente.classList.add('oculto');
   $('#btn-excel').classList.add('oculto');
   const dry = $('#chk-dry');
   if (dry && dry.closest('label')) dry.closest('label').classList.add('oculto');
   $('#btn-margen').classList.add('oculto');
   const lbl = $('#lbl-subcarpeta');
   if (lbl) lbl.textContent = 'Nombre de la carpeta';
-  const bIA = $('#btn-ia');
-  if (bIA) bIA.classList.remove('oculto');
   const pie = $('#pie-json');
   if (pie) pie.textContent = 'Los PDF se descargan a tu PC con los botones que aparecen al terminar.';
 }
@@ -803,8 +735,8 @@ async function init() {
   if (!s.auth) { mostrarLogin(); $('#login-pass').focus(); return; }
   $('#login').classList.add('oculto');
 
-  actualizarPill(s.agente);
   MODO = { compartido: !!s.compartido, so: s.so || '' };
+  actualizarPill(s.agente);
   pintarTodo();
   enlazar();
   aplicarModo();
@@ -817,7 +749,12 @@ async function init() {
     if (cfg.baseUrl) $('#cfg-url').value = cfg.baseUrl;
   } catch {}
 
-  pintarMensaje('bot', 'Hola. Puedo buscar precios, armar las opciones A/B, calcular márgenes y generar los 3 PDF.\n\nEjemplo: "Cotizá 5 notebooks i5 con 16 GB y 5 mouse para Eightroom, margen 21%".');
+  pintarMensaje(
+    'bot',
+    MODO.compartido
+      ? 'Hola. Decime qué pidió el cliente y te armo la cotización: busco los precios, completo los datos y dejo las opciones A/B listas. Después tocás «Generar los 3 PDF».\n\nEjemplo: "Cotizá 5 notebooks i5 con 16 GB y 5 mouse para Eightroom".'
+      : 'Hola. Puedo buscar precios, armar las opciones A/B, calcular márgenes y generar los 3 PDF.\n\nEjemplo: "Cotizá 5 notebooks i5 con 16 GB y 5 mouse para Eightroom, margen 21%".'
+  );
   window.addEventListener('beforeunload', guardar);
   if (quoteOriginal !== JSON.stringify(quote)) guardar();
 }

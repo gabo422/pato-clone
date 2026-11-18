@@ -469,6 +469,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/config' && req.method === 'POST') {
+      // En el servidor de la red la configuración (API key, contraseña) la maneja
+      // Gabriel desde el archivo; un compañero no puede cambiarla.
+      if (esCompartido()) {
+        return json(res, 400, { error: 'En el servidor compartido la configuración la maneja el administrador.' });
+      }
       const body = await leerCuerpo(req);
       const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
       raw.agent = raw.agent || {};

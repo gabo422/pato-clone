@@ -84,19 +84,24 @@ En el mini PC la app arranca en **modo compartido** (`"compartido": true` en
 `config.json`, o la variable `COTI_COMPARTIDO=1` del servicio). En ese modo se
 esconden solos:
 
-- El panel lateral del **Agente** (en su lugar aparece el botón **«✨ Completar con IA»**).
 - **Registrar en Excel** (necesita PowerShell + tu Excel de SharePoint).
 - **Sugerir %** de margen (idem).
 - **Abrir carpeta** (el servidor no tiene escritorio).
+- La **configuración del agente** (la API key la manejás vos desde el servidor).
 
-Queda lo que necesitan los compañeros: buscar precios, armar A/B, poner el margen
-a mano y **bajar los 3 PDF**.
+**El panel del Agente (la columna de la derecha) queda visible para todos**: ahí
+escriben el pedido en castellano y la IA busca precios, completa los datos y arma
+las opciones A/B.
+
+Queda lo que necesitan los compañeros: el chat de la derecha, buscar precios, armar
+A/B, poner el margen a mano y **bajar los 3 PDF**.
 
 ### La IA del servidor
 
-El botón **«✨ Completar con IA»** funciona para **todo el equipo** con **una sola
-clave** (`agent.apiKey` en `/opt/cotizador/config.json`). Busca precios, completa los
-datos y arma las opciones A/B; los PDF los genera el botón de siempre.
+El panel **Agente** funciona para **todo el equipo** con **una sola clave**
+(`agent.apiKey` en `/opt/cotizador/config.json`). Busca precios, completa los datos y
+arma las opciones A/B; los PDF los genera el botón de siempre (el agente no puede
+generarlos ni tocar el Excel en el servidor).
 
 Para no quedarse sin cuota, hay un **tope por IP y por día**:
 

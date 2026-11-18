@@ -132,23 +132,25 @@ generación en ese equipo. Los datos de acceso al servidor están en
 `CREDENCIALES-NAS.txt` (local, no se sube al repo).
 
 En ese servidor la app arranca en **modo compartido** (`"compartido": true` en
-`config.json`, o la variable `COTI_COMPARTIDO=1` del servicio): se esconden el panel del
-agente, «Registrar en Excel», «Sugerir %» y «Abrir carpeta», porque dependen de
-Windows/PowerShell. Queda lo que necesitan los compañeros: buscar precios, armar A/B,
-poner el margen a mano y **bajar los 3 PDF**.
+`config.json`, o la variable `COTI_COMPARTIDO=1` del servicio): se esconden
+«Registrar en Excel», «Sugerir %», «Abrir carpeta» y la configuración de la API key,
+porque dependen de Windows/PowerShell o son del administrador. **El panel del agente
+(la columna de la derecha) queda visible para todos.**
 
-### Completar con IA en el servidor
+### El chat del agente en el servidor
 
-Arriba a la derecha está el botón **«✨ Completar con IA»**. Se escribe el pedido con
-palabras normales («5 notebooks i5 y 5 mouse para Eightroom, entrega 48 hs») y la IA:
+A la derecha de la pantalla está el panel **Agente**, igual que en la PC de Gabriel.
+Se le escribe el pedido con palabras normales («5 notebooks i5 y 5 mouse para
+Eightroom, entrega 48 hs») y:
 
 1. busca los precios reales en Nibiru (no inventa nada),
 2. completa cliente, título y condiciones,
 3. arma la **opción A** (recomendada) y la **opción B** (alternativa),
 4. deja el margen en **15%** (cliente nuevo) y avisa para tocar «Generar los 3 PDF».
 
-**Revisá siempre lo que cargó antes de generar.** Si no sirve, «Empezar de cero» limpia
-todo. Los PDF los genera el botón de siempre, no la IA.
+**Revisá siempre lo que cargó antes de generar.** Los PDF los genera el botón de
+siempre, no el chat (en el servidor el agente no tiene la herramienta de PDF ni la de
+Excel).
 
 La IA usa **una sola clave para todo el equipo** (`agent.apiKey` en
 `/opt/cotizador/config.json`). Para que no se queme la cuota del plan gratis hay un
@@ -158,8 +160,8 @@ La IA usa **una sola clave para todo el equipo** (`agent.apiKey` en
 COTI_IA_DIA=40        # pedidos por IP por día (por defecto 40)
 ```
 
-Al pasarse, la app responde «llegaste al tope de IA por hoy» y se puede seguir cargando
-a mano. El contador se renueva solo a medianoche.
+Al pasarse, el chat responde «llegaste al tope de IA por hoy» y se puede seguir
+cargando a mano. El contador se renueva solo a medianoche.
 
 > El plan gratis de Groq permite **8.000 tokens por minuto** por modelo. Por eso el
 > agente pide `reasoning_effort: low` y devuelve 6 resultados por búsqueda: así una
@@ -289,7 +291,7 @@ copiá `config.example.json` a `config.json` y completá los datos.
 | `iva` | 0.22 (IVA uruguayo). |
 | `cambio` | Solo de respaldo: si no hay internet usa este valor. El número real es el **dólar venta BROU del día**. |
 | `margenDefault` | 0.15 para clientes nuevos. |
-| `compartido` | `true` = servidor de la red: esconde el panel del agente, Excel, «Sugerir %» y «Abrir carpeta»; en su lugar aparece **«✨ Completar con IA»**. |
+| `compartido` | `true` = servidor de la red: esconde Excel, «Sugerir %», «Abrir carpeta» y la configuración de la API key. **El chat del agente queda visible.** |
 | `retenerDias` | Días que se guardan los PDF en el servidor (30). `0` = no borra nunca. |
 | `pdfParalelo` | Cuántos PDF se generan a la vez (3). Bajalo a 1 si el servidor tiene poca RAM. |
 | `agent.*` | `baseUrl`, `model`, `apiKey` del modelo. En el servidor es **la única clave para todo el equipo**. |
