@@ -40,6 +40,16 @@ let cfg = loadConfig();
 let nibiru = makeClient(cfg.nibiru);
 let brou = makeBrou({ dir: APP_DIR, fallback: cfg.cambio });
 
+// Modo compartido: la app corre en un servidor de la red y la usan varias
+// personas. Oculta lo que depende de Windows/PowerShell (agente, Excel,
+// sugerir margen, abrir carpeta) y deja solo buscar precios y bajar los PDF.
+function esCompartido() {
+  const env = process.env.COTI_COMPARTIDO;
+  if (env === '1') return true;
+  if (env === '0') return false;
+  return !!cfg.compartido;
+}
+
 function expand(p) {
   return String(p || '').replace(/%USERPROFILE%/gi, os.homedir()).replace(/%TEMP%/gi, os.tmpdir());
 }
@@ -195,6 +205,43 @@ function validarQuote(quote) {
   }
 }
 
+// --------------------------------------------------- descarga de PDFs -----
+// Los PDF se generan en el disco del servidor. Para que cada persona se los
+// baje a SU PC se entrega un enlace con token por cada generacion (vale 2 h).
+const DESCARGA_TTL_MS = 2 * 3600 * 1000;
+const descargas = new Map();
+
+function recordarDescarga(archivos) {
+  const ahora = Date.now();
+  for (const [k, v] of descargas) if (v.exp < ahora) descargas.delete(k);
+  const token = crypto.randomBytes(16).toString('hex');
+  descargas.set(token, { exp: ahora + DESCARGA_TTL_MS, archivos });
+  return token;
+}
+
+function servirDescarga(res, token, indice, inline) {
+  const reg = descargas.get(token);
+  if (!reg || reg.exp < Date.now()) {
+    descargas.delete(token);
+    return json(res, 410, { error: 'El enlace de descarga venció. Generá los PDF de nuevo.' });
+  }
+  const a = reg.archivos[indice];
+  if (!a) return json(res, 404, { error: 'No existe ese PDF' });
+  fs.readFile(a.path, (err, buf) => {
+    if (err) return json(res, 404, { error: 'El PDF ya no está en el servidor. Generá los PDF de nuevo.' });
+    const nombre = `Presupuesto-ITpro-${a.tipo}.pdf`;
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Length': buf.length,
+      'Content-Disposition':
+        (inline ? 'inline' : 'attachment') +
+        `; filename="${nombre}"; filename*=UTF-8''${encodeURIComponent(nombre)}`,
+      'Cache-Control': 'no-store',
+    });
+    res.end(buf);
+  });
+}
+
 // --------------------------------------------------------------- rutas -----
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://' + (req.headers.host || 'localhost'));
@@ -222,7 +269,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/session' && req.method === 'GET') {
-      return json(res, 200, { auth: autorizado(req), requierePassword: !!cfg.password, agente: !!(cfg.agent && cfg.agent.apiKey) });
+      return json(res, 200, {
+        auth: autorizado(req),
+        requierePassword: !!cfg.password,
+        agente: !!(cfg.agent && cfg.agent.apiKey),
+        compartido: esCompartido(),
+        so: process.platform,
+      });
     }
 
     if (p === '/api/logout' && req.method === 'POST') {
@@ -236,7 +289,16 @@ const server = http.createServer(async (req, res) => {
       if (!autorizado(req)) return json(res, 401, { error: 'Sesión no iniciada' });
     }
 
+    // --- descarga de los PDF generados (vale 2 h, requiere sesión) ---
+    const mDescarga = /^\/api\/descargar\/([a-f0-9]{32})\/(\d+)$/.exec(p);
+    if (mDescarga && req.method === 'GET') {
+      return servirDescarga(res, mDescarga[1], Number(mDescarga[2]), url.searchParams.get('ver') === '1');
+    }
+
     if (p === '/api/margen' && req.method === 'GET') {
+      if (esCompartido()) {
+        return json(res, 400, { error: 'En el servidor compartido no está disponible «Sugerir margen». Poné el margen a mano en cada ítem.' });
+      }
       const cliente = url.searchParams.get('cliente') || '';
       if (!cliente.trim()) return json(res, 400, { error: 'Falta el cliente' });
       return json(res, 200, await sugerirMargen(cliente));
@@ -289,7 +351,11 @@ const server = http.createServer(async (req, res) => {
       const quote = normalizar(body.quote || body.cotizacion || body);
       validarQuote(quote);
       const logo = logoDataUri();
+      const tCambio = Date.now();
       const cambio = await brou.obtener();
+      if (Date.now() - tCambio > 1500) {
+        console.log(`[cambio] consulta lenta: ${((Date.now() - tCambio) / 1000).toFixed(1)} s (fuente=${cambio.fuente})`);
+      }
       const htmls = {
         cliente: docCliente(quote, logo, cfg.iva, cambio),
         detalle: docDetalle(quote, logo, cfg.iva),
@@ -299,10 +365,19 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, { htmls, iva: cfg.iva, cambio });
       }
       const r = await pdf.generarPdfs(quote, cfg, htmls);
-      return json(res, 200, Object.assign({ cambio }, r));
+      const token = recordarDescarga(r.archivos);
+      const enlaces = r.archivos.map((a, i) => ({
+        tipo: a.tipo,
+        bytes: a.bytes,
+        url: `/api/descargar/${token}/${i}`,
+      }));
+      return json(res, 200, Object.assign({ cambio, descargas: enlaces }, r));
     }
 
     if (p === '/api/excel' && req.method === 'POST') {
+      if (esCompartido()) {
+        return json(res, 400, { error: 'En el servidor compartido no está disponible el registro en Excel.' });
+      }
       const body = await leerCuerpo(req);
       const quote = normalizar(body.quote || body.cotizacion || body);
       validarQuote(quote);
@@ -311,6 +386,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/folder' && req.method === 'POST') {
+      if (process.platform !== 'win32') {
+        return json(res, 400, { error: 'El servidor no tiene escritorio: bajá los PDF con los botones de descarga.' });
+      }
+      if (esCompartido()) {
+        return json(res, 400, { error: 'Los PDF están en el servidor: bajalos con los botones de descarga.' });
+      }
       const body = await leerCuerpo(req);
       const raiz = path.resolve(expand(cfg.rutas.salida));
       const target = path.resolve(String(body.path || ''));

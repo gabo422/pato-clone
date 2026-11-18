@@ -1,0 +1,2 @@
+# Los scripts de instalación corren en Linux: siempre LF.
+*.sh text eol=lf

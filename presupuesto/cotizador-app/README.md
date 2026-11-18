@@ -114,7 +114,50 @@ Si la key no está puesta, el resto de la app funciona igual: el agente es opcio
 
 ---
 
-## 4. Que se conecten clientes / otras PCs
+## 4. Servidor de la red (para los compañeros)
+
+Para que lo use **todo el equipo** sin depender de esta PC, la app vive en el mini PC de la
+red (`192.168.1.5`, OpenMediaVault 7 / Debian 12) y cada uno entra desde su navegador:
+
+```
+http://192.168.1.5:8090
+```
+
+Los pasos de instalación están en **`deploy\LEEME.md`** (doble clic en
+`deploy\INSTALAR-EN-MINI-PC.bat`).
+
+En ese servidor la app arranca en **modo compartido** (`"compartido": true` en
+`config.json`, o la variable `COTI_COMPARTIDO=1` del servicio): se esconden el panel del
+agente, «Registrar en Excel», «Sugerir %» y «Abrir carpeta», porque dependen de
+Windows/PowerShell. Queda lo que necesitan los compañeros: buscar precios, armar A/B,
+poner el margen a mano y **bajar los 3 PDF**.
+
+### Descargar los PDF
+
+Al generar, el servidor devuelve tres enlaces con token (valen 2 horas):
+
+```
+GET /api/descargar/<token>/0   → Presupuesto-ITpro-Cliente.pdf
+GET /api/descargar/<token>/1   → Presupuesto-ITpro-Detalle.pdf
+GET /api/descargar/<token>/2   → Presupuesto-ITpro-INTERNO.pdf
+```
+
+Se sirven con `Content-Disposition: attachment`, así que el navegador de cada uno los guarda
+en **su** carpeta de Descargas. Los botones aparecen debajo del resultado (también en esta
+PC). Los PDF quedan además en el disco del servidor
+(`/var/lib/cotizador/presupuestos/<cliente>/<carpeta>/`) y se borran solos a los
+`retenerDias` (30 por defecto).
+
+### Navegador para los PDF
+
+`lib/pdf.js` busca solo: en Windows Edge o Chrome; en Linux `chromium`,
+`chromium-browser`, `google-chrome`. Se puede fijar con `rutas.navegador` o la variable
+`COTI_BROWSER`. En Linux agrega `--no-sandbox` (el servicio corre sin user namespaces).
+Los 3 PDF se generan en paralelo (`pdfParalelo`, 3 por defecto).
+
+---
+
+## 5. Que se conecten clientes / otras PCs
 
 La app escucha por defecto **solo en esta PC** (`127.0.0.1`). Para que entren desde afuera hay que
 hacer dos cosas: escuchar en la red (`host: "0.0.0.0"` en `config.json`) y usar una VPN.
@@ -151,7 +194,7 @@ entrar, ver costos y márgenes, y generar PDFs en tu PC.
 
 ---
 
-## 5. Qué hay adentro
+## 6. Qué hay adentro
 
 ```
 cotizador-app/
@@ -161,12 +204,18 @@ cotizador-app/
 ├── lib/
 │   ├── nibiru.js          búsqueda de precios/stock
 │   ├── docs.js            los 3 documentos HTML (cliente, detalle, interno)
-│   ├── pdf.js             HTML → PDF con Edge headless
+│   ├── pdf.js             HTML → PDF con navegador headless (Edge/Chrome/Chromium)
 │   ├── excel.js           registro en "Gabi Cotizaciones 2026.xlsx"
 │   ├── ps.js              ejecuta los .ps1 existentes (margen, Excel)
 │   ├── quote.js           normaliza JSONs externos (margen 21 → 0,21, fechas, "1.234,56")
 │   ├── brou.js            dólar venta BROU del día (página + API + cache)
 │   └── agent.js           agente con tool calling
+├── deploy/                instalación en el mini PC de la red
+│   ├── LEEME.md           pasos, uno por uno
+│   ├── INSTALAR-EN-MINI-PC.bat   doble clic: copia e instala
+│   ├── desde-windows.ps1  lo que hace el .bat (ssh + scp)
+│   ├── instalar.sh        instalador Linux (Node, Chromium, systemd)
+│   └── actualizar.sh      actualiza el código sin tocar la config
 ├── ESQUEMA-cotizacion.md  esquema JSON para agentes externos (subir a Copilot Studio)
 └── public/                la interfaz (HTML/CSS/JS, sin frameworks)
 ```
@@ -176,7 +225,7 @@ Reutiliza lo que ya existía en `presupuesto\`: `sugerir-margen.ps1`, `update-ga
 
 ---
 
-## 6. Configuración (`config.json`)
+## 7. Configuración (`config.json`)
 
 **Ojo:** `config.json` tiene la API key de Nibiru y la contraseña. Está en `.gitignore`, así que
 **no se sube a GitHub** (el repo de Pato-Clone es público). Si algún día clonás el proyecto en otra PC,
@@ -191,11 +240,15 @@ copiá `config.example.json` a `config.json` y completá los datos.
 | `nibiru.campoCosto` | `price` (costo proveedor) o `final_price`. |
 | `rutas.logo` | Logo del PDF. |
 | `rutas.salida` | Carpeta raíz de los PDF. |
+| `rutas.navegador` | Binario del navegador para los PDF (si falta, lo busca solo). |
 | `rutas.excel` | Excel de seguimiento. |
 | `rutas.excelCompras` | Excel de historial (para sugerir margen). |
 | `iva` | 0.22 (IVA uruguayo). |
 | `cambio` | Solo de respaldo: si no hay internet usa este valor. El número real es el **dólar venta BROU del día**. |
 | `margenDefault` | 0.15 para clientes nuevos. |
+| `compartido` | `true` = servidor de la red: esconde agente, Excel, «Sugerir %» y «Abrir carpeta». |
+| `retenerDias` | Días que se guardan los PDF en el servidor (30). `0` = no borra nunca. |
+| `pdfParalelo` | Cuántos PDF se generan a la vez (3). Bajalo a 1 si el servidor tiene poca RAM. |
 | `agent.*` | `baseUrl`, `model`, `apiKey` del modelo. |
 
 Después de editar `config.json` hay que reiniciar el programa (o guardar desde la UI del agente).
@@ -210,10 +263,13 @@ Dos formas:
 
 ---
 
-## 7. Problemas comunes
+## 8. Problemas comunes
 
 - **«No encuentro el logo»** → poné `itpro-logo.png` en `Downloads` o cambiá `rutas.logo`.
-- **El PDF no sale** → fijate que Edge esté en la ruta de `rutas.edge`. Probalo abriendo Edge a mano.
+- **El PDF no sale** → fijate que el navegador esté en `rutas.navegador` (o en el PATH).
+  Probalo abriéndolo a mano: en Windows `msedge.exe`, en Linux `chromium`.
+- **En el servidor: `No encuentro un navegador`** → `apt-get install -y chromium` y
+  `systemctl restart cotizador`.
 - **«No pude registrar»** → el Excel puede estar abierto/tomado por SharePoint. Cerrá Excel y reintentá;
   el script ya hace reintentos y backup en `%TEMP%`.
 - **El margen sale 15% para un cliente con historial** → revisá que el nombre coincida con el del Excel
@@ -222,7 +278,7 @@ Dos formas:
 
 ---
 
-## 8. Pendientes / ideas
+## 9. Pendientes / ideas
 
 - Historial dentro de la app (ver cotizaciones anteriores sin abrir el Excel).
 - Vista previa del PDF antes de generarlo.

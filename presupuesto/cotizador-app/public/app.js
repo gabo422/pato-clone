@@ -42,6 +42,9 @@ const IVA = 0.22;
 let margenSugerido = 0.15;
 let opcionActiva = 'A';
 let historialChat = [];
+// Modo compartido: la app corre en un servidor de la red. Se oculta todo lo
+// que depende de Windows/PowerShell (agente, Excel, sugerir margen).
+let MODO = { compartido: false, so: '' };
 
 const estadoVacio = () => ({
   cliente: '',
@@ -429,18 +432,38 @@ function lineaCambio(r) {
   return '\nDólar BROU venta: ' + money(r.cambio.valor) + (r.cambio.fecha ? ' (' + fechaCorta(r.cambio.fecha) + ')' : '');
 }
 
+// ------------------------------------------------------- bajar los PDF --
+// El servidor guarda los PDF en su disco; estos botones se los bajan a la PC
+// de cada uno (funciona igual en la PC de Gabriel y en el servidor de la red).
+function htmlDescargas(r) {
+  const lista = (r && r.descargas) || [];
+  if (!lista.length) return '';
+  return `<div class="fila descargas">${lista
+    .map((d, i) => `<a class="boton${i === 0 ? ' principal' : ''}" href="${escAttr(d.url)}" download>Descargar ${escAttr(d.tipo)}</a>`)
+    .join('')}</div>`;
+}
+
+function pintarResultado(r) {
+  const detalle = r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n');
+  const encabezado = MODO.compartido
+    ? 'Listo. Bajá los 3 PDF a tu PC:'
+    : 'Listo: 3 PDF en\n' + escAttr(r.destino);
+  const abrir = !MODO.compartido && MODO.so === 'win32'
+    ? '<div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>'
+    : '';
+  $('#salida').innerHTML =
+    `<div class="resultado">${encabezado}\n${detalle}${lineaCambio(r)}</div>` + htmlDescargas(r) + abrir;
+  const b = $('#btn-abrir');
+  if (b) b.onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
+}
+
 async function generarPdfs() {
   const btn = $('#btn-pdf');
   btn.disabled = true;
-  $('#salida').innerHTML = '<div class="resultado">Generando los 3 PDF… (Edge tarda unos segundos)</div>';
+  $('#salida').innerHTML = '<div class="resultado">Generando los 3 PDF… (tarda unos segundos)</div>';
   try {
     const r = await api('/api/pdf', { method: 'POST', body: JSON.stringify({ quote }) });
-    $('#salida').innerHTML = `
-      <div class="resultado">Listo: 3 PDF en
-${escAttr(r.destino)}
-${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}${lineaCambio(r)}</div>
-      <div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>`;
-    $('#btn-abrir').onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
+    pintarResultado(r);
   } catch (e) {
     aviso('No pude generar los PDF: ' + e.message);
   } finally {
@@ -491,12 +514,7 @@ function abrirJsonModal() {
 }
 
 function resultadoPdf(r) {
-  $('#salida').innerHTML = `
-    <div class="resultado">Listo: 3 PDF en
-${escAttr(r.destino)}
-${r.archivos.map((a) => '  · ' + a.tipo + '  ' + Math.round(a.bytes / 1024) + ' KB').join('\n')}${lineaCambio(r)}</div>
-    <div class="fila" style="margin-top:8px"><button class="sec" id="btn-abrir">Abrir carpeta</button></div>`;
-  $('#btn-abrir').onclick = () => api('/api/folder', { method: 'POST', body: JSON.stringify({ path: r.destino }) }).catch((e) => aviso(e.message));
+  pintarResultado(r);
 }
 
 async function jsonAlEditor() {
@@ -522,13 +540,13 @@ async function jsonAPdf() {
   const btn = $('#btn-json-pdf');
   const msg = $('#json-msg');
   msg.className = '';
-  msg.textContent = 'Generando los 3 PDF… (Edge tarda unos segundos)';
+  msg.textContent = 'Generando los 3 PDF… (tarda unos segundos)';
   btn.disabled = true;
   try {
     const crudo = parsearJSON($('#json-texto').value);
     const r = await api('/api/pdf', { method: 'POST', body: JSON.stringify({ quote: crudo }) });
     msg.className = 'ok';
-    msg.textContent = 'Listo. Los 3 PDF están en ' + r.destino;
+    msg.textContent = MODO.compartido ? 'Listo. Bajá los 3 PDF abajo.' : 'Listo. Los 3 PDF están en ' + r.destino;
     resultadoPdf(r);
   } catch (e) {
     msg.className = 'err';
@@ -629,6 +647,25 @@ function actualizarPill(activo) {
   $('#aviso-agente').classList.toggle('oculto', !!activo);
 }
 
+// En el servidor de la red no hay PowerShell, ni Excel, ni escritorio: se
+// esconden esas cosas para que nadie se choque con un error. Queda lo que
+// necesitan los compañeros: buscar precios, armar A/B y bajar los 3 PDF.
+function aplicarModo() {
+  if (!MODO.compartido) return;
+  document.body.classList.add('compartido');
+  $('#agente').classList.add('oculto');
+  document.querySelector('main').classList.add('sin-agente');
+  $('#pill-agente').classList.add('oculto');
+  $('#btn-excel').classList.add('oculto');
+  const dry = $('#chk-dry');
+  if (dry && dry.closest('label')) dry.closest('label').classList.add('oculto');
+  $('#btn-margen').classList.add('oculto');
+  const lbl = $('#lbl-subcarpeta');
+  if (lbl) lbl.textContent = 'Nombre de la carpeta';
+  const pie = $('#pie-json');
+  if (pie) pie.textContent = 'Los PDF se descargan a tu PC con los botones que aparecen al terminar.';
+}
+
 // -------------------------------------------------------------------- boot --
 function mostrarLogin() {
   $('#login').classList.remove('oculto');
@@ -642,8 +679,10 @@ async function init() {
   $('#login').classList.add('oculto');
 
   actualizarPill(s.agente);
+  MODO = { compartido: !!s.compartido, so: s.so || '' };
   pintarTodo();
   enlazar();
+  aplicarModo();
   pintarCambio(false);
 
   try {

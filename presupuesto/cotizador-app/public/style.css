@@ -141,6 +141,18 @@ aside#agente { position: sticky; top: 72px; }
 .chip.warn { background: var(--amarillo); color: #8a5a00; }
 .oculto { display: none !important; }
 
+/* ------------------------------------------------------- bajar los PDF -- */
+a.boton {
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  font-size: 13px; padding: 8px 14px; border-radius: 7px;
+  border: 1px solid #cde6d8; background: var(--verde-claro); color: var(--verde-osc); font-weight: 600;
+}
+a.boton:hover { border-color: var(--verde); background: #e4f3ea; }
+a.boton.principal { background: var(--verde); border-color: var(--verde); color: #fff; }
+a.boton.principal:hover { background: var(--verde-osc); }
+.descargas { margin-top: 10px; }
+main.sin-agente { grid-template-columns: minmax(0, 1fr); }
+
 /* ----------------------------------------------------------------- modal -- */
 .modal {
   position: fixed; inset: 0; background: rgba(10,20,15,.45); z-index: 50;
