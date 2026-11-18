@@ -137,6 +137,35 @@ agente, «Registrar en Excel», «Sugerir %» y «Abrir carpeta», porque depend
 Windows/PowerShell. Queda lo que necesitan los compañeros: buscar precios, armar A/B,
 poner el margen a mano y **bajar los 3 PDF**.
 
+### Completar con IA en el servidor
+
+Arriba a la derecha está el botón **«✨ Completar con IA»**. Se escribe el pedido con
+palabras normales («5 notebooks i5 y 5 mouse para Eightroom, entrega 48 hs») y la IA:
+
+1. busca los precios reales en Nibiru (no inventa nada),
+2. completa cliente, título y condiciones,
+3. arma la **opción A** (recomendada) y la **opción B** (alternativa),
+4. deja el margen en **15%** (cliente nuevo) y avisa para tocar «Generar los 3 PDF».
+
+**Revisá siempre lo que cargó antes de generar.** Si no sirve, «Empezar de cero» limpia
+todo. Los PDF los genera el botón de siempre, no la IA.
+
+La IA usa **una sola clave para todo el equipo** (`agent.apiKey` en
+`/opt/cotizador/config.json`). Para que no se queme la cuota del plan gratis hay un
+**tope por IP y por día**:
+
+```
+COTI_IA_DIA=40        # pedidos por IP por día (por defecto 40)
+```
+
+Al pasarse, la app responde «llegaste al tope de IA por hoy» y se puede seguir cargando
+a mano. El contador se renueva solo a medianoche.
+
+> El plan gratis de Groq permite **8.000 tokens por minuto** por modelo. Por eso el
+> agente pide `reasoning_effort: low` y devuelve 6 resultados por búsqueda: así una
+> cotización completa entra en la cuota. Si aparece «el proveedor está saturado»,
+> esperá medio minuto y reintentá (el servidor ya reintenta solo hasta 4 veces).
+
 ### Tutorial para los compañeros
 
 La app trae el tutorial adentro: botón **«? ¿Cómo se usa?»** en la barra de arriba, y
@@ -260,10 +289,11 @@ copiá `config.example.json` a `config.json` y completá los datos.
 | `iva` | 0.22 (IVA uruguayo). |
 | `cambio` | Solo de respaldo: si no hay internet usa este valor. El número real es el **dólar venta BROU del día**. |
 | `margenDefault` | 0.15 para clientes nuevos. |
-| `compartido` | `true` = servidor de la red: esconde agente, Excel, «Sugerir %» y «Abrir carpeta». |
+| `compartido` | `true` = servidor de la red: esconde el panel del agente, Excel, «Sugerir %» y «Abrir carpeta»; en su lugar aparece **«✨ Completar con IA»**. |
 | `retenerDias` | Días que se guardan los PDF en el servidor (30). `0` = no borra nunca. |
 | `pdfParalelo` | Cuántos PDF se generan a la vez (3). Bajalo a 1 si el servidor tiene poca RAM. |
-| `agent.*` | `baseUrl`, `model`, `apiKey` del modelo. |
+| `agent.*` | `baseUrl`, `model`, `apiKey` del modelo. En el servidor es **la única clave para todo el equipo**. |
+| `agent.reasoning` | `low` (por defecto), `medium` o `high`. Solo para modelos `gpt-oss`. `low` gasta menos cuota. |
 
 Después de editar `config.json` hay que reiniciar el programa (o guardar desde la UI del agente).
 

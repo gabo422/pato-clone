@@ -84,13 +84,32 @@ En el mini PC la app arranca en **modo compartido** (`"compartido": true` en
 `config.json`, o la variable `COTI_COMPARTIDO=1` del servicio). En ese modo se
 esconden solos:
 
-- El panel del **Agente** (usa la API de Groq).
+- El panel lateral del **Agente** (en su lugar aparece el botón **«✨ Completar con IA»**).
 - **Registrar en Excel** (necesita PowerShell + tu Excel de SharePoint).
 - **Sugerir %** de margen (idem).
 - **Abrir carpeta** (el servidor no tiene escritorio).
 
 Queda lo que necesitan los compañeros: buscar precios, armar A/B, poner el margen
 a mano y **bajar los 3 PDF**.
+
+### La IA del servidor
+
+El botón **«✨ Completar con IA»** funciona para **todo el equipo** con **una sola
+clave** (`agent.apiKey` en `/opt/cotizador/config.json`). Busca precios, completa los
+datos y arma las opciones A/B; los PDF los genera el botón de siempre.
+
+Para no quedarse sin cuota, hay un **tope por IP y por día**:
+
+```
+COTI_IA_DIA=40        # pedidos por IP por día (40 por defecto)
+```
+
+Se cambia en el servicio (`/etc/systemd/system/cotizador.service`,
+`Environment=COTI_IA_DIA=...`) y después `sudo systemctl daemon-reload && sudo systemctl restart cotizador`.
+
+Si el proveedor contesta «saturado» (plan gratis de Groq: 8.000 tokens por minuto),
+el servidor **reintenta solo** hasta 4 veces; si igual falla, se espera medio minuto
+y se vuelve a pedir.
 
 Los PDF quedan además guardados en el servidor, en
 `/var/lib/cotizador/presupuestos/<cliente>/<carpeta>/`, y se borran solos a los

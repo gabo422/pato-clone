@@ -23,6 +23,7 @@
   <img src="/itpro-logo.png" alt="ITpro" onerror="this.style.display='none'">
   <h1>Cotizador ITpro</h1>
   <span class="pill off" id="pill-agente">Agente sin configurar</span>
+  <button class="primario mini oculto" id="btn-ia" title="La IA completa la cotización por vos">✨ Completar con IA</button>
   <button class="sec mini" id="btn-ayuda" title="Cómo se usa el cotizador">? ¿Cómo se usa?</button>
   <button class="link" id="btn-salir">Salir</button>
 </header>
@@ -195,6 +196,33 @@
   </div>
 </div>
 
+<!-- Completar con IA (servidor de la red: no hay panel lateral) -->
+<div id="modal-ia" class="oculto modal">
+  <div class="caja">
+    <header>
+      <h2>✨ Completar con IA</h2>
+      <button class="mini" id="btn-cerrar-ia">Cerrar</button>
+    </header>
+    <div class="cuerpo ia-cuerpo">
+      <p class="ayuda-intro">
+        Contale lo que pidió el cliente con tus palabras. La IA busca los precios en Nibiru,
+        completa los datos y arma las opciones A/B. <b>Revisá siempre antes de generar los PDF.</b>
+      </p>
+      <textarea id="ia-texto" rows="3" placeholder="Ej: 5 notebooks i5 con 16 GB y 5 mouse inalámbricos para Eightroom, entrega 48 hs"></textarea>
+      <div class="fila" style="margin-top:8px">
+        <button class="primario" id="btn-ia-enviar">Completar</button>
+        <button class="sec" id="btn-ia-nueva">Empezar de cero</button>
+        <span class="chip" id="ia-estado"></span>
+      </div>
+      <div id="ia-resp"></div>
+    </div>
+    <div class="pie">
+      Usa el catálogo real: no inventa precios ni stock. El margen queda en 15% (cliente nuevo)
+      salvo que le digas otro. Si no te convence, tocá «Empezar de cero».
+    </div>
+  </div>
+</div>
+
 <!-- Tutorial: cómo se usa (se abre solo la primera vez) -->
 <div id="modal-ayuda" class="oculto modal">
   <div class="caja">
@@ -233,11 +261,16 @@
       <div class="paso">
         <div class="n">3</div>
         <div>
-          <h3>Poné cantidad y margen</h3>
-          <p>El <b>margen</b> viene en <b>15%</b>, que es el de cliente nuevo. El precio que ve
-          el cliente se calcula solo: <span class="formula">costo × (1 + margen)</span>.</p>
+          <h3>Poné cantidad y margen de cada artículo</h3>
+          <p>Cada fila tiene su propia columna <b>CANT.</b> y su propia columna <b>MARGEN</b>.
+          El margen viene en <b>15%</b>, que es el de cliente nuevo, y se puede cambiar
+          <b>artículo por artículo</b>: si una notebook lleva 21% y un mouse 15%, cada fila
+          tiene su número.</p>
+          <p>El precio unitario y el subtotal se recalculan solos: <span class="formula">costo × (1 + margen)</span>.
+          El IVA 22% se suma recién al final, abajo de la tabla.</p>
           <p class="truco"><b>Si el cliente ya es conocido</b>, no cambies el margen por tu
-          cuenta: preguntale a Gabriel qué margen le corresponde.</p>
+          cuenta: preguntale a Gabriel qué margen le corresponde. Los clientes nuevos van
+          con el 15%.</p>
         </div>
       </div>
 
@@ -288,6 +321,13 @@
         <b>El dólar no se toca.</b> La app toma sola el <b>dólar venta del BROU del día</b>
         (lo ves en el chip debajo de los artículos). Si querés que lo consulte de nuevo,
         tocá <b>«Refrescar»</b>.
+      </div>
+
+      <div class="nota solo-compartido">
+        <b>¿No querés cargar todo a mano?</b> Tocá <b>«✨ Completar con IA»</b> arriba a la
+        derecha, escribí lo que pidió el cliente («5 notebooks i5 y 5 mouse para Eightroom»)
+        y la IA busca los precios, completa los datos y arma las opciones. Revisá lo que
+        cargó antes de generar los PDF.
       </div>
 
       <div class="nota solo-local">

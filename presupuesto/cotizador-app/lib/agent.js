@@ -27,6 +27,16 @@ CÓMO TRABAJAR
 
 Respondé corto: máximo 10 líneas, sin tablas ni markdown. Si te falta un dato importante, preguntá una sola cosa a la vez. Si el pedido ya se entiende, hacelo directo sin pedir confirmación.`;
 
+// En el servidor de la red no hay Excel, ni escritorio, ni historial de clientes.
+const SYSTEM_COMPARTIDO = `
+
+MODO SERVIDOR COMPARTIDO (red interna de ITpro)
+- No hay Excel ni escritorio: NO uses registrar_excel ni generar_pdfs.
+- Cuando la cotización esté cargada, decile al usuario que toque el botón «Generar los 3 PDF» para bajarlos a su PC.
+- El margen por defecto es 15% (cliente nuevo). No inventes márgenes de clientes con historial.
+- Si el pedido no dice cantidades, asumí 1 y decilo en el resumen.
+- Si falta el nombre del cliente, NO preguntes primero: cargá los artículos igual y al final pedí el nombre en una sola línea.`;
+
 const TOOLS = [
   {
     type: 'function',
@@ -238,10 +248,12 @@ async function ejecutar(name, args, ctx) {
   switch (name) {
     case 'buscar_precio': {
       const r = await nibiru.buscar(args.texto, 20);
-      // Sólo 10 resultados: cada uno se reenvía al modelo y consume cuota.
-      return r.slice(0, 10).map((p) => ({
+      // Cada resultado se reenvía al modelo y consume cuota: en el servidor de la
+      // red (cuota compartida) van 6 en vez de 10.
+      const n = ctx.compartido ? 6 : 10;
+      return r.slice(0, n).map((p) => ({
         sku: p.sku,
-        titulo: recorte(p.titulo, 70),
+        titulo: recorte(p.titulo, ctx.compartido ? 60 : 70),
         costo: p.costo,
         stock: p.stock,
         proveedor: p.proveedor,
@@ -314,16 +326,21 @@ async function ejecutar(name, args, ctx) {
     case 'resumen':
       return resumenLargo(quote, iva);
     case 'generar_pdfs': {
+      if (ctx.compartido) {
+        return { error: 'En este servidor los PDF los genera el botón «Generar los 3 PDF» de la pantalla. No los generes vos.' };
+      }
       if (!quote.cliente) return { error: 'Falta el cliente.' };
+      const cambio = ctx.cambioLive ? await ctx.cambioLive() : cfg.cambio;
       const htmls = {
-        cliente: docCliente(quote, ctx.logo, iva),
+        cliente: docCliente(quote, ctx.logo, iva, cambio),
         detalle: docDetalle(quote, ctx.logo, iva),
-        interno: docInterno(quote, ctx.logo, iva, cfg.cambio),
+        interno: docInterno(quote, ctx.logo, iva, cambio),
       };
       const r = await pdf.generarPdfs(quote, cfg, htmls);
       return { ok: true, carpeta: r.destino, archivos: r.archivos.map((a) => a.path) };
     }
     case 'registrar_excel': {
+      if (ctx.compartido) return { error: 'En este servidor no hay Excel. No registres nada.' };
       const r = await ctx.registrarExcel(quote, { dryRun: args.dryRun !== false });
       return r;
     }
@@ -344,8 +361,15 @@ async function chat(cfg, messages, tools, intento = 1) {
     model: cfg.agent.model,
     messages,
     temperature: 0.2,
-    max_tokens: 1200,
+    max_tokens: 900,
   };
+  // Los modelos gpt-oss razonan antes de contestar y eso consume mucha cuota.
+  // En el plan gratis de Groq (8.000 tokens por minuto) con "medium" no alcanza
+  // para una cotización completa, así que se baja a "low": contesta igual de bien
+  // para esta tarea y gasta la mitad.
+  if (/gpt-oss/i.test(String(cfg.agent.model || ''))) {
+    cuerpo.reasoning_effort = cfg.agent.reasoning || 'low';
+  }
   // Sin tools: se usa para el pedido de cierre (que el modelo escriba el resumen final).
   if (tools && tools.length) {
     cuerpo.tools = tools;
@@ -373,16 +397,21 @@ async function chat(cfg, messages, tools, intento = 1) {
       throw new Error('La API key del agente fue rechazada. Revisala en Configuración del agente. Detalle: ' + detalle);
     }
     if (res.status === 429) {
-      // Cuota por minuto: esperamos lo que pide el proveedor (máx. 25 s) y reintentamos una vez.
-      const m = /try again in ([\d.]+)\s*s/i.exec(detalle);
-      const espera = m ? Math.min(Math.ceil(Number(m[1])) + 1, 25) : 0;
-      if (intento <= 2 && espera > 0) {
-        await new Promise((r) => setTimeout(r, espera * 1000));
+      // Cuota por minuto: el proveedor dice cuánto esperar ("try again in 637.5ms"
+      // o "in 2.5s"). Se espera eso y se reintenta, hasta 4 veces.
+      const m = /try again in ([\d.]+)\s*(ms|s)/i.exec(detalle);
+      let espera = 0;
+      if (m) {
+        espera = Number(m[1]) / (m[2].toLowerCase() === 'ms' ? 1000 : 1);
+      }
+      espera = Math.min(Math.ceil(espera) + 1, 20);
+      if (intento <= 4) {
+        await new Promise((r) => setTimeout(r, (espera || 5) * 1000));
         return chat(cfg, messages, tools, intento + 1);
       }
       throw new Error(
-        'El proveedor gratis te cortó por límite de tokens por minuto (429). Esperá ~30 segundos y volvé a pedirlo, ' +
-          'o cambiá a un modelo con más cupo. Detalle: ' + detalle
+        'El proveedor gratis está saturado (límite de tokens por minuto). Esperá medio minuto y volvé a pedirlo, ' +
+          'o cargá los artículos a mano. Detalle: ' + detalle
       );
     }
     throw new Error('Modelo: ' + res.status + ' ' + detalle);
@@ -397,7 +426,11 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
   if (!cfg.agent || !cfg.agent.apiKey) {
     throw new Error('El agente no está configurado: falta la API key en config.json (agent.apiKey).');
   }
-  const messages = [{ role: 'system', content: SYSTEM }];
+  const messages = [{ role: 'system', content: SYSTEM + (ctx.compartido ? SYSTEM_COMPARTIDO : '') }];
+  // En el servidor compartido no se ofrecen las herramientas de Windows/Excel.
+  const tools = ctx.compartido
+    ? TOOLS.filter((t) => !['registrar_excel', 'generar_pdfs'].includes(t.function.name))
+    : TOOLS;
   // Historial corto: con cuotas gratis, mandar 12 mensajes largos revienta el límite por minuto.
   for (const h of (historial || []).slice(-6)) {
     if (h.rol === 'user' || h.rol === 'assistant') {
@@ -412,7 +445,7 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
 
   const acciones = [];
   for (let i = 0; i < 6; i++) {
-    const data = await chat(cfg, messages, TOOLS);
+    const data = await chat(cfg, messages, tools);
     const msg = data.choices && data.choices[0] && data.choices[0].message;
     if (!msg) throw new Error('Respuesta vacía del modelo.');
     messages.push(msg);

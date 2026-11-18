@@ -206,11 +206,16 @@ function docCliente(q, logo, iva, cambio) {
     cuerpo += `\n  </tbody>\n</table>`;
   }
 
-  const cond = (q.condiciones || []).filter((c) => String(c).trim());
-  // El tipo de cambio lo pone el cotizador (BROU venta del día), salvo que ya
-  // venga escrito en las condiciones (por ejemplo, un presupuesto viejo).
+  const cond = (q.condiciones || []).map((c) => String(c).trim()).filter(Boolean);
+  // El tipo de cambio lo pone el cotizador (BROU venta del día). Si la lista trae
+  // una línea vieja con otro valor (un borrador guardado o el JSON de un agente),
+  // se reemplaza por el del día en vez de duplicarla.
   const tc = textoCambio(cambio);
-  if (tc && !cond.some((c) => /tipo de cambio|d[oó]lar.*uyu|1\s*usd/i.test(String(c)))) cond.push(tc);
+  if (tc) {
+    const i = cond.findIndex((c) => /tipo de cambio|d[oó]lar.*uyu|1\s*usd/i.test(c));
+    if (i >= 0) cond[i] = tc;
+    else cond.push(tc);
+  }
   if (cond.length) {
     cuerpo += `\n<div class="note">\n  <strong>Condiciones:</strong>\n  <ul>`;
     for (const c of cond) cuerpo += `\n    <li>${esc(c)}</li>`;

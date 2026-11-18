@@ -42,6 +42,7 @@ const IVA = 0.22;
 let margenSugerido = 0.15;
 let opcionActiva = 'A';
 let historialChat = [];
+let historialIA = [];
 // Modo compartido: la app corre en un servidor de la red. Se oculta todo lo
 // que depende de Windows/PowerShell (agente, Excel, sugerir margen).
 let MODO = { compartido: false, so: '' };
@@ -61,7 +62,6 @@ const estadoVacio = () => ({
   cumplimiento: [],
   condiciones: [
     'Precios expresados en USD sin IVA, por unidad. El IVA 22% se aplica sobre el subtotal.',
-    'Tipo de cambio de referencia: 1 USD = 41,25 UYU.',
     'Vigencia de la oferta: 7 días. Disponibilidad sujeta a stock al momento de confirmar el pedido.',
   ],
   notasInternas: [],
@@ -77,6 +77,14 @@ function cargar() {
       const q = JSON.parse(raw);
       q.opciones = q.opciones || [];
       if (!q.opciones.length) q.opciones = estadoVacio().opciones;
+      // Los borradores viejos traían el dólar escrito a mano (41,25). Ahora el
+      // cotizador pone el BROU venta del día, así que se saca para no mostrar
+      // un valor viejo en el formulario.
+      if (Array.isArray(q.condiciones)) {
+        q.condiciones = q.condiciones.filter(
+          (c) => !/^\s*tipo de cambio de referencia:?\s*1\s*usd\s*=\s*[\d.,]+\s*uyu\.?\s*$/i.test(String(c))
+        );
+      }
       return Object.assign(estadoVacio(), q);
     }
   } catch {}
@@ -318,6 +326,25 @@ function enlazar() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#modal-ayuda').classList.contains('oculto')) cerrarAyuda();
   });
+
+  // completar con IA (servidor de la red)
+  $('#btn-ia').onclick = abrirIA;
+  $('#btn-cerrar-ia').onclick = cerrarIA;
+  $('#btn-ia-enviar').onclick = enviarIA;
+  $('#modal-ia').onclick = (e) => { if (e.target.id === 'modal-ia') cerrarIA(); };
+  $('#ia-texto').onkeydown = (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviarIA(); }
+  };
+  $('#btn-ia-nueva').onclick = () => {
+    if (!confirm('¿Empezar de cero? Se borra lo que cargó la IA y lo que escribiste.')) return;
+    quote = estadoVacio();
+    historialIA = [];
+    $('#ia-resp').innerHTML = '';
+    $('#ia-texto').value = '';
+    $('#ia-estado').textContent = '';
+    pintarTodo(); guardar();
+    $('#ia-texto').focus();
+  };
 }
 
 function enlazarLogin() {
@@ -360,6 +387,70 @@ function cerrarAyuda() {
   const chk = $('#chk-ayuda-inicio');
   guardarAyuda(chk && chk.checked ? 'siempre' : 'no');
   $('#modal-ayuda').classList.add('oculto');
+}
+
+// --------------------------------------------------------- completar con IA --
+// En el servidor de la red no hay panel lateral: la IA se abre en una ventana.
+function abrirIA() {
+  $('#modal-ia').classList.remove('oculto');
+  $('#ia-texto').focus();
+}
+
+function cerrarIA() {
+  $('#modal-ia').classList.add('oculto');
+}
+
+function agregarRespIA(tipo, texto, extra) {
+  const div = document.createElement('div');
+  div.className = 'm ' + tipo;
+  if (tipo === 'bot') div.innerHTML = textoConFormato(texto);
+  else div.textContent = texto;
+  if (extra) {
+    const s = document.createElement('span');
+    s.className = 'acc';
+    s.textContent = extra;
+    div.appendChild(s);
+  }
+  $('#ia-resp').appendChild(div);
+  $('#ia-resp').scrollTop = $('#ia-resp').scrollHeight;
+}
+
+async function enviarIA() {
+  const inp = $('#ia-texto');
+  const texto = inp.value.trim();
+  if (!texto) return;
+  const btn = $('#btn-ia-enviar');
+  btn.disabled = true;
+  $('#ia-estado').textContent = 'Pensando… puede tardar unos segundos';
+  agregarRespIA('user', texto);
+  historialIA.push({ rol: 'user', texto });
+  try {
+    const r = await api('/api/agent', {
+      method: 'POST',
+      body: JSON.stringify({ quote, historial: historialIA, mensaje: texto }),
+    });
+    historialIA.push({ rol: 'assistant', texto: r.mensaje || '' });
+    const acciones = (r.acciones || []).map((a) => a.herramienta).join(' · ');
+    agregarRespIA('bot', r.mensaje || '(sin respuesta)', acciones ? 'Acciones: ' + acciones : '');
+    if (r.quote) fusionarQuote(r.quote);
+    inp.value = '';
+    $('#ia-estado').textContent = 'Cotización actualizada ✓';
+  } catch (e) {
+    agregarRespIA('err', e.message);
+    $('#ia-estado').textContent = '';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function fusionarQuote(nuevo) {
+  if (!nuevo || typeof nuevo !== 'object') return;
+  quote = Object.assign(estadoVacio(), nuevo);
+  quote.opciones = (nuevo.opciones || []).map((o) => Object.assign({ letra: 'A', items: [] }, o));
+  if (!quote.opciones.length) quote.opciones = estadoVacio().opciones;
+  if (!quote.opciones.some((o) => o.letra === opcionActiva)) opcionActiva = quote.opciones[0].letra;
+  pintarTodo();
+  guardar();
 }
 
 // ------------------------------------------------------------------ modales --
@@ -638,13 +729,7 @@ async function enviarChat() {
     const acciones = (r.acciones || []).map((a) => a.herramienta).join(' · ');
     pintarMensaje('bot', r.mensaje || '(sin respuesta)', acciones ? 'Acciones: ' + acciones : '');
     historialChat.push({ rol: 'assistant', texto: r.mensaje || '' });
-    if (r.quote) {
-      quote = Object.assign(estadoVacio(), r.quote);
-      quote.opciones = (r.quote.opciones || []).map((o) => Object.assign({ letra: 'A', items: [] }, o));
-      if (!quote.opciones.some((o) => o.letra === opcionActiva)) opcionActiva = quote.opciones[0].letra;
-      pintarTodo();
-      guardar();
-    }
+    if (r.quote) fusionarQuote(r.quote);
   } catch (e) {
     esperando.remove();
     pintarMensaje('err', 'Error: ' + e.message);
@@ -700,6 +785,8 @@ function aplicarModo() {
   $('#btn-margen').classList.add('oculto');
   const lbl = $('#lbl-subcarpeta');
   if (lbl) lbl.textContent = 'Nombre de la carpeta';
+  const bIA = $('#btn-ia');
+  if (bIA) bIA.classList.remove('oculto');
   const pie = $('#pie-json');
   if (pie) pie.textContent = 'Los PDF se descargan a tu PC con los botones que aparecen al terminar.';
 }

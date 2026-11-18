@@ -135,6 +135,24 @@ function autorizado(req) {
 // ------------------------------------------------------------- helpers -----
 const attempts = new Map();
 
+// Cuota de la IA: en el servidor de la red hay UNA sola API key para todo el
+// equipo, así que se limita por IP y por día para no quedarse sin cupo.
+const usoIA = new Map();
+const LIMITE_IA_DIA = Number(process.env.COTI_IA_DIA || 40);
+
+function consumoIA(req) {
+  const ip = req.socket.remoteAddress || '?';
+  const hoy = new Date().toISOString().slice(0, 10);
+  let u = usoIA.get(ip);
+  if (!u || u.dia !== hoy) {
+    u = { dia: hoy, n: 0 };
+    usoIA.set(ip, u);
+  }
+  if (u.n >= LIMITE_IA_DIA) return { ok: false, restantes: 0 };
+  u.n += 1;
+  return { ok: true, restantes: LIMITE_IA_DIA - u.n };
+}
+
 function json(res, code, obj, headers = {}) {
   const body = JSON.stringify(obj);
   res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8' }, headers));
@@ -411,6 +429,18 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/agent' && req.method === 'POST') {
+      if (!cfg.agent || !cfg.agent.apiKey) {
+        return json(res, 400, { error: 'La IA no está configurada en este servidor (falta agent.apiKey en config.json).' });
+      }
+      const compartido = esCompartido();
+      if (compartido) {
+        const c = consumoIA(req);
+        if (!c.ok) {
+          return json(res, 429, {
+            error: 'Llegaste al tope de IA por hoy (' + LIMITE_IA_DIA + ' pedidos). Mañana se renueva, o cargá los artículos a mano.',
+          });
+        }
+      }
       const body = await leerCuerpo(req);
       const quote = body.quote || {};
       const ctx = {
@@ -419,9 +449,14 @@ const server = http.createServer(async (req, res) => {
         iva: cfg.iva,
         nibiru,
         pdf,
+        compartido,
         logo: logoDataUri(),
-        sugerirMargen,
+        // En el servidor no hay PowerShell ni historial de clientes: devolvemos el 15%.
+        sugerirMargen: compartido
+          ? async () => ({ margen: cfg.margenDefault, ok: false, detalle: 'En este servidor no hay historial; usá 15% para cliente nuevo.' })
+          : sugerirMargen,
         registrarExcel: (qq, opt) => excel.registrar(qq, cfg, opt),
+        cambioLive: () => brou.obtener(),
       };
       const r = await agent.correrAgente({
         cfg,
