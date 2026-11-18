@@ -2,3 +2,5 @@
 config.json
 node_modules/
 *.log
+# Datos de acceso al servidor de la red: NO van al repo público.
+CREDENCIALES-NAS.txt

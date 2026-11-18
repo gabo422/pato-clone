@@ -6,7 +6,43 @@ Escritorio. No hace falta Excel, ni PowerShell, ni tu PC prendida.
 
 ---
 
-## Lo que tenés que hacer (una sola vez)
+## YA ESTÁ INSTALADO Y ANDANDO (18-nov-2026)
+
+El servidor `192.168.1.5` (OpenMediaVault 7 / Debian 12) ya tiene todo:
+
+| Qué | Dónde |
+|---|---|
+| Dirección para el equipo | `http://192.168.1.5:8090` |
+| Contraseña de la app | `Itpro.2222` (campo `password` de `/opt/cotizador/config.json`) |
+| App | `/opt/cotizador` (dueño: usuario `cotizador`) |
+| PDF guardados | `/var/lib/cotizador/presupuestos/` (se borran a los 30 días) |
+| Servicio | `cotizador.service` — arranca solo con la máquina |
+| Log | `journalctl -u cotizador -f` |
+| Versiones | Node 22.23.5 · Chromium 156 |
+
+**Lo que se tocó en el NAS para poder instalarlo** (por si hay que rehacerlo):
+
+1. Se creó el usuario de despliegue **`coti`** (shell `/bin/bash`, home
+   `/home/coti`) y se lo agregó al grupo **`_ssh`**.
+   El `admin` de OpenMediaVault **no puede entrar por SSH**: tiene shell
+   `nologin` y OMV no deja modificarlo. El sshd del NAS tiene
+   `AllowGroups root _ssh`, así que sin el grupo `_ssh` ningún usuario entra.
+2. Se le dio sudo sin contraseña para poder instalar/actualizar:
+   `/etc/sudoers.d/coti-cotizador` → `coti ALL=(ALL) NOPASSWD:ALL`.
+3. Nada más. No se deshabilitó ni cambió nada del NAS (ni SMB, ni OMV, ni los
+   discos). El cortafuegos está abierto, por eso el puerto 8090 se ve desde la red.
+
+**Para actualizar la app** alcanza con el doble clic en
+`INSTALAR-EN-MINI-PC.bat` (pide la contraseña de `coti` dos veces) o, más rápido,
+`sudo bash deploy/actualizar.sh` en el servidor.
+
+> Si algún día querés que `coti` **no** pueda entrar más por SSH: `sudo usermod
+> -rG users coti` (sigue existiendo, pero sshd lo rechaza). Y para sacarle el
+> sudo: `sudo rm /etc/sudoers.d/coti-cotizador`.
+
+---
+
+## Instalación desde cero (si algún día hay que rehacerlo)
 
 ### 1. Copiar esta carpeta al servidor e instalarlo
 
@@ -14,9 +50,9 @@ Escritorio. No hace falta Excel, ni PowerShell, ni tu PC prendida.
 
 Te va a pedir:
 
-1. **La contraseña del mini PC** (dos veces: una para copiar y otra para instalar).
-   Es la del usuario de OpenMediaVault. Si el usuario no es `admin`, avisame o
-   editá la primera línea del `.bat` agregando `-Usuario otrousuario`.
+1. **La contraseña del usuario `coti` del mini PC** (dos veces: una para copiar y
+   otra para instalar). Si el usuario es otro, agregá `-Usuario otrousuario` al
+   `.bat`.
 2. Nada más. El script instala Node, Chromium, las fuentes, crea el servicio y lo
    deja andando solo cuando prende la máquina.
 
@@ -73,7 +109,7 @@ Cuando cambiemos algo en `presupuesto\cotizador-app`:
 
 | Síntoma | Qué mirar |
 |---|---|
-| `No pude entrar a 192.168.1.5` | Usuario equivocado, o SSH deshabilitado en OpenMediaVault (Servicios > SSH > Habilitar). |
+| `No pude entrar a 192.168.1.5` | Usuario equivocado (`admin` no sirve, usá `coti`), o SSH deshabilitado en OpenMediaVault (Servicios > SSH > Habilitar). |
 | `sudo: command not found` | Entraste como `root`; el script ya lo detecta solo. |
 | La página no abre desde otra PC | Firewall del servidor: habilitar el puerto **8090** (en OMV: Red > Firewall). |
 | `No encuentro un navegador para generar los PDF` | `apt-get install -y chromium` y reiniciar: `systemctl restart cotizador`. |

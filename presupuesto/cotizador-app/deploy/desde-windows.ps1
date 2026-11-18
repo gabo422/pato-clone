@@ -7,11 +7,15 @@
   Te va a pedir DOS VECES la contraseña del servidor:
     1) para copiar los archivos
     2) para instalarlo (sudo)
-  Es la misma contraseña del usuario del mini PC (el de OpenMediaVault).
+  Es la del usuario de despliegue del mini PC (por defecto `coti`).
+
+  OJO: el usuario `admin` de OpenMediaVault NO sirve para SSH (tiene la shell
+  deshabilitada a propósito). Por eso el despliegue usa `coti`, que está en el
+  grupo `_ssh` y tiene sudo sin contraseña (ver LEEME.md).
 #>
 param(
   [string]$Servidor = '192.168.1.5',
-  [string]$Usuario  = 'admin'
+  [string]$Usuario  = 'coti'
 )
 
 $ErrorActionPreference = 'Stop'

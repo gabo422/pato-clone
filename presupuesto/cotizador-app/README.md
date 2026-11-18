@@ -126,6 +126,11 @@ http://192.168.1.5:8090
 Los pasos de instalación están en **`deploy\LEEME.md`** (doble clic en
 `deploy\INSTALAR-EN-MINI-PC.bat`).
 
+**Estado: instalado y andando desde el 18-nov-2026.** Node 22.23.5, Chromium 156,
+servicio `cotizador.service` con arranque automático. Los PDF tardan ~2 s por
+generación en ese equipo. Los datos de acceso al servidor están en
+`CREDENCIALES-NAS.txt` (local, no se sube al repo).
+
 En ese servidor la app arranca en **modo compartido** (`"compartido": true` en
 `config.json`, o la variable `COTI_COMPARTIDO=1` del servicio): se esconden el panel del
 agente, «Registrar en Excel», «Sugerir %» y «Abrir carpeta», porque dependen de
