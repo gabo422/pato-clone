@@ -20,6 +20,10 @@ El servidor `192.168.1.5` (OpenMediaVault 7 / Debian 12) ya tiene todo:
 | Log | `journalctl -u cotizador -f` |
 | Versiones | Node 22.23.5 · Chromium 156 |
 
+La app ya trae el **tutorial adentro**: botón «? ¿Cómo se usa?» arriba a la derecha, y
+se abre solo la primera vez que cada compañero entra desde su navegador. No hace falta
+repartir instructivos ni explicar nada de antemano.
+
 **Lo que se tocó en el NAS para poder instalarlo** (por si hay que rehacerlo):
 
 1. Se creó el usuario de despliegue **`coti`** (shell `/bin/bash`, home

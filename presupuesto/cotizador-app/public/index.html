@@ -23,6 +23,7 @@
   <img src="/itpro-logo.png" alt="ITpro" onerror="this.style.display='none'">
   <h1>Cotizador ITpro</h1>
   <span class="pill off" id="pill-agente">Agente sin configurar</span>
+  <button class="sec mini" id="btn-ayuda" title="Cómo se usa el cotizador">? ¿Cómo se usa?</button>
   <button class="link" id="btn-salir">Salir</button>
 </header>
 
@@ -191,6 +192,121 @@
       <div id="json-msg"></div>
     </div>
     <div class="pie" id="pie-json">Los PDF salen en Escritorio\presupuestos opencode\&lt;cliente&gt;\&lt;subcarpeta&gt;\.</div>
+  </div>
+</div>
+
+<!-- Tutorial: cómo se usa (se abre solo la primera vez) -->
+<div id="modal-ayuda" class="oculto modal">
+  <div class="caja">
+    <header>
+      <h2>Cómo se usa el cotizador</h2>
+      <button class="mini" id="btn-cerrar-ayuda">Cerrar</button>
+    </header>
+    <div class="cuerpo" id="ayuda-cuerpo">
+      <p class="ayuda-intro">
+        Todo se hace en esta pantalla, de arriba hacia abajo. Tarda menos de 2 minutos.
+        Los precios son en <b>dólares</b> y el <b>IVA 22%</b> se suma solo al final.
+      </p>
+
+      <div class="paso">
+        <div class="n">1</div>
+        <div>
+          <h3>Completá los datos del cliente</h3>
+          <p>Arriba de todo: <b>cliente</b>, fecha, entrega, validez y un <b>título</b> que resuma
+          el pedido (ej: «5 notebooks y 5 mouse inalámbricos»). El título es lo primero que
+          lee el cliente.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">2</div>
+        <div>
+          <h3>Buscá los artículos</h3>
+          <p>Botón <b>«+ Buscar en proveedores»</b> → escribí una palabra o el <b>SKU</b> →
+          Enter → <b>«Agregar»</b>. Podés agregar todos los que quieras.</p>
+          <p class="truco"><b>Truco:</b> si no aparece, usá menos palabras. «ssd 512» encuentra
+          más que «disco sólido hikemi 512gb sata». Con el SKU exacto siempre lo encuentra.</p>
+          <p>La tabla muestra el <b>costo</b> y el <b>stock</b> que informa el proveedor.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">3</div>
+        <div>
+          <h3>Poné cantidad y margen</h3>
+          <p>El <b>margen</b> viene en <b>15%</b>, que es el de cliente nuevo. El precio que ve
+          el cliente se calcula solo: <span class="formula">costo × (1 + margen)</span>.</p>
+          <p class="truco"><b>Si el cliente ya es conocido</b>, no cambies el margen por tu
+          cuenta: preguntale a Gabriel qué margen le corresponde.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">4</div>
+        <div>
+          <h3>Opción B (solo si hace falta)</h3>
+          <p>Si querés ofrecer una alternativa (más barata o más potente), cambiá a la
+          pestaña <b>Opción B</b> y agregá los artículos ahí. En el PDF salen las dos
+          opciones para que el cliente elija.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">5</div>
+        <div>
+          <h3>Condiciones y requisitos (opcional)</h3>
+          <p>En <b>Condiciones</b> podés escribir una por línea (garantía, forma de pago,
+          plazo de entrega). Si el cliente pidió requisitos puntuales, agregalos en
+          <b>Cumplimiento de requisitos</b> para que queden en el PDF.</p>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">6</div>
+        <div>
+          <h3>Generá y bajá los 3 PDF</h3>
+          <p>Botón <b>«Generar los 3 PDF»</b>. En un par de segundos aparecen tres botones
+          de descarga: cada uno baja el archivo a tu carpeta de <b>Descargas</b>.</p>
+          <div class="pdfs">
+            <div><b>Cliente</b><span>El que se le manda. Sin costos ni márgenes.</span></div>
+            <div><b>Detalle</b><span>Especificaciones técnicas de cada artículo.</span></div>
+            <div class="interno"><b>INTERNO</b><span>Costos, márgenes y notas. <b>No se manda al cliente.</b></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="paso">
+        <div class="n">7</div>
+        <div>
+          <h3>Empezar otra</h3>
+          <p>Botón <b>«Nueva cotización»</b> abajo a la derecha: borra todo y deja la pantalla
+          limpia para el próximo cliente. Lo que ya generaste queda guardado en el servidor.</p>
+        </div>
+      </div>
+
+      <div class="nota">
+        <b>El dólar no se toca.</b> La app toma sola el <b>dólar venta del BROU del día</b>
+        (lo ves en el chip debajo de los artículos). Si querés que lo consulte de nuevo,
+        tocá <b>«Refrescar»</b>.
+      </div>
+
+      <div class="nota solo-local">
+        <b>Solo en la PC de Gabriel:</b> también están el panel del <b>agente</b> (para pedirle
+        la cotización en castellano), <b>«Registrar en Excel»</b> y <b>«Pegar JSON»</b> para
+        traer una cotización armada por Copilot Studio.
+      </div>
+
+      <div class="nota">
+        <b>Si algo no anda:</b> probá con el SKU o con menos palabras en la búsqueda. Si dice
+        «demasiados intentos», esperá unos minutos. Si la página no carga, avisale a Gabriel.
+      </div>
+    </div>
+    <div class="pie ayuda-pie">
+      <label class="fila" style="font-weight:400;font-size:12px;color:var(--gris)">
+        <input type="checkbox" id="chk-ayuda-inicio" style="width:auto"> Mostrar este tutorial al entrar
+      </label>
+      <button class="primario" id="btn-ayuda-ok" style="margin-left:auto">Entendido</button>
+    </div>
   </div>
 </div>
 

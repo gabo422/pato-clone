@@ -188,3 +188,43 @@ main.sin-agente { grid-template-columns: minmax(0, 1fr); }
   border-top: 1px solid var(--borde); padding: 12px 4px; display: flex; gap: 8px; flex-wrap: wrap;
   backdrop-filter: blur(4px);
 }
+
+/* -------------------------------------------------------------- tutorial -- */
+#modal-ayuda .caja { width: 800px; }
+#ayuda-cuerpo { padding: 16px 22px 20px; }
+.ayuda-intro {
+  margin: 0 0 16px; font-size: 13px; line-height: 1.6; color: var(--gris);
+  background: var(--verde-claro); border-left: 4px solid var(--verde);
+  padding: 10px 12px; border-radius: 5px;
+}
+.paso { display: flex; gap: 12px; margin-bottom: 16px; }
+.paso .n {
+  flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--verde); color: #fff;
+  font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.paso h3 { margin: 2px 0 5px; font-size: 13.5px; color: var(--texto); }
+.paso p { margin: 0 0 6px; font-size: 12.8px; line-height: 1.55; color: #3d4450; }
+.paso p:last-child { margin-bottom: 0; }
+.paso .truco {
+  background: var(--amarillo); border-left: 3px solid #f0a020;
+  padding: 7px 10px; border-radius: 5px; font-size: 12.3px;
+}
+.formula {
+  font-family: Consolas, monospace; font-size: 12px; background: #eef2f0;
+  border-radius: 4px; padding: 1px 6px;
+}
+.pdfs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+.pdfs > div {
+  border: 1px solid var(--borde); border-radius: 7px; padding: 8px 10px;
+  background: #f9fbfa; font-size: 11.8px; line-height: 1.45; color: var(--gris);
+}
+.pdfs > div b { display: block; color: var(--verde-osc); font-size: 12.5px; margin-bottom: 2px; }
+.pdfs > div.interno { background: #fdf3f2; border-color: #f0d5d3; }
+.pdfs > div.interno b { color: var(--rojo); }
+.nota {
+  font-size: 12.3px; line-height: 1.55; color: #3d4450;
+  border: 1px dashed var(--borde); border-radius: 7px; padding: 9px 12px; margin-top: 10px;
+}
+.ayuda-pie { display: flex; align-items: center; gap: 10px; }
+body.compartido .solo-local { display: none; }
+@media (max-width: 720px) { .pdfs { grid-template-columns: 1fr; } }

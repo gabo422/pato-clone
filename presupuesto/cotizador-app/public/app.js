@@ -309,6 +309,15 @@ function enlazar() {
   $('#form-chat').onsubmit = (e) => { e.preventDefault(); enviarChat(); };
   $('#btn-guardar-cfg').onclick = guardarCfg;
   $('#btn-salir').onclick = async () => { await api('/api/logout', { method: 'POST' }); location.reload(); };
+
+  // tutorial
+  $('#btn-ayuda').onclick = abrirAyuda;
+  $('#btn-cerrar-ayuda').onclick = cerrarAyuda;
+  $('#btn-ayuda-ok').onclick = cerrarAyuda;
+  $('#modal-ayuda').onclick = (e) => { if (e.target.id === 'modal-ayuda') cerrarAyuda(); };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#modal-ayuda').classList.contains('oculto')) cerrarAyuda();
+  });
 }
 
 function enlazarLogin() {
@@ -322,6 +331,35 @@ function enlazarLogin() {
       $('#login-err').textContent = err.message;
     }
   };
+}
+
+// --------------------------------------------------------------- tutorial --
+// Se muestra solo la primera vez que entra cada navegador. Si el compañero
+// deja tildado "Mostrar este tutorial al entrar", vuelve a salir siempre.
+const AYUDA_CLAVE = 'coti-ayuda';
+
+function leerAyuda() {
+  try { return localStorage.getItem(AYUDA_CLAVE); } catch { return null; }
+}
+
+function guardarAyuda(valor) {
+  try {
+    if (valor) localStorage.setItem(AYUDA_CLAVE, valor);
+    else localStorage.removeItem(AYUDA_CLAVE);
+  } catch {}
+}
+
+function abrirAyuda() {
+  const chk = $('#chk-ayuda-inicio');
+  if (chk) chk.checked = leerAyuda() === 'siempre';
+  $('#modal-ayuda').classList.remove('oculto');
+  $('#ayuda-cuerpo').scrollTop = 0;
+}
+
+function cerrarAyuda() {
+  const chk = $('#chk-ayuda-inicio');
+  guardarAyuda(chk && chk.checked ? 'siempre' : 'no');
+  $('#modal-ayuda').classList.add('oculto');
 }
 
 // ------------------------------------------------------------------ modales --
@@ -683,6 +721,7 @@ async function init() {
   pintarTodo();
   enlazar();
   aplicarModo();
+  if (leerAyuda() !== 'no') abrirAyuda();
   pintarCambio(false);
 
   try {

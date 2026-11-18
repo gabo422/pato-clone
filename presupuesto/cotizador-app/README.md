@@ -137,6 +137,15 @@ agente, «Registrar en Excel», «Sugerir %» y «Abrir carpeta», porque depend
 Windows/PowerShell. Queda lo que necesitan los compañeros: buscar precios, armar A/B,
 poner el margen a mano y **bajar los 3 PDF**.
 
+### Tutorial para los compañeros
+
+La app trae el tutorial adentro: botón **«? ¿Cómo se usa?»** en la barra de arriba, y
+**se abre solo la primera vez** que cada navegador entra (después no molesta más).
+
+Son 7 pasos con los trucos de la búsqueda y qué PDF se manda al cliente y cuál no
+(el **INTERNO** tiene costos y márgenes: no se manda). El que quiera verlo siempre
+tildá «Mostrar este tutorial al entrar»; para apagarlo del todo, destilda y listo.
+
 ### Descargar los PDF
 
 Al generar, el servidor devuelve tres enlaces con token (valen 2 horas):
