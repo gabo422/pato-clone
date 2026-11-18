@@ -10,7 +10,9 @@ REGLAS DEL NEGOCIO
 - Precio al cliente = costo x (1 + margen). El margen se expresa en % (ej. 0,21 = 21%).
 - IVA 22% se suma al final sobre el subtotal.
 - Margen por defecto para cliente nuevo: 15%. Para clientes con historial usá la herramienta sugerir_margen.
-- Se suelen ofrecer 2 opciones: A (recomendada) y B (alternativa).
+- Se suelen ofrecer 2 opciones: A (recomendada) y B (alternativa). SON ALTERNATIVAS ENTRE SÍ:
+  si es un solo producto, A = un modelo y B = OTRO modelo (nunca los mismos artículos en las dos,
+  y nunca dos modelos distintos del mismo producto dentro de la misma opción).
 - Nunca inventes precios, stock ni SKU: usá buscar_precio / detalle_producto.
 - Antes de generar PDFs, confirmá que cliente, título y artículos estén completos.
 - Después de generar PDFs, ofrecé registrar en el Excel (registrar_excel con dryRun=true primero).
@@ -24,6 +26,14 @@ CÓMO TRABAJAR
 - Si el usuario YA dio todos los datos, hacé todo de corrido: no pidas confirmación de cada paso.
 - Pedí varias herramientas en el mismo turno cuando sean independientes (ej. dos buscar_precio, o dos agregar_item). Ahorra cuota.
 - Cuando ya esté todo cargado y con margen, CERRÁ con un resumen corto (opción, artículos, total con IVA) sin llamar más herramientas. Si el usuario pidió explícitamente no generar PDFs, no los generes.
+
+BUSCAR BIEN (MUY IMPORTANTE)
+- NUNCA le pidas al usuario un modelo, una referencia o un SKU. Vos buscás: él no tiene por qué saberlo.
+- Si el pedido es genérico ("una mother", "un celular", "una notebook"), buscá con la palabra genérica y ofrecé 2-3 opciones REALES del catálogo, de la más barata para arriba.
+- Si pide un modelo que no aparece en el catálogo, NO preguntes: mostrale las opciones más parecidas que sí existan, aclarando que ese modelo exacto no está.
+- Nunca inventes marcas, modelos ni códigos (Z790-A, B760M, etc.): usá SOLO lo que devolvió buscar_precio.
+- NUNCA ofrezcas un artículo con stock 0. Si no hay stock, buscá otra alternativa o decilo.
+- Si no encontrás nada, probá con menos palabras o con el SKU antes de rendirte.
 
 Respondé corto: máximo 10 líneas, sin tablas ni markdown. Si te falta un dato importante, preguntá una sola cosa a la vez. Si el pedido ya se entiende, hacelo directo sin pedir confirmación.`;
 
@@ -42,7 +52,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'buscar_precio',
-      description: 'Busca en el catálogo por texto (ej "notebook i5", "mouse"). Devuelve SKU, título, costo, stock y proveedor.',
+      description: 'Busca en el catálogo por texto (ej "notebook i5", "mouse"). Devuelve SKU, título, costo, stock y proveedor. Los que tienen stock vienen primero: nunca ofrezcas stock 0.',
       parameters: { type: 'object', properties: { texto: { type: 'string' } }, required: ['texto'] },
     },
   },
@@ -85,7 +95,7 @@ const TOOLS = [
     type: 'function',
     function: {
       name: 'agregar_item',
-      description: 'Agrega un artículo a la opción A o B.',
+      description: 'Agrega un artículo a la opción A o B. Rechaza artículos con stock 0.',
       parameters: {
         type: 'object',
         properties: {
@@ -248,10 +258,15 @@ async function ejecutar(name, args, ctx) {
   switch (name) {
     case 'buscar_precio': {
       const r = await nibiru.buscar(args.texto, 20);
+      // Primero los que tienen stock: en el servidor de la red solo se devuelven
+      // 6, así que si no ordenamos el modelo termina ofreciendo artículos con
+      // stock 0 y no puede elegir otra cosa.
+      const conStock = (p) => (Number(p.stock) > 0 ? 1 : 0);
+      const ordenado = r.slice().sort((a, b) => conStock(b) - conStock(a));
       // Cada resultado se reenvía al modelo y consume cuota: en el servidor de la
       // red (cuota compartida) van 6 en vez de 10.
       const n = ctx.compartido ? 6 : 10;
-      return r.slice(0, n).map((p) => ({
+      return ordenado.slice(0, n).map((p) => ({
         sku: p.sku,
         titulo: recorte(p.titulo, ctx.compartido ? 60 : 70),
         costo: p.costo,
@@ -279,6 +294,14 @@ async function ejecutar(name, args, ctx) {
     }
     case 'agregar_item': {
       const op = opcion(quote, args.opcion);
+      const stock = args.stock != null && args.stock !== '' ? Number(args.stock) : null;
+      // No se cotiza lo que no hay: si el catálogo dice stock 0, que el modelo
+      // elija otra alternativa en vez de dejarlo en la cotización.
+      if (stock === 0) {
+        return {
+          error: 'Ese artículo no tiene stock (0). Elegí otra alternativa con stock y volvé a llamar agregar_item.',
+        };
+      }
       const it = {
         titulo: args.titulo,
         detalle: args.detalle || '',
@@ -286,7 +309,7 @@ async function ejecutar(name, args, ctx) {
         costo: Number(args.costo) || 0,
         sku: args.sku || '',
         proveedor: args.proveedor || '',
-        stock: args.stock != null ? args.stock : null,
+        stock,
       };
       if (args.precio != null && args.precio !== '') it.precio = Number(args.precio);
       else it.margen = args.margen != null ? Number(args.margen) : cfg.margenDefault;

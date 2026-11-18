@@ -148,6 +148,10 @@ Eightroom, entrega 48 hs») y:
 3. arma la **opción A** (recomendada) y la **opción B** (alternativa),
 4. deja el margen en **15%** (cliente nuevo) y avisa para tocar «Generar los 3 PDF».
 
+Si el pedido es genérico («una mother», «un celular») **no pregunta modelos ni SKU**:
+busca con la palabra genérica y propone 2 o 3 artículos reales. Nunca ofrece algo con
+**stock 0**.
+
 **Revisá siempre lo que cargó antes de generar.** Los PDF los genera el botón de
 siempre, no el chat (en el servidor el agente no tiene la herramienta de PDF ni la de
 Excel).
