@@ -167,10 +167,15 @@ COTI_IA_DIA=40        # pedidos por IP por día (por defecto 40)
 Al pasarse, el chat responde «llegaste al tope de IA por hoy» y se puede seguir
 cargando a mano. El contador se renueva solo a medianoche.
 
-> El plan gratis de Groq permite **8.000 tokens por minuto** por modelo. Por eso el
-> agente pide `reasoning_effort: low` y devuelve 6 resultados por búsqueda: así una
-> cotización completa entra en la cuota. Si aparece «el proveedor está saturado»,
-> esperá medio minuto y reintentá (el servidor ya reintenta solo hasta 4 veces).
+> El plan gratis de Groq permite **8.000 tokens por minuto** y unos **200.000 tokens
+> por día** por modelo. Una cotización completa gasta entre 7.000 y 15.000 tokens, así
+> que **el equipo entero tiene para unas 15-20 cotizaciones por día**. Cuando se agota,
+> el chat avisa «se acabó la cuota diaria» y se puede seguir cargando a mano; se
+> renueva al día siguiente. Si el equipo lo usa en serio, conviene cargar USD 5 en
+> Groq (Dev Tier): con eso alcanza para muchísimo y desaparecen los topes.
+>
+> Si aparece «el proveedor está saturado» (límite por minuto), esperá medio minuto y
+> reintentá: el servidor ya reintenta solo hasta 4 veces.
 
 ### Tutorial para los compañeros
 

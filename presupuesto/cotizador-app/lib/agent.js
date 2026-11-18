@@ -18,6 +18,9 @@ REGLAS DEL NEGOCIO
 - Después de generar PDFs, ofrecé registrar en el Excel (registrar_excel con dryRun=true primero).
 
 CÓMO TRABAJAR
+0. CANTIDAD: si el pedido dice un número de unidades ("2 mother", "5 notebooks", "3 mouse"),
+   agregá los artículos con cant = ese número. A y B son alternativas del MISMO pedido, así que
+   las dos opciones llevan la misma cantidad. Si no dice cantidad, cant = 1.
 1. Si falta el cliente, preguntalo.
 2. Buscá los productos pedidos y mostrá 2-3 alternativas con costo y stock.
 3. Armá las opciones con agregar_item.
@@ -34,6 +37,15 @@ BUSCAR BIEN (MUY IMPORTANTE)
 - Nunca inventes marcas, modelos ni códigos (Z790-A, B760M, etc.): usá SOLO lo que devolvió buscar_precio.
 - NUNCA ofrezcas un artículo con stock 0. Si no hay stock, buscá otra alternativa o decilo.
 - Si no encontrás nada, probá con menos palabras o con el SKU antes de rendirte.
+
+REQUISITOS TÉCNICOS (slots, formato, capacidad, socket)
+- Si el pedido trae un requisito ("4 slot DDR5", "2 slots", "ATX", "LGA 1700", "hasta 128 GB"),
+  NO lo des por cumplido porque el título lo diga: los títulos del catálogo suelen estar mal.
+- Llamá detalle_producto sobre los candidatos y fijate en la descripción (formato ATX/mATX/EATX,
+  "hasta X GB", cantidad de ranuras). Eso es lo único que vale.
+- Si la descripción no aclara el dato, NO lo inventes: decí "el catálogo no especifica los slots"
+  y ofrecé igual las opciones, aclarando cuál sí lo dice.
+- Nunca repitas "4 x DDR5" como si fueran 4 ranuras si la descripción no lo confirma.
 
 Respondé corto: máximo 10 líneas, sin tablas ni markdown. Si te falta un dato importante, preguntá una sola cosa a la vez. Si el pedido ya se entiende, hacelo directo sin pedir confirmación.`;
 
@@ -279,7 +291,7 @@ async function ejecutar(name, args, ctx) {
       if (!p) return { error: 'SKU no encontrado: ' + args.sku };
       return {
         sku: p.sku, titulo: p.titulo, costo: p.costo, stock: p.stock,
-        proveedor: p.proveedor, descripcion: recorte(p.descripcion || '', 700),
+        proveedor: p.proveedor, descripcion: recorte(p.descripcion || '', 450),
       };
     }
     case 'sugerir_margen': {
@@ -311,7 +323,9 @@ async function ejecutar(name, args, ctx) {
         proveedor: args.proveedor || '',
         stock,
       };
-      if (args.precio != null && args.precio !== '') it.precio = Number(args.precio);
+      // precio 0 o vacío = "no lo puse": se usa el margen. Si no, el ítem quedaba
+      // con precio 0 y el PDF salía en cero (bug visto con gpt-oss-20b).
+      if (args.precio != null && args.precio !== '' && Number(args.precio) > 0) it.precio = Number(args.precio);
       else it.margen = args.margen != null ? Number(args.margen) : cfg.margenDefault;
       op.items.push(it);
       return { ok: true, items: op.items.length };
@@ -428,6 +442,14 @@ async function chat(cfg, messages, tools, intento = 1) {
         espera = Number(m[1]) / (m[2].toLowerCase() === 'ms' ? 1000 : 1);
       }
       espera = Math.min(Math.ceil(espera) + 1, 20);
+      // Cuota DIARIA agotada (el plan gratis da ~200.000 tokens por día y modelo):
+      // no sirve esperar, se renueva recién al día siguiente.
+      if (/tokens per day|TPD/i.test(detalle)) {
+        throw new Error(
+          'Se acabó la cuota diaria de la IA del plan gratis. Se renueva solo mañana; ' +
+            'mientras tanto podés cargar los artículos a mano con «Buscar precio».'
+        );
+      }
       if (intento <= 4) {
         await new Promise((r) => setTimeout(r, (espera || 5) * 1000));
         return chat(cfg, messages, tools, intento + 1);
@@ -437,9 +459,29 @@ async function chat(cfg, messages, tools, intento = 1) {
           'o cargá los artículos a mano. Detalle: ' + detalle
       );
     }
+    if (res.status === 400 && /tool call validation failed|was not in request\.tools/i.test(detalle)) {
+      // Bug conocido de gpt-oss: a veces manda el nombre de la herramienta con
+      // basura del canal de razonamiento ("buscar_precio<|channel|>commentary") y
+      // el proveedor rechaza todo el pedido. Reintentar suele salir bien.
+      if (intento <= 2) {
+        await new Promise((r) => setTimeout(r, 400));
+        return chat(cfg, messages, tools, intento + 1);
+      }
+      throw new Error(
+        'El modelo armó mal una herramienta (falla conocida del plan gratis). Volvé a pedirlo en unos segundos. Detalle: ' + detalle
+      );
+    }
     throw new Error('Modelo: ' + res.status + ' ' + detalle);
   }
-  return JSON.parse(txt);
+  const data = JSON.parse(txt);
+  // Diagnóstico de cuota: con el plan gratis de Groq (8.000 tokens/minuto) conviene
+  // ver cuánto gasta cada turno. Solo se imprime con COTI_DEBUG=1.
+  if (process.env.COTI_DEBUG && data.usage) {
+    const u = data.usage;
+    const razon = (u.completion_tokens_details && u.completion_tokens_details.reasoning_tokens) || 0;
+    console.error('[agente] prompt=' + u.prompt_tokens + ' salida=' + u.completion_tokens + ' (razonamiento=' + razon + ')');
+  }
+  return data;
 }
 
 /**
@@ -455,9 +497,9 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
     ? TOOLS.filter((t) => !['registrar_excel', 'generar_pdfs'].includes(t.function.name))
     : TOOLS;
   // Historial corto: con cuotas gratis, mandar 12 mensajes largos revienta el límite por minuto.
-  for (const h of (historial || []).slice(-6)) {
+  for (const h of (historial || []).slice(-4)) {
     if (h.rol === 'user' || h.rol === 'assistant') {
-      messages.push({ role: h.rol, content: recorte(h.texto, 600) });
+      messages.push({ role: h.rol, content: recorte(h.texto, 400) });
     }
   }
   messages.push({
@@ -467,6 +509,7 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
   });
 
   const acciones = [];
+  let empujones = 0;
   for (let i = 0; i < 6; i++) {
     const data = await chat(cfg, messages, tools);
     const msg = data.choices && data.choices[0] && data.choices[0].message;
@@ -475,7 +518,26 @@ async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
 
     const calls = msg.tool_calls || [];
     if (!calls.length) {
-      return { mensaje: String(msg.content || '').trim(), quote, acciones };
+      const texto = String(msg.content || '').trim();
+      // Bug visto en el plan gratis: a veces el modelo CONTESTA la cotización en
+      // texto (con precios y opciones) pero se olvida de llamar a agregar_item, y
+      // el usuario se queda con el formulario vacío. Un empujón y lo hace.
+      const hablaDeCotizacion = /opci[oó]n|subtotal|iva|total/i.test(texto);
+      const agrego = acciones.some(
+        (a) => a.herramienta === 'agregar_item' && !(a.resultado && a.resultado.error)
+      );
+      if (hablaDeCotizacion && !agrego && empujones < 1) {
+        empujones++;
+        messages.push({
+          role: 'user',
+          content:
+            'Ojo: no llamaste a agregar_item, así que la cotización quedó VACÍA. Si ya elegiste los artículos, ' +
+            'llamá agregar_item ahora (uno por opción, con la cantidad de unidades que pidió el usuario). ' +
+            'Si todavía te falta un dato para elegirlos, preguntá solo eso.',
+        });
+        continue;
+      }
+      return { mensaje: texto, quote, acciones };
     }
 
     for (const call of calls) {
