@@ -50,6 +50,18 @@ function esCompartido() {
   return !!cfg.compartido;
 }
 
+// El agente puede usar un proveedor con API key (Groq/OpenAI) o el servidor
+// local de OpenCode (Big Pickle), que no usa key: se autentica con la clave
+// del servicio guardada en el NAS.
+function usaOpencode() {
+  return String((cfg.agent && cfg.agent.proveedor) || '').toLowerCase() === 'opencode';
+}
+
+function agenteActivo() {
+  if (!cfg.agent) return false;
+  return usaOpencode() || !!cfg.agent.apiKey;
+}
+
 function expand(p) {
   return String(p || '').replace(/%USERPROFILE%/gi, os.homedir()).replace(/%TEMP%/gi, os.tmpdir());
 }
@@ -290,7 +302,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, {
         auth: autorizado(req),
         requierePassword: !!cfg.password,
-        agente: !!(cfg.agent && cfg.agent.apiKey),
+        agente: agenteActivo(),
         compartido: esCompartido(),
         so: process.platform,
       });
@@ -421,16 +433,18 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/agent/status' && req.method === 'GET') {
       return json(res, 200, {
-        activo: !!(cfg.agent && cfg.agent.apiKey),
-        modelo: cfg.agent ? cfg.agent.model : null,
-        proveedor: cfg.agent ? cfg.agent.provider : null,
-        baseUrl: cfg.agent ? cfg.agent.baseUrl : null,
+        activo: agenteActivo(),
+        modelo: cfg.agent ? (usaOpencode() ? 'big-pickle' : cfg.agent.model) : null,
+        proveedor: cfg.agent ? (cfg.agent.proveedor || cfg.agent.provider || null) : null,
+        baseUrl: cfg.agent ? (usaOpencode() ? (cfg.agent.opencode || {}).url : cfg.agent.baseUrl) : null,
       });
     }
 
     if (p === '/api/agent' && req.method === 'POST') {
-      if (!cfg.agent || !cfg.agent.apiKey) {
-        return json(res, 400, { error: 'La IA no está configurada en este servidor (falta agent.apiKey en config.json).' });
+      if (!agenteActivo()) {
+        return json(res, 400, {
+          error: 'La IA no está configurada en este servidor (falta agent.apiKey o agent.proveedor = "opencode" en config.json).',
+        });
       }
       const compartido = esCompartido();
       if (compartido) {
@@ -504,7 +518,7 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         host: cfg.host,
         password: !!cfg.password,
-        agente: !!(cfg.agent && cfg.agent.apiKey),
+        agente: agenteActivo(),
         modelo: cfg.agent.model,
         baseUrl: cfg.agent.baseUrl,
       });
@@ -535,7 +549,8 @@ server.listen(PORT, HOST, () => {
   console.log('  Abrí esto en el navegador:  ' + url);
   if (HOST === '0.0.0.0') console.log('  Escuchando en todas las interfaces (VPN / red local).');
   if (cfg.password) console.log('  Contraseña: la de config.json');
-  if (!cfg.agent.apiKey) console.log('  Agente: sin API key (config.json → agent.apiKey)');
+  if (!agenteActivo()) console.log('  Agente: sin configurar (config.json → agent.apiKey o agent.proveedor)');
+  else if (usaOpencode()) console.log('  Agente: OpenCode / Big Pickle (gratis)');
   console.log('  ---------------------------------------------');
   console.log('  Ctrl+C para cortar.');
   console.log('');

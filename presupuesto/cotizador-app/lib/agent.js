@@ -2,6 +2,9 @@
 // Agente conversacional: usa un modelo con "tool calling" (API compatible OpenAI).
 // El agente NO tiene shell: solo puede tocar la cotizacion a traves de estas herramientas.
 const { docCliente, docDetalle, docInterno, precioItem } = require('./docs');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 const SYSTEM = `Sos el asistente de cotizaciones de ITpro (Montevideo, Uruguay). Trabajás en castellano rioplatense, con voseo, y sos breve y concreto.
 
@@ -388,7 +391,157 @@ async function ejecutar(name, args, ctx) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Proveedor OpenCode (Big Pickle, gratis) como alternativa a Groq.
+//
+// OpenCode expone /api/experimental/generate/text: es one-shot y no tiene
+// herramientas. Acá emulamos el protocolo de tool calling: las herramientas se
+// mandan como JSON dentro del prompt y la respuesta JSON se convierte de vuelta
+// a `tool_calls`. Las herramientas SIGUEN ejecutándose dentro del cotizador;
+// OpenCode solo genera texto (no tiene acceso a archivos ni a la PC).
+//
+// Se activa con agent.proveedor = "opencode" en config.json. Si se acaba la
+// cuota gratis, se usa agent.fallback (compatible OpenAI) para no dejar el bot
+// caído; si no hay fallback, se avisa con un mensaje claro.
+// ---------------------------------------------------------------------------
+class CuotaOpenCodeAgotada extends Error {}
+
+function passwordOpencode(cfg) {
+  const oc = (cfg.agent && cfg.agent.opencode) || {};
+  if (process.env.OPENCODE_PASSWORD) return process.env.OPENCODE_PASSWORD;
+  const archivo = oc.passwordFile || path.join(os.homedir(), '.config', 'opencode', 'service.json');
+  const texto = fs.readFileSync(archivo, 'utf8').trim();
+  if (/\.json$/i.test(archivo)) {
+    const j = JSON.parse(texto);
+    if (!j.password) throw new Error('service.json de OpenCode sin password: ' + archivo);
+    return j.password;
+  }
+  return texto;
+}
+
+function promptOpencode(messages, tools) {
+  const lineas = [
+    'Sos el asistente de cotizaciones de ITpro. Respondé SOLO con un objeto JSON válido,',
+    'sin texto adicional, sin markdown y sin explicaciones. No incluyas razonamiento.',
+    '',
+    'Protocolo:',
+    '- Para llamar UNA herramienta: {"tool":"nombre","args":{"clave":"valor"}}',
+    '- Para responder al usuario: {"text":"respuesta en español rioplatense"}',
+    '- Nunca inventes herramientas ni parámetros fuera de la lista.',
+    '',
+    'Herramientas disponibles (JSON):',
+    JSON.stringify(tools || []),
+    '',
+    'Conversación (los mensajes role=tool son resultados de herramientas ya ejecutadas):',
+  ];
+  for (const m of messages || []) {
+    let contenido = m.content == null ? '' : String(m.content);
+    if (m.tool_calls && m.tool_calls.length) {
+      contenido += '\n[llamadas que hiciste] ' + JSON.stringify(
+        m.tool_calls.map((c) => ({
+          nombre: c.function && c.function.name,
+          args: c.function && c.function.arguments,
+        }))
+      );
+    }
+    if (m.role === 'tool') contenido = '[resultado de ' + (m.tool_call_id || 'herramienta') + '] ' + contenido;
+    lineas.push('<' + (m.role || 'user') + '> ' + contenido + ' </' + (m.role || 'user') + '>');
+  }
+  return lineas.join('\n');
+}
+
+function parsearRespuestaOpencode(texto) {
+  let s = String(texto == null ? '' : texto).trim();
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const ini = s.indexOf('{');
+  const fin = s.lastIndexOf('}');
+  const comoTexto = (contenido) => ({
+    choices: [{ message: { role: 'assistant', content: contenido, tool_calls: [] } }],
+  });
+  if (ini < 0 || fin <= ini) return comoTexto(s); // el modelo ignoró el protocolo: lo tomamos como respuesta
+  let obj;
+  try {
+    obj = JSON.parse(s.slice(ini, fin + 1));
+  } catch {
+    return comoTexto(s);
+  }
+  if (obj && typeof obj.tool === 'string' && obj.tool) {
+    return {
+      choices: [{
+        message: {
+          role: 'assistant',
+          content: null,
+          tool_calls: [{
+            id: 'oc_' + Math.random().toString(36).slice(2, 10),
+            type: 'function',
+            function: { name: obj.tool, arguments: JSON.stringify(obj.args || {}) },
+          }],
+        },
+      }],
+    };
+  }
+  return {
+    choices: [{
+      message: {
+        role: 'assistant',
+        content: String(obj.text != null ? obj.text : obj.respuesta || ''),
+        tool_calls: [],
+      },
+    }],
+  };
+}
+
+async function chatOpencode(cfg, messages, tools) {
+  const oc = (cfg.agent && cfg.agent.opencode) || {};
+  const base = String(oc.url || 'http://127.0.0.1:4096').replace(/\/$/, '');
+  const url = base + '/api/experimental/generate/text';
+  const pass = passwordOpencode(cfg);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + Buffer.from('opencode:' + pass).toString('base64'),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: promptOpencode(messages, tools),
+      model: oc.model || { id: 'big-pickle', providerID: 'opencode' },
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+  const txt = await res.text();
+  if (!res.ok) {
+    let detalle = txt.slice(0, 300);
+    try {
+      const j = JSON.parse(txt);
+      detalle = j.message || j.reason || detalle;
+    } catch {}
+    if (/Free usage limit reached|rate_limit/i.test(detalle)) {
+      throw new CuotaOpenCodeAgotada(detalle);
+    }
+    throw new Error('OpenCode ' + res.status + ': ' + detalle);
+  }
+  let data;
+  try { data = JSON.parse(txt); } catch { throw new Error('OpenCode devolvió una respuesta inesperada: ' + txt.slice(0, 200)); }
+  return parsearRespuestaOpencode(data.text || data.response);
+}
+
 async function chat(cfg, messages, tools, intento = 1) {
+  if (String((cfg.agent && cfg.agent.proveedor) || '').toLowerCase() === 'opencode') {
+    try {
+      return await chatOpencode(cfg, messages, tools);
+    } catch (e) {
+      if (!(e instanceof CuotaOpenCodeAgotada)) throw e;
+      const fb = cfg.agent.fallback;
+      if (!fb || !fb.apiKey) {
+        throw new Error(
+          'Se acabó la cuota gratis de Big Pickle (vuelve en unas horas). ' +
+          'Mientras tanto podés cargar los artículos a mano con «Buscar precio». Detalle: ' + e.message
+        );
+      }
+      if (process.env.COTI_DEBUG) console.error('[agente] Big Pickle sin cuota -> usando fallback');
+      return chat({ ...cfg, agent: fb }, messages, tools, intento);
+    }
+  }
   const base = String(cfg.agent.baseUrl || '').replace(/\/$/, '');
   if (!/^https?:\/\//i.test(base)) {
     throw new Error(
@@ -490,8 +643,9 @@ async function chat(cfg, messages, tools, intento = 1) {
  * Corre el loop de agente. Devuelve { mensaje, quote, acciones }.
  */
 async function correrAgente({ cfg, quote, historial, mensaje, ctx }) {
-  if (!cfg.agent || !cfg.agent.apiKey) {
-    throw new Error('El agente no está configurado: falta la API key en config.json (agent.apiKey).');
+  const usaOpencode = String((cfg.agent && cfg.agent.proveedor) || '').toLowerCase() === 'opencode';
+  if (!cfg.agent || (!cfg.agent.apiKey && !usaOpencode)) {
+    throw new Error('El agente no está configurado: falta agent.apiKey (o agent.proveedor = "opencode").');
   }
   const messages = [{ role: 'system', content: SYSTEM + (ctx.compartido ? SYSTEM_COMPARTIDO : '') }];
   // En el servidor compartido no se ofrecen las herramientas de Windows/Excel.

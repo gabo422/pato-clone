@@ -165,9 +165,11 @@ function docCliente(q, logo, iva, cambio) {
 
   // Solo las opciones que tienen artículos: las pestañas vacías no van al PDF.
   const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  // Con una sola opción no se rotula "Opción A": el presupuesto es uno solo.
+  const unica = opciones.length === 1;
   opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
-    cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
+    if (!unica) cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     if (op.sub) cuerpo += `\n<div class="sub">${esc(op.sub)}</div>`;
     cuerpo += `
 <table>
@@ -239,9 +241,10 @@ function docDetalle(q, logo, iva) {
 <div class="lead">Detalle de cada artículo por unidad. Precios en USD <strong>sin IVA</strong>. Cliente: ${esc(q.cliente)}.</div>`;
 
   const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  const unica = opciones.length === 1;
   opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
-    cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
+    if (!unica) cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     cuerpo += `
 <table>
   <thead><tr><th class="c">#</th><th>Artículo</th><th class="num">Cant.</th><th class="num">Unit. sin IVA</th><th class="num">Subtotal</th></tr></thead>
@@ -282,9 +285,10 @@ function docInterno(q, logo, iva, cambio) {
 <div class="lead">Costos de proveedor, margen y precio de venta.${ref}</div>`;
 
   const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  const unica = opciones.length === 1;
   opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
-    cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
+    if (!unica) cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     cuerpo += `
 <table>
   <thead><tr><th class="c">#</th><th>Artículo</th><th>Proveedor</th><th>SKU</th><th class="num">Stock</th><th class="num">Costo</th><th class="num">Margen</th><th class="num">Precio sin IVA</th><th class="num">Total</th></tr></thead>
