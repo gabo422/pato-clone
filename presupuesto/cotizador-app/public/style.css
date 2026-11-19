@@ -94,9 +94,24 @@ button.mini { padding: 4px 9px; font-size: 12px; }
 button:disabled { opacity: .5; cursor: default; }
 
 /* --------------------------------------------------------------- opciones -- */
-.tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
 .tabs button { border-radius: 7px 7px 0 0; border-bottom: 0; }
 .tabs button.activa { background: var(--verde); color: #fff; border-color: var(--verde); font-weight: 600; }
+.tabs button.nueva { color: var(--verde-osc); border-style: dashed; font-size: 12px; }
+.tabs button.nueva:hover { background: var(--verde-claro); }
+.tabs .quitar {
+  display: inline-block; margin-left: 6px; padding: 0 4px; border-radius: 4px;
+  font-weight: 700; line-height: 1.3; opacity: .7;
+}
+.tabs .quitar:hover { background: rgba(0,0,0,.18); opacity: 1; }
+.totales .comparativa {
+  display: flex; gap: 8px; width: 100%; justify-content: flex-end;
+  font-size: 12px; color: var(--gris);
+}
+.totales .comparativa span { cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.totales .comparativa span:hover { background: var(--verde-claro); }
+.totales .comparativa span.sel { background: var(--verde-claro); color: var(--verde-osc); font-weight: 600; }
+.totales .comparativa b { color: var(--texto); }
 
 table.items { width: 100%; border-collapse: collapse; }
 table.items th {

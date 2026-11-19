@@ -145,8 +145,13 @@ Eightroom, entrega 48 hs») y:
 
 1. busca los precios reales en Nibiru (no inventa nada),
 2. completa cliente, título y condiciones,
-3. arma la **opción A** (recomendada) y la **opción B** (alternativa),
+3. arma la **opción A** (recomendada) y, si hay alternativa, la **opción B**; si pedís
+   más, agrega **C, D…** (cada una es una pestaña),
 4. deja el margen en **15%** (cliente nuevo) y avisa para tocar «Generar los 3 PDF».
+
+Las opciones son **pestañas**: arriba de la tabla arranca solo la **Opción A** y las
+demás se agregan con **«+ Opción»**. La **×** borra la pestaña activa. Los PDF salen
+**solo con las opciones que tienen artículos** (una pestaña vacía no aparece).
 
 Si el pedido es genérico («una mother», «un celular») **no pregunta modelos ni SKU**:
 busca con la palabra genérica y propone 2 o 3 artículos reales. Nunca ofrece algo con

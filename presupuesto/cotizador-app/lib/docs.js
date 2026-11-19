@@ -163,7 +163,9 @@ const leadTexto = (q) =>
 function docCliente(q, logo, iva, cambio) {
   let cuerpo = `<h1>${esc(q.titulo || 'Presupuesto')}</h1>\n<div class="lead">${leadTexto(q)}</div>`;
 
-  (q.opciones || []).forEach((op, idx) => {
+  // Solo las opciones que tienen artículos: las pestañas vacías no van al PDF.
+  const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
     cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     if (op.sub) cuerpo += `\n<div class="sub">${esc(op.sub)}</div>`;
@@ -195,13 +197,17 @@ function docCliente(q, logo, iva, cambio) {
   });
 
   if ((q.cumplimiento || []).length) {
+    // Una columna por opción que realmente sale en el PDF (las vacías no cuentan).
+    let letras = (q.opciones || []).filter((op) => (op.items || []).length).map((op) => String(op.letra).toUpperCase());
+    if (!letras.length) letras = (q.opciones || []).map((op) => String(op.letra).toUpperCase());
     cuerpo += `\n<h2 class="grey">Cumplimiento de las especificaciones solicitadas</h2>\n<table>
-  <thead><tr><th>Requisito</th><th>Opción A</th><th>Opción B</th><th>Estado</th></tr></thead>
+  <thead><tr><th>Requisito</th>${letras.map((l) => `<th>Opción ${esc(l)}</th>`).join('')}<th>Estado</th></tr></thead>
   <tbody>`;
     for (const c of q.cumplimiento) {
       const estado = String(c.estado || 'Cumple');
       const warn = /no cumple|parcial|revisar/i.test(estado);
-      cuerpo += `\n    <tr><td>${esc(c.req)}</td><td>${esc(c.a)}</td><td>${esc(c.b)}</td><td><span class="badge${warn ? ' warn' : ''}">${esc(estado)}</span></td></tr>`;
+      const celdas = letras.map((l) => `<td>${esc(c[l.toLowerCase()])}</td>`).join('');
+      cuerpo += `\n    <tr><td>${esc(c.req)}</td>${celdas}<td><span class="badge${warn ? ' warn' : ''}">${esc(estado)}</span></td></tr>`;
     }
     cuerpo += `\n  </tbody>\n</table>`;
   }
@@ -232,7 +238,8 @@ function docDetalle(q, logo, iva) {
   let cuerpo = `<h1>${esc(q.titulo || 'Detalle del presupuesto')}</h1>
 <div class="lead">Detalle de cada artículo por unidad. Precios en USD <strong>sin IVA</strong>. Cliente: ${esc(q.cliente)}.</div>`;
 
-  (q.opciones || []).forEach((op, idx) => {
+  const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
     cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     cuerpo += `
@@ -274,7 +281,8 @@ function docInterno(q, logo, iva, cambio) {
   let cuerpo = `<h1>Confirmación de costos — ${esc(q.titulo || 'Presupuesto')}</h1>
 <div class="lead">Costos de proveedor, margen y precio de venta.${ref}</div>`;
 
-  (q.opciones || []).forEach((op, idx) => {
+  const opciones = (q.opciones || []).filter((op) => (op.items || []).length);
+  opciones.forEach((op, idx) => {
     const cls = idx === 0 ? '' : ' class="alt"';
     cuerpo += `\n<h2${cls}>Opción ${esc(op.letra)}${op.etiqueta ? ' — ' + esc(op.etiqueta) : ''}</h2>`;
     cuerpo += `

@@ -54,10 +54,9 @@ const estadoVacio = () => ({
   entrega: '24 a 72 hs',
   validez: '7 días',
   lead: '',
-  opciones: [
-    { letra: 'A', etiqueta: 'Recomendada', sub: '', items: [] },
-    { letra: 'B', etiqueta: 'Alternativa', sub: '', items: [] },
-  ],
+  // Arranca con UNA sola opción. Las demás (B, C, D…) se agregan a mano con el
+  // botón «+ Opción» de las pestañas, así no queda una opción B vacía en el PDF.
+  opciones: [{ letra: 'A', etiqueta: 'Recomendada', sub: '', items: [] }],
   cumplimiento: [],
   condiciones: [
     'Precios expresados en USD sin IVA, por unidad. El IVA 22% se aplica sobre el subtotal.',
@@ -74,8 +73,13 @@ function cargar() {
     const raw = localStorage.getItem('cotizador.quote');
     if (raw) {
       const q = JSON.parse(raw);
-      q.opciones = q.opciones || [];
+      q.opciones = (q.opciones || []).filter((o) => o && o.letra);
       if (!q.opciones.length) q.opciones = estadoVacio().opciones;
+      // Los borradores viejos traían siempre una opción B vacía. Ahora las opciones
+      // se agregan a mano: si la B no tiene nada, se saca.
+      if (q.opciones.length > 1) {
+        q.opciones = q.opciones.filter((o) => (o.items || []).length || o.letra === 'A');
+      }
       // Los borradores viejos traían el dólar escrito a mano (41,25). Ahora el
       // cotizador pone el BROU venta del día, así que se saca para no mostrar
       // un valor viejo en el formulario.
@@ -135,13 +139,74 @@ function pintarTodo() {
 
 function pintarTabs() {
   const cont = $('#tabs');
-  cont.innerHTML = quote.opciones.map((op) => {
-    const t = totales(op);
-    return `<button data-tab="${op.letra}" class="${op.letra === opcionActiva ? 'activa' : ''}">
-      Opción ${op.letra} <span style="opacity:.75">(${op.items.length} ítem${op.items.length === 1 ? '' : 's'} · USD ${money(t.total)})</span>
+  const varias = quote.opciones.length > 1;
+  cont.innerHTML =
+    quote.opciones
+      .map((op) => {
+        const t = totales(op);
+        const n = op.items.length;
+        const detalle = n ? `${n} ítem${n === 1 ? '' : 's'} · USD ${money(t.total)}` : 'vacía';
+        const activa = op.letra === opcionActiva;
+        const quitar = varias && activa
+          ? `<span class="quitar" data-quitar="${op.letra}" title="Quitar la opción ${op.letra}">×</span>`
+          : '';
+        return `<button data-tab="${op.letra}" class="${activa ? 'activa' : ''}">
+      Opción ${op.letra} <span style="opacity:.75">(${detalle})</span>${quitar}
     </button>`;
-  }).join('');
-  $$('#tabs button').forEach((b) => b.onclick = () => { opcionActiva = b.dataset.tab; pintarTabs(); pintarItems(); pintarTotales(); });
+      })
+      .join('') + `<button class="nueva" id="btn-nueva-opcion" title="Agregar otra opción (B, C, D…)">+ Opción</button>`;
+
+  $$('#tabs button[data-tab]').forEach((b) => {
+    b.onclick = (e) => {
+      if (e.target.dataset && e.target.dataset.quitar) return;
+      opcionActiva = b.dataset.tab;
+      pintarTabs();
+      pintarItems();
+      pintarTotales();
+    };
+  });
+  $$('#tabs [data-quitar]').forEach((x) => {
+    x.onclick = (e) => {
+      e.stopPropagation();
+      quitarOpcion(x.dataset.quitar);
+    };
+  });
+  $('#btn-nueva-opcion').onclick = agregarOpcion;
+}
+
+// Letra libre siguiente: A, B, C… (nunca repite una que ya exista).
+function letraLibre() {
+  const usadas = quote.opciones.map((o) => String(o.letra).toUpperCase());
+  for (let i = 0; i < 26; i++) {
+    const l = String.fromCharCode(65 + i);
+    if (!usadas.includes(l)) return l;
+  }
+  return String.fromCharCode(65 + quote.opciones.length);
+}
+
+function agregarOpcion() {
+  const letra = letraLibre();
+  const etiqueta = letra === 'A' ? 'Recomendada' : letra === 'B' ? 'Alternativa' : 'Opción ' + letra;
+  quote.opciones.push({ letra, etiqueta, sub: '', items: [] });
+  quote.opciones.sort((a, b) => String(a.letra).localeCompare(String(b.letra)));
+  opcionActiva = letra;
+  pintarTabs();
+  pintarItems();
+  pintarTotales();
+  guardar();
+}
+
+function quitarOpcion(letra) {
+  if (quote.opciones.length <= 1) return;
+  const op = quote.opciones.find((o) => o.letra === letra);
+  if (!op) return;
+  if (op.items.length && !confirm(`¿Borrar la opción ${letra} con sus ${op.items.length} artículo(s)?`)) return;
+  quote.opciones = quote.opciones.filter((o) => o.letra !== letra);
+  if (!quote.opciones.some((o) => o.letra === opcionActiva)) opcionActiva = quote.opciones[0].letra;
+  pintarTabs();
+  pintarItems();
+  pintarTotales();
+  guardar();
 }
 
 function pintarItems() {
@@ -210,13 +275,30 @@ function pintarItems() {
 
 function pintarTotales() {
   const cont = $('#totales');
-  cont.innerHTML = quote.opciones.map((op) => {
-    const t = totales(op);
-    return `
+  const op = opcion(opcionActiva);
+  const t = totales(op);
+  const comparativa =
+    quote.opciones.length > 1
+      ? `<div class="comparativa">${quote.opciones
+          .map((o) => {
+            const tt = totales(o);
+            return `<span data-tab="${o.letra}" class="${o.letra === op.letra ? 'sel' : ''}">Opción ${o.letra}: <b>USD ${money(tt.total)}</b></span>`;
+          })
+          .join('')}</div>`
+      : '';
+  cont.innerHTML = `
+      ${comparativa}
       <div>Opción ${op.letra} · subtotal<b>USD ${money(t.sub)}</b></div>
       <div>IVA 22%<b>USD ${money(t.iva)}</b></div>
       <div class="final">Total ${op.letra}<b>USD ${money(t.total)}</b></div>`;
-  }).join('');
+  $$('#totales .comparativa span').forEach((s) => {
+    s.onclick = () => {
+      opcionActiva = s.dataset.tab;
+      pintarTabs();
+      pintarItems();
+      pintarTotales();
+    };
+  });
   $('#acc-items').textContent = 'Margen sugerido: ' + Math.round(margenSugerido * 100) + '%';
 }
 
@@ -226,18 +308,31 @@ function pintarCumplimiento() {
     cont.innerHTML = '<div class="vacio" style="padding:8px">Sin filas. Agregá requisitos si el cliente los pidió.</div>';
     return;
   }
+  // Una columna por opción que exista (A, B, C…). Las filas guardan el valor en
+  // la clave de la letra en minúscula: c.a, c.b, c.c…
+  const letras = quote.opciones.map((o) => String(o.letra).toUpperCase());
   cont.innerHTML = `
   <table class="items">
-    <thead><tr><th>Requisito</th><th>Opción A</th><th>Opción B</th><th style="width:110px">Estado</th><th></th></tr></thead>
+    <thead><tr><th>Requisito</th>${letras
+      .map((l) => `<th>Opción ${l}</th>`)
+      .join('')}<th style="width:110px">Estado</th><th></th></tr></thead>
     <tbody>
-    ${quote.cumplimiento.map((c, i) => `
+    ${quote.cumplimiento
+      .map(
+        (c, i) => `
       <tr data-r="${i}">
         <td><input data-rc="req" value="${escAttr(c.req)}"></td>
-        <td><input data-rc="a" value="${escAttr(c.a)}"></td>
-        <td><input data-rc="b" value="${escAttr(c.b)}"></td>
+        ${letras
+          .map((l) => {
+            const k = l.toLowerCase();
+            return `<td><input data-rc="${k}" value="${escAttr(c[k])}"></td>`;
+          })
+          .join('')}
         <td><input data-rc="estado" value="${escAttr(c.estado || 'Cumple')}"></td>
         <td class="del"><button data-rdel="${i}">×</button></td>
-      </tr>`).join('')}
+      </tr>`
+      )
+      .join('')}
     </tbody>
   </table>`;
   cont.querySelectorAll('input[data-rc]').forEach((inp) => {

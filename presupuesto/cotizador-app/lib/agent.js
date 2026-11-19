@@ -13,6 +13,8 @@ REGLAS DEL NEGOCIO
 - Se suelen ofrecer 2 opciones: A (recomendada) y B (alternativa). SON ALTERNATIVAS ENTRE SÍ:
   si es un solo producto, A = un modelo y B = OTRO modelo (nunca los mismos artículos en las dos,
   y nunca dos modelos distintos del mismo producto dentro de la misma opción).
+- Si el usuario pide MÁS alternativas, agregá C, D… (agregar_item con opcion: "C"). No inventes
+  opciones de más: si no las pide, quedan A y B.
 - Nunca inventes precios, stock ni SKU: usá buscar_precio / detalle_producto.
 - Antes de generar PDFs, confirmá que cliente, título y artículos estén completos.
 - Después de generar PDFs, ofrecé registrar en el Excel (registrar_excel con dryRun=true primero).
@@ -197,7 +199,7 @@ function opcion(quote, letra) {
   const l = String(letra || 'A').trim().toUpperCase().slice(0, 1) || 'A';
   let op = (quote.opciones || []).find((o) => String(o.letra).toUpperCase() === l);
   if (!op) {
-    op = { letra: l, etiqueta: l === 'A' ? 'Recomendada' : 'Alternativa', items: [] };
+    op = { letra: l, etiqueta: l === 'A' ? 'Recomendada' : l === 'B' ? 'Alternativa' : 'Opción ' + l, items: [] };
     quote.opciones = quote.opciones || [];
     quote.opciones.push(op);
     quote.opciones.sort((a, b) => String(a.letra).localeCompare(String(b.letra)));
