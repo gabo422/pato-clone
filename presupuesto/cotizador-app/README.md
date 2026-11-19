@@ -99,6 +99,35 @@ aplicar márgenes, generar los PDF y registrar en el Excel. No tiene acceso a na
 2. En el panel del agente abrí **«Configuración del agente»**, pegá la key, el modelo y la URL, y
    guardá. El cartel de arriba pasa a «Agente activo».
 
+### Opción sin API key: OpenCode local (Big Pickle)
+
+En el mini PC ya está instalado OpenCode y escuchando en `http://127.0.0.1:4096` (solo localhost).
+Big Pickle es gratis y **no necesita key**: el cotizador se autentica con la clave del servicio
+guardada en `/opt/cotizador/opencode-password.txt`. Para usarlo, `config.json` lleva:
+
+```json
+"agent": {
+  "proveedor": "opencode",
+  "opencode": {
+    "url": "http://127.0.0.1:4096",
+    "passwordFile": "/opt/cotizador/opencode-password.txt",
+    "model": { "id": "big-pickle", "providerID": "opencode" }
+  },
+  "fallback": {
+    "baseUrl": "https://api.groq.com/openai/v1",
+    "apiKey": "...",
+    "model": "openai/gpt-oss-120b",
+    "reasoning": "low"
+  }
+}
+```
+
+El adaptador (`lib/agent.js`) convierte las herramientas a un prompt y la respuesta JSON de
+OpenCode de vuelta a `tool_calls`; **las herramientas siguen ejecutándose dentro del cotizador**,
+OpenCode solo genera texto. Si se acaba la cuota gratis (da `429 Free usage limit reached`), se
+usa `agent.fallback` automáticamente; sacá el fallback si querés que no se use Groq bajo ningún
+concepto. Instalación: `deploy\INSTALAR-OPENCODE-NAS.bat` (doble clic, pide la clave SSH de `coti`).
+
 **Cuánto cuesta:** con las opciones gratis, **nada** (sólo el límite diario). Con las pagas, una
 cotización típica son ~4-8 llamadas chicas: del orden de **centavos de dólar** (menos de USD 0,01).
 No hay costo mensual.
@@ -343,5 +372,5 @@ Dos formas:
 - Historial dentro de la app (ver cotizaciones anteriores sin abrir el Excel).
 - Vista previa del PDF antes de generarlo.
 - Login por usuario (hoy hay una sola contraseña compartida).
-- Embeber OpenCode (en vez de la API directa) para usar modelos gratis: se puede, pero requiere
-  correr OpenCode headless y le da herramientas de sistema — no recomendado para acceso remoto.
+- OpenCode local ya implementado (ver §3): usar Big Pickle sin fallback requiere esperar a que se
+  renueve la cuota gratis; para que no se corte nunca, hace falta un plan pago o una key propia.
