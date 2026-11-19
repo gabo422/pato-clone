@@ -92,12 +92,21 @@ function normalizar(quote) {
   out.opciones = (Array.isArray(q.opciones) ? q.opciones : []).map(normalizarOp);
   if (!out.opciones.length && Array.isArray(q.items)) out.opciones = [normalizarOp({ letra: 'A', items: q.items }, 0)];
   out.opciones = out.opciones.filter((o) => o.items.length || out.opciones.length === 1);
-  out.cumplimiento = (Array.isArray(q.cumplimiento) ? q.cumplimiento : []).map((c) => ({
-    req: texto(c && (c.req || c.requisito)),
-    a: texto(c && (c.a || c.opcionA)),
-    b: texto(c && (c.b || c.opcionB)),
-    estado: texto((c && (c.estado || c.status)) || 'Cumple'),
-  })).filter((c) => c.req);
+  out.cumplimiento = (Array.isArray(q.cumplimiento) ? q.cumplimiento : []).map((c) => {
+    const o = {
+      req: texto(c && (c.req || c.requisito)),
+      a: texto(c && (c.a || c.opcionA)),
+      b: texto(c && (c.b || c.opcionB)),
+      estado: texto((c && (c.estado || c.status)) || 'Cumple'),
+    };
+    // Opciones C, D… del cuadro de cumplimiento: se copian tal cual vengan,
+    // si no la columna sale vacía en el PDF (docs.js arma una columna por letra).
+    for (const k of ['c', 'd', 'e', 'f', 'g', 'h']) {
+      const v = c && (c[k] || c['opcion' + k.toUpperCase()]);
+      if (v != null && v !== '') o[k] = texto(v);
+    }
+    return o;
+  }).filter((c) => c.req);
   out.condiciones = lista(q.condiciones);
   out.notasInternas = lista(q.notasInternas || q.notas);
   return out;
