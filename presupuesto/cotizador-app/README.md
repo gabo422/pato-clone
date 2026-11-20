@@ -99,11 +99,11 @@ aplicar márgenes, generar los PDF y registrar en el Excel. No tiene acceso a na
 2. En el panel del agente abrí **«Configuración del agente»**, pegá la key, el modelo y la URL, y
    guardá. El cartel de arriba pasa a «Agente activo».
 
-### Opción sin API key: OpenCode local (Big Pickle)
+### Opción sin API key: OpenCode local (Big Pickle + DeepSeek)
 
 En el mini PC ya está instalado OpenCode y escuchando en `http://127.0.0.1:4096` (solo localhost).
-Big Pickle es gratis y **no necesita key**: el cotizador se autentica con la clave del servicio
-guardada en `/opt/cotizador/opencode-password.txt`. Para usarlo, `config.json` lleva:
+Big Pickle y DeepSeek V4.1 Flash son gratis y **no necesitan key**: el cotizador se autentica con
+la clave del servicio guardada en `/opt/cotizador/opencode-password.txt`. Config actual del NAS:
 
 ```json
 "agent": {
@@ -114,19 +114,22 @@ guardada en `/opt/cotizador/opencode-password.txt`. Para usarlo, `config.json` l
     "model": { "id": "big-pickle", "providerID": "opencode" }
   },
   "fallback": {
-    "baseUrl": "https://api.groq.com/openai/v1",
-    "apiKey": "...",
-    "model": "openai/gpt-oss-120b",
-    "reasoning": "low"
+    "proveedor": "opencode",
+    "opencode": {
+      "url": "http://127.0.0.1:4096",
+      "passwordFile": "/opt/cotizador/opencode-password.txt",
+      "model": { "id": "deepseek-v4.1-flash-free", "providerID": "opencode", "variant": "low" }
+    }
   }
 }
 ```
 
 El adaptador (`lib/agent.js`) convierte las herramientas a un prompt y la respuesta JSON de
 OpenCode de vuelta a `tool_calls`; **las herramientas siguen ejecutándose dentro del cotizador**,
-OpenCode solo genera texto. Si se acaba la cuota gratis (da `429 Free usage limit reached`), se
-usa `agent.fallback` automáticamente; sacá el fallback si querés que no se use Groq bajo ningún
-concepto. Instalación: `deploy\INSTALAR-OPENCODE-NAS.bat` (doble clic, pide la clave SSH de `coti`).
+OpenCode solo genera texto. Si Big Pickle se queda sin cuota (`429 Free usage limit reached`), se
+prueba DeepSeek automáticamente. Los modelos gratis de OpenCode **comparten la misma cuota**, así
+que si los dos están cortados el bot avisa y no hay proveedor de respaldo (Groq fue removido).
+Instalación: `deploy\INSTALAR-OPENCODE-NAS.bat` (doble clic, pide la clave SSH de `coti`).
 
 **Cuánto cuesta:** con las opciones gratis, **nada** (sólo el límite diario). Con las pagas, una
 cotización típica son ~4-8 llamadas chicas: del orden de **centavos de dólar** (menos de USD 0,01).
@@ -372,5 +375,6 @@ Dos formas:
 - Historial dentro de la app (ver cotizaciones anteriores sin abrir el Excel).
 - Vista previa del PDF antes de generarlo.
 - Login por usuario (hoy hay una sola contraseña compartida).
-- OpenCode local ya implementado (ver §3): usar Big Pickle sin fallback requiere esperar a que se
-  renueve la cuota gratis; para que no se corte nunca, hace falta un plan pago o una key propia.
+- OpenCode local ya implementado (ver §3): Big Pickle y DeepSeek free comparten cupo, así que cuando
+  se agota el bot queda avisando hasta que se renueve. Para que no se corte nunca hace falta un plan
+  pago (OpenCode Go) o una key propia como respaldo.

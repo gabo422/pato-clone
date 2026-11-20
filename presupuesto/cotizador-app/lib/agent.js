@@ -531,14 +531,24 @@ async function chat(cfg, messages, tools, intento = 1) {
       return await chatOpencode(cfg, messages, tools);
     } catch (e) {
       if (!(e instanceof CuotaOpenCodeAgotada)) throw e;
+      const sinCuota =
+        'Se acabó la cuota gratis de OpenCode (vuelve en unas horas). ' +
+        'Mientras tanto podés cargar los artículos a mano con «Buscar precio». Detalle: ' + e.message;
       const fb = cfg.agent.fallback;
-      if (!fb || !fb.apiKey) {
-        throw new Error(
-          'Se acabó la cuota gratis de Big Pickle (vuelve en unas horas). ' +
-          'Mientras tanto podés cargar los artículos a mano con «Buscar precio». Detalle: ' + e.message
-        );
+      if (!fb) throw new Error(sinCuota);
+      // El fallback puede ser OTRO MODELO GRATIS del mismo OpenCode (DeepSeek),
+      // que no necesita API key; o un proveedor compatible OpenAI (Groq, etc.).
+      if (String(fb.proveedor || '').toLowerCase() === 'opencode') {
+        if (process.env.COTI_DEBUG) console.error('[agente] Big Pickle sin cuota -> probando DeepSeek por OpenCode');
+        try {
+          return await chatOpencode({ agent: { opencode: fb.opencode || fb } }, messages, tools);
+        } catch (e2) {
+          if (e2 instanceof CuotaOpenCodeAgotada) throw new Error(sinCuota + ' (el fallback de OpenCode también está sin cuota)');
+          throw e2;
+        }
       }
-      if (process.env.COTI_DEBUG) console.error('[agente] Big Pickle sin cuota -> usando fallback');
+      if (!fb.apiKey) throw new Error(sinCuota);
+      if (process.env.COTI_DEBUG) console.error('[agente] Big Pickle sin cuota -> usando fallback con API key');
       return chat({ ...cfg, agent: fb }, messages, tools, intento);
     }
   }
